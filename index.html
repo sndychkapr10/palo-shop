@@ -86,10 +86,24 @@
             margin-left: auto;
         }
 
-        .admin-link {
+        /* Скрытая ссылка на админку (появляется только после секретного клика) */
+        .admin-link-hidden {
             margin-top: auto;
             font-size: 0.85rem;
+            opacity: 0;
+            cursor: pointer;
+            transition: opacity 0.3s;
+            text-align: center;
+            padding: 0.5rem;
+            border-radius: 20px;
+            background: rgba(0,0,0,0.05);
+        }
+        .admin-link-hidden.visible {
             opacity: 0.7;
+        }
+        .admin-link-hidden.visible:hover {
+            opacity: 1;
+            background: rgba(0,0,0,0.1);
         }
 
         .main-content {
@@ -175,7 +189,7 @@
             color: #1f2f3e;
         }
 
-        .modal, .order-modal {
+        .modal, .order-modal, .admin-auth-modal {
             display: none;
             position: fixed;
             top: 0;
@@ -189,7 +203,7 @@
             align-items: center;
         }
 
-        .modal-content, .order-modal-content {
+        .modal-content, .order-modal-content, .admin-auth-content {
             background: #fffefc;
             border-radius: 40px;
             max-width: 1300px;
@@ -198,8 +212,18 @@
             position: relative;
         }
 
-        .order-modal-content {
-            max-width: 550px;
+        .order-modal-content, .admin-auth-content {
+            max-width: 450px;
+            text-align: center;
+        }
+
+        .admin-auth-content input {
+            width: 100%;
+            padding: 0.8rem;
+            margin: 1rem 0;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 1rem;
         }
 
         .close-modal {
@@ -390,20 +414,70 @@
         <div class="nav-links">
             <a onclick="navigate('home')">🏠 <span>Магазин</span></a>
             <a onclick="navigate('cart')">🛒 <span>Корзина</span> <span class="cart-badge" id="cart-count">0</span></a>
-            <a onclick="navigate('admin')">⚙️ <span>Админ</span></a>
         </div>
-        <div class="admin-link">✨ 3 ракурса + оплата</div>
+        <!-- Скрытая ссылка на админку. Чтобы показать: 5 раз кликнуть по логотипу -->
+        <div id="adminSecretLink" class="admin-link-hidden" onclick="showAdminAuth()">🔒 <span>Админ</span></div>
     </aside>
     <main class="main-content" id="app"></main>
 </div>
 <div id="toast" class="toast"></div>
 
 <script>
-    // ========== НАСТРОЙКИ TELEGRAM (УЖЕ ВСТАВЛЕНЫ) ==========
+    // ========== НАСТРОЙКИ ==========
     const TELEGRAM_BOT_TOKEN = '8952904352:AAHZNVrRWMWSgi7ye1Ftc0QGFYsEo31o-_k';
     const TELEGRAM_CHAT_ID = '5820655432';
-    // =========================================================
+    const ADMIN_PASSWORD = 'admin123';  // Пароль для входа в админку
+    
+    let isAdminAuthenticated = false;
+    let clickCount = 0;
+    let clickTimer = null;
 
+    // ========== СЕКРЕТНЫЙ ПОКАЗ АДМИНКИ (5 кликов по логотипу) ==========
+    function showSecretAdminLink() {
+        const adminLink = document.getElementById('adminSecretLink');
+        adminLink.classList.add('visible');
+        showToast('🔓 Секретная панель активирована');
+    }
+
+    // Логика для логотипа
+    document.querySelector('.logo').addEventListener('click', function() {
+        clickCount++;
+        clearTimeout(clickTimer);
+        clickTimer = setTimeout(() => { clickCount = 0; }, 1000);
+        if (clickCount >= 5) {
+            clickCount = 0;
+            showSecretAdminLink();
+        }
+    });
+
+    // ========== ЗАЩИТА АДМИНКИ ==========
+    function showAdminAuth() {
+        if (isAdminAuthenticated) {
+            navigate('admin');
+            return;
+        }
+        document.getElementById('adminAuthModal').style.display = 'flex';
+    }
+
+    function closeAdminAuth() {
+        document.getElementById('adminAuthModal').style.display = 'none';
+        document.getElementById('adminPassword').value = '';
+    }
+
+    function checkAdminPassword() {
+        const password = document.getElementById('adminPassword').value;
+        if (password === ADMIN_PASSWORD) {
+            isAdminAuthenticated = true;
+            closeAdminAuth();
+            showToast('✅ Доступ разрешён');
+            navigate('admin');
+        } else {
+            showToast('❌ Неверный пароль');
+            document.getElementById('adminPassword').value = '';
+        }
+    }
+
+    // ========== ОСТАЛЬНОЙ КОД МАГАЗИНА ==========
     const defaultProducts = [
         { id: 1, name: "Кепка", price: 1500, desc: "Хлопок, козырёк", frontImg: "", sideImg: "", mannequinImg: "", emoji: "🧢" },
         { id: 2, name: "Футболка", price: 1900, desc: "Джерси, белый", frontImg: "", sideImg: "", mannequinImg: "", emoji: "👕" },
@@ -420,7 +494,6 @@
     function addToCart(id) { let cart = getCart(); const ex = cart.find(i=>i.id===id); ex ? ex.qty++ : cart.push({id,qty:1}); saveCart(cart); showToast('✓ В корзине'); }
     function removeFromCart(id) { let cart = getCart(); cart = cart.filter(i=>i.id!==id); saveCart(cart); navigate('cart'); }
 
-    // ========== ОТПРАВКА ЗАКАЗА В TELEGRAM ==========
     function sendOrderToTelegram(orderDetails, totalAmount, customerData) {
         const text = `🛍️ НОВЫЙ ЗАКАЗ PALO\n\n` +
                     `👤 Имя: ${customerData.name}\n` +
@@ -430,60 +503,37 @@
                     `📦 Состав заказа:\n${orderDetails}\n\n` +
                     `💰 ИТОГО: ${totalAmount.toLocaleString()} ₽\n\n` +
                     `🕐 ${new Date().toLocaleString()}`;
-        
         fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({chat_id: TELEGRAM_CHAT_ID, text: text})
-        })
-        .then(response => response.json())
-        .then(data => {
+        }).then(response => response.json()).then(data => {
             if (data.ok) {
                 showToast('✅ Заказ отправлен! Мы свяжемся с вами');
                 localStorage.removeItem('palo_cart_h');
                 updateCartCount();
                 setTimeout(() => navigate('home'), 1500);
             } else {
-                showToast('❌ Ошибка отправки. Попробуйте позже');
+                showToast('❌ Ошибка отправки');
             }
-        })
-        .catch(error => {
-            console.error('Ошибка:', error);
-            showToast('❌ Ошибка отправки заказа');
-        });
-        return true;
+        }).catch(() => showToast('❌ Ошибка отправки'));
     }
 
-    // ========== МОДАЛЬНОЕ ОКНО ОФОРМЛЕНИЯ ЗАКАЗА ==========
     function openOrderModal() {
-        const cart = getCart();
-        if (cart.length === 0) {
-            showToast('Корзина пуста');
-            return;
-        }
+        if (getCart().length === 0) { showToast('Корзина пуста'); return; }
         document.getElementById('orderModal').style.display = 'flex';
     }
-
-    function closeOrderModal() {
-        document.getElementById('orderModal').style.display = 'none';
-    }
-
+    function closeOrderModal() { document.getElementById('orderModal').style.display = 'none'; }
     function submitOrder() {
         const name = document.getElementById('orderName').value.trim();
         const phone = document.getElementById('orderPhone').value.trim();
         const address = document.getElementById('orderAddress').value.trim();
         const delivery = document.getElementById('orderDelivery').value;
-        
-        if (!name || !phone || !address) {
-            showToast('Заполните все поля');
-            return;
-        }
-        
+        if (!name || !phone || !address) { showToast('Заполните все поля'); return; }
         const cart = getCart();
         const products = getProducts();
         let orderLines = '';
         let total = 0;
-        
         cart.forEach(item => {
             const p = products.find(pr => pr.id === item.id);
             if (p) {
@@ -492,25 +542,16 @@
                 orderLines += `• ${p.name} — ${item.qty} шт × ${p.price} ₽ = ${sum} ₽\n`;
             }
         });
-        
         sendOrderToTelegram(orderLines, total, { name, phone, address, delivery });
         closeOrderModal();
     }
 
-    // ========== ГАЛЕРЕЯ И ЛУПА ==========
+    // ========== ГАЛЕРЕЯ ==========
     let currentProduct = null;
     let currentAngle = 'front';
-
-    function openModal(product) {
-        currentProduct = product;
-        currentAngle = 'front';
-        renderModalGallery();
-        document.getElementById('productModal').style.display = 'flex';
-        bindZoomEvents();
-    }
+    function openModal(product) { currentProduct = product; currentAngle = 'front'; renderModalGallery(); document.getElementById('productModal').style.display = 'flex'; bindZoomEvents(); }
     function closeModal() { document.getElementById('productModal').style.display = 'none'; }
     function switchAngle(angle) { currentAngle = angle; renderModalGallery(); bindZoomEvents(); }
-
     function renderModalGallery() {
         if (!currentProduct) return;
         const p = currentProduct;
@@ -519,177 +560,117 @@
             { key: 'side', img: p.sideImg },
             { key: 'mannequin', img: p.mannequinImg }
         ];
-        const available = anglesList.filter(a => a.img && a.img.trim() !== '');
-        let activeImg = '';
-        if (currentAngle === 'front') activeImg = p.frontImg;
-        else if (currentAngle === 'side') activeImg = p.sideImg;
-        else activeImg = p.mannequinImg;
-        if (!activeImg && available.length) activeImg = available[0].img;
-        if (!activeImg) activeImg = '';
-
+        let activeImg = currentAngle === 'front' ? p.frontImg : (currentAngle === 'side' ? p.sideImg : p.mannequinImg);
+        if (!activeImg) activeImg = anglesList.find(a => a.img)?.img || '';
         let thumbsHtml = '';
         anglesList.forEach(angle => {
-            if (!angle.img) return;
-            const isActive = (angle.key === currentAngle);
-            thumbsHtml += `
-                <div class="thumb-angle ${isActive ? 'active' : ''}" onclick="switchAngle('${angle.key}')">
-                    <img src="${angle.img}" alt="">
-                </div>
-            `;
+            if (angle.img) thumbsHtml += `<div class="thumb-angle ${currentAngle === angle.key ? 'active' : ''}" onclick="switchAngle('${angle.key}')"><img src="${angle.img}"></div>`;
         });
-        const modalBody = document.getElementById('modalBody');
-        modalBody.innerHTML = `
+        document.getElementById('modalBody').innerHTML = `
             <div class="gallery-horizontal">
-                <div class="zoom-preview" id="zoomAreaModal">
-                    ${activeImg ? `<img id="zoomImgModal" class="zoom-image-main" src="${activeImg}" alt="${p.name}" style="max-height:520px;">` : `<div style="padding:2rem; text-align:center;">🖼️ Нет фото, загрузите в админке</div>`}
-                    <div id="zoomLensModal" class="zoom-lens"></div>
-                </div>
-                <div class="thumb-vertical">
-                    ${thumbsHtml || '<div style="color:#aaa;">⬆️ Загрузите фото в админке</div>'}
-                </div>
+                <div class="zoom-preview" id="zoomAreaModal">${activeImg ? `<img id="zoomImgModal" class="zoom-image-main" src="${activeImg}" style="max-height:520px;">` : '<div>Нет фото</div>'}<div id="zoomLensModal" class="zoom-lens"></div></div>
+                <div class="thumb-vertical">${thumbsHtml || '<div>Загрузите фото</div>'}</div>
             </div>
-            <div style="display: flex; justify-content: space-between; align-items:center; margin-top: 0.8rem;">
-                <div><strong>${p.name}</strong> — ${p.price.toLocaleString()} ₽<br><span style="font-size:0.8rem;">${p.desc}</span></div>
-                <button class="btn" style="width: auto; padding: 0.6rem 1.8rem;" onclick="addToCart(${p.id}); closeModal();">В корзину</button>
-            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:1rem;"><div><strong>${p.name}</strong> — ${p.price.toLocaleString()} ₽<br><span style="font-size:0.8rem;">${p.desc}</span></div><button class="btn" style="width:auto;padding:0.6rem 1.8rem;" onclick="addToCart(${p.id});closeModal();">В корзину</button></div>
         `;
     }
-
     function bindZoomEvents() {
-        const img = document.getElementById('zoomImgModal');
-        const lens = document.getElementById('zoomLensModal');
-        const container = document.getElementById('zoomAreaModal');
-        if (!img || !lens || !container) return;
+        const img = document.getElementById('zoomImgModal'), lens = document.getElementById('zoomLensModal'), cont = document.getElementById('zoomAreaModal');
+        if (!img || !lens || !cont) return;
         img.style.cursor = 'crosshair';
         lens.style.display = 'none';
-        function moveLens(e) {
-            const rect = container.getBoundingClientRect();
-            let x = e.clientX - rect.left;
-            let y = e.clientY - rect.top;
+        img.onmouseenter = () => lens.style.display = 'block';
+        img.onmouseleave = () => { img.style.transform = 'scale(1)'; lens.style.display = 'none'; };
+        img.onmousemove = (e) => {
+            const rect = cont.getBoundingClientRect();
+            let x = e.clientX - rect.left, y = e.clientY - rect.top;
             x = Math.min(Math.max(x, 0), rect.width);
             y = Math.min(Math.max(y, 0), rect.height);
             const lensSize = 130;
-            let lensX = x - lensSize/2;
-            let lensY = y - lensSize/2;
+            let lensX = x - lensSize/2, lensY = y - lensSize/2;
             lensX = Math.min(Math.max(lensX, 0), rect.width - lensSize);
             lensY = Math.min(Math.max(lensY, 0), rect.height - lensSize);
             lens.style.left = lensX + 'px';
             lens.style.top = lensY + 'px';
-            const percentX = (x / rect.width) * 100;
-            const percentY = (y / rect.height) * 100;
-            img.style.transformOrigin = `${percentX}% ${percentY}%`;
-            img.style.transform = `scale(2.2)`;
-        }
-        function resetZoom() { img.style.transform = 'scale(1)'; lens.style.display = 'none'; }
-        img.onmouseenter = () => { lens.style.display = 'block'; };
-        img.onmousemove = (e) => moveLens(e);
-        img.onmouseleave = resetZoom;
+            img.style.transformOrigin = `${(x / rect.width) * 100}% ${(y / rect.height) * 100}%`;
+            img.style.transform = 'scale(2.2)';
+        };
     }
 
-    // ========== ОСНОВНЫЕ СТРАНИЦЫ ==========
     function renderHome() {
         const products = getProducts();
-        let html = `<h2 style="font-size: 1.9rem; margin-bottom: 1.8rem; font-weight: 600;">Коллекция</h2><div class="products-grid">`;
+        let html = `<h2 style="font-size:1.9rem;margin-bottom:1.8rem;">Коллекция</h2><div class="products-grid">`;
         products.forEach(p => {
             const preview = p.frontImg || p.sideImg || p.mannequinImg || '';
-            html += `
-                <div class="product-card" onclick="openModal(${JSON.stringify(p).replace(/"/g, '&quot;')})">
-                    <div class="product-image">
-                        ${preview ? `<img src="${preview}" alt="${p.name}">` : `<span style="font-size:3.5rem;">${p.emoji}</span>`}
-                    </div>
-                    <div class="product-info">
-                        <div class="product-name">${p.name}</div>
-                        <div class="product-price">${p.price.toLocaleString()} ₽</div>
-                        <div style="font-size:0.75rem; color:#5b6e8c;">${p.desc}</div>
-                        <button class="btn" onclick="event.stopPropagation(); addToCart(${p.id})">➕ Добавить</button>
-                    </div>
-                </div>
-            `;
+            html += `<div class="product-card" onclick="openModal(${JSON.stringify(p).replace(/"/g, '&quot;')})"><div class="product-image">${preview ? `<img src="${preview}">` : `<span style="font-size:3.5rem;">${p.emoji}</span>`}</div><div class="product-info"><div class="product-name">${p.name}</div><div class="product-price">${p.price.toLocaleString()} ₽</div><div style="font-size:0.75rem;">${p.desc}</div><button class="btn" onclick="event.stopPropagation();addToCart(${p.id})">➕ Добавить</button></div></div>`;
         });
         html += `</div>`;
         return html;
     }
 
     function renderCart() {
-        const cart = getCart();
-        const products = getProducts();
-        if (!cart.length) return `<div style="text-align:center;padding:3rem;">🛒 Корзина пуста</div>`;
-        let total = 0;
-        let html = `<h2>Корзина</h2><div style="display:flex;flex-direction:column;gap:1rem;">`;
+        const cart = getCart(), products = getProducts();
+        if (!cart.length) return '<div style="text-align:center;padding:3rem;">Корзина пуста</div>';
+        let total = 0, html = '<h2>Корзина</h2><div style="display:flex;flex-direction:column;gap:1rem;">';
         cart.forEach(item => {
             const p = products.find(pr => pr.id === item.id);
             if (!p) return;
             const sum = p.price * item.qty;
             total += sum;
             const img = p.frontImg || p.sideImg || p.mannequinImg;
-            html += `
-                <div style="display:flex; gap:1.2rem; align-items:center; background:white; padding:1rem; border-radius:28px;">
-                    <div style="width:70px;height:70px;background:#f2f5f9;border-radius:18px;display:flex;align-items:center;justify-content:center;">${img ? `<img src="${img}" style="width:100%;height:100%;object-fit:cover;border-radius:16px;">` : p.emoji}</div>
-                    <div style="flex:1"><strong>${p.name}</strong><br>${item.qty} шт × ${p.price} ₽</div>
-                    <div><strong>${sum.toLocaleString()} ₽</strong></div>
-                    <button class="btn-outline" style="padding:0.3rem 1rem;" onclick="removeFromCart(${p.id})">Удалить</button>
-                </div>
-            `;
+            html += `<div style="display:flex;gap:1rem;align-items:center;background:white;padding:1rem;border-radius:28px;"><div style="width:70px;height:70px;background:#f2f5f9;border-radius:18px;display:flex;align-items:center;justify-content:center;">${img ? `<img src="${img}" style="width:100%;height:100%;object-fit:cover;">` : p.emoji}</div><div style="flex:1"><strong>${p.name}</strong><br>${item.qty} шт × ${p.price} ₽</div><div><strong>${sum.toLocaleString()} ₽</strong></div><button class="btn-outline" style="padding:0.3rem 1rem;" onclick="removeFromCart(${p.id})">Удалить</button></div>`;
         });
-        html += `<div style="text-align:right; font-size:1.6rem; font-weight:600; margin-top:1rem;">Итого: ${total.toLocaleString()} ₽</div>`;
-        html += `<button class="btn" style="width:200px; margin-top:1rem;" onclick="openOrderModal()">💳 Оформить заказ</button>`;
+        html += `<div style="text-align:right;font-size:1.5rem;font-weight:600;">Итого: ${total.toLocaleString()} ₽</div><button class="btn" style="width:200px;" onclick="openOrderModal()">Оформить заказ</button>`;
         return html;
     }
 
-    // ========== АДМИН-ПАНЕЛЬ ==========
-    let editingProductId = null;
+    // Админка
+    let editingId = null;
     function renderAdmin() {
+        if (!isAdminAuthenticated) {
+            showAdminAuth();
+            return '<div style="text-align:center;padding:3rem;">🔒 Доступ закрыт</div>';
+        }
         const products = getProducts();
-        let html = `<div class="admin-panel"><h2>🎛️ Управление товарами</h2><div id="adminMsg"></div><div id="adminForm"></div>`;
-        html += `<h3 style="margin:2rem 0 1rem;">Список товаров</h3><ul style="list-style:none;">`;
-        products.forEach(p => {
-            html += `<li style="display:flex;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid #e9edf2;">
-                        <span>${p.emoji} ${p.name} — ${p.price} ₽</span>
-                        <span><button onclick="editProductAdmin(${p.id})" class="btn-outline" style="padding:0.2rem 1rem;">✏️</button> <button onclick="deleteProductAdmin(${p.id})" class="btn-outline" style="background:#fee;">🗑</button></span>
-                     </li>`;
-        });
+        let html = `<div class="admin-panel"><h2>Управление товарами</h2><div id="adminMsg"></div><div id="adminForm"></div><h3 style="margin:2rem 0 1rem;">Список</h3><ul style="list-style:none;">`;
+        products.forEach(p => { html += `<li style="display:flex;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid #e9edf2;"><span>${p.emoji} ${p.name} — ${p.price}₽</span><span><button onclick="editProduct(${p.id})" class="btn-outline" style="padding:0.2rem 1rem;">✏️</button> <button onclick="deleteProduct(${p.id})" class="btn-outline" style="background:#fee;">🗑</button></span></li>`; });
         html += `</ul></div>`;
         return html;
     }
-
-    function renderAdminForm(product = null) {
-        editingProductId = product ? product.id : null;
-        const p = product || { name: '', price: '', desc: '', frontImg: '', sideImg: '', mannequinImg: '', emoji: '👕' };
-        const formDiv = document.getElementById('adminForm');
-        if (!formDiv) return;
-        formDiv.innerHTML = `
-            <div style="margin-bottom:1rem;"><label>Название</label><input id="prodName" value="${escapeHtml(p.name)}" style="width:100%; padding:0.6rem;"></div>
-            <div><label>Цена</label><input id="prodPrice" type="number" value="${p.price}" style="width:100%;"></div>
-            <div><label>Описание</label><textarea id="prodDesc" rows="2">${escapeHtml(p.desc)}</textarea></div>
-            <div><label>Эмодзи-заглушка</label><input id="prodEmoji" value="${p.emoji}"></div>
+    function renderAdminForm(p = null) {
+        editingId = p?.id || null;
+        const prod = p || { name: '', price: '', desc: '', frontImg: '', sideImg: '', mannequinImg: '', emoji: '👕' };
+        const fd = document.getElementById('adminForm');
+        if (!fd) return;
+        fd.innerHTML = `<div><input id="prodName" placeholder="Название" value="${escapeHtml(prod.name)}" style="width:100%;padding:0.6rem;margin-bottom:0.5rem;"></div>
+            <div><input id="prodPrice" type="number" placeholder="Цена" value="${prod.price}" style="width:100%;padding:0.6rem;margin-bottom:0.5rem;"></div>
+            <div><textarea id="prodDesc" rows="2" placeholder="Описание">${escapeHtml(prod.desc)}</textarea></div>
+            <div><input id="prodEmoji" placeholder="Эмодзи" value="${prod.emoji}" style="width:100%;padding:0.6rem;"></div>
             <div class="photo-flex">
-                <div class="photo-upload-card"><div class="preview-circle" id="frontPrev">${p.frontImg ? `<img src="${p.frontImg}">` : '📸'}</div><input type="file" id="frontFile" accept="image/*" style="display:none"><button onclick="document.getElementById('frontFile').click()">⬆️ Фото 1</button><input type="hidden" id="frontVal" value="${p.frontImg || ''}"></div>
-                <div class="photo-upload-card"><div class="preview-circle" id="sidePrev">${p.sideImg ? `<img src="${p.sideImg}">` : '📸'}</div><input type="file" id="sideFile" accept="image/*" style="display:none"><button onclick="document.getElementById('sideFile').click()">⬆️ Фото 2</button><input type="hidden" id="sideVal" value="${p.sideImg || ''}"></div>
-                <div class="photo-upload-card"><div class="preview-circle" id="manPrev">${p.mannequinImg ? `<img src="${p.mannequinImg}">` : '🕴️'}</div><input type="file" id="manFile" accept="image/*" style="display:none"><button onclick="document.getElementById('manFile').click()">⬆️ Фото 3</button><input type="hidden" id="manVal" value="${p.mannequinImg || ''}"></div>
+                <div class="photo-upload-card"><div class="preview-circle" id="frontPrev">${prod.frontImg ? `<img src="${prod.frontImg}">` : '📸'}</div><input type="file" id="frontFile" accept="image/*" style="display:none"><button onclick="document.getElementById('frontFile').click()">Фото 1</button><input type="hidden" id="frontVal" value="${prod.frontImg || ''}"></div>
+                <div class="photo-upload-card"><div class="preview-circle" id="sidePrev">${prod.sideImg ? `<img src="${prod.sideImg}">` : '📸'}</div><input type="file" id="sideFile" accept="image/*" style="display:none"><button onclick="document.getElementById('sideFile').click()">Фото 2</button><input type="hidden" id="sideVal" value="${prod.sideImg || ''}"></div>
+                <div class="photo-upload-card"><div class="preview-circle" id="manPrev">${prod.mannequinImg ? `<img src="${prod.mannequinImg}">` : '🕴️'}</div><input type="file" id="manFile" accept="image/*" style="display:none"><button onclick="document.getElementById('manFile').click()">Фото 3</button><input type="hidden" id="manVal" value="${prod.mannequinImg || ''}"></div>
             </div>
-            <button class="btn" style="width:auto; padding:0.6rem 2rem;" onclick="saveAdminProduct()">Сохранить</button>
-            <button class="btn-outline" style="margin-left:1rem;" onclick="navigate('admin')">Отмена</button>
-        `;
-        document.getElementById('frontFile').onchange = (e) => handleUpload(e,'front');
-        document.getElementById('sideFile').onchange = (e) => handleUpload(e,'side');
-        document.getElementById('manFile').onchange = (e) => handleUpload(e,'man');
+            <button class="btn" style="width:auto;padding:0.6rem 2rem;" onclick="saveProduct()">Сохранить</button>
+            <button class="btn-outline" style="margin-left:1rem;" onclick="navigate('admin')">Отмена</button>`;
+        document.getElementById('frontFile').onchange = e => handleUpload(e, 'front');
+        document.getElementById('sideFile').onchange = e => handleUpload(e, 'side');
+        document.getElementById('manFile').onchange = e => handleUpload(e, 'man');
     }
-
-    function handleUpload(event, type) {
-        const file = event.target.files[0];
+    function handleUpload(e, type) {
+        const file = e.target.files[0];
         if (!file) return;
         const reader = new FileReader();
-        reader.onload = function(e) {
-            const data = e.target.result;
-            if(type==='front'){ document.getElementById('frontVal').value = data; document.getElementById('frontPrev').innerHTML = `<img src="${data}">`; }
-            if(type==='side'){ document.getElementById('sideVal').value = data; document.getElementById('sidePrev').innerHTML = `<img src="${data}">`; }
-            if(type==='man'){ document.getElementById('manVal').value = data; document.getElementById('manPrev').innerHTML = `<img src="${data}">`; }
+        reader.onload = ev => {
+            const data = ev.target.result;
+            if (type === 'front') { document.getElementById('frontVal').value = data; document.getElementById('frontPrev').innerHTML = `<img src="${data}">`; }
+            if (type === 'side') { document.getElementById('sideVal').value = data; document.getElementById('sidePrev').innerHTML = `<img src="${data}">`; }
+            if (type === 'man') { document.getElementById('manVal').value = data; document.getElementById('manPrev').innerHTML = `<img src="${data}">`; }
             showToast('Фото загружено');
         };
         reader.readAsDataURL(file);
     }
-
-    window.saveAdminProduct = function() {
+    function saveProduct() {
         const name = document.getElementById('prodName').value.trim();
         const price = parseInt(document.getElementById('prodPrice').value);
         const desc = document.getElementById('prodDesc').value;
@@ -697,32 +678,28 @@
         const frontImg = document.getElementById('frontVal').value;
         const sideImg = document.getElementById('sideVal').value;
         const mannequinImg = document.getElementById('manVal').value;
-        if(!name || isNaN(price)) { alert("Заполните название и цену"); return; }
+        if (!name || isNaN(price)) { alert('Заполните название и цену'); return; }
         let products = getProducts();
-        if(editingProductId) {
-            products = products.map(p => p.id === editingProductId ? {...p, name, price, desc, emoji, frontImg, sideImg, mannequinImg} : p);
-        } else {
-            const newId = products.length ? Math.max(...products.map(p=>p.id))+1 : 5;
-            products.push({ id: newId, name, price, desc, emoji, frontImg, sideImg, mannequinImg });
-        }
+        if (editingId) products = products.map(p => p.id === editingId ? { ...p, name, price, desc, emoji, frontImg, sideImg, mannequinImg } : p);
+        else { const newId = products.length ? Math.max(...products.map(p => p.id)) + 1 : 5; products.push({ id: newId, name, price, desc, emoji, frontImg, sideImg, mannequinImg }); }
         saveProducts(products);
-        document.getElementById('adminMsg').innerHTML = '<div style="background:#e0f2e9; padding:0.5rem;">✓ Товар сохранён</div>';
+        document.getElementById('adminMsg').innerHTML = '<div style="background:#e0f2e9;padding:0.5rem;">✓ Сохранено</div>';
         navigate('admin');
-    };
-    window.editProductAdmin = function(id) { const products = getProducts(); const p = products.find(pr=>pr.id===id); if(p) renderAdminForm(p); else navigate('admin'); };
-    window.deleteProductAdmin = function(id) { if(confirm("Удалить?")){ let products = getProducts(); products = products.filter(p=>p.id!==id); saveProducts(products); navigate('admin'); } };
-    function escapeHtml(str) { return (str||'').replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
+    }
+    function editProduct(id) { const products = getProducts(); const p = products.find(pr => pr.id === id); if (p) renderAdminForm(p); else navigate('admin'); }
+    function deleteProduct(id) { if (confirm('Удалить?')) { let products = getProducts(); products = products.filter(p => p.id !== id); saveProducts(products); navigate('admin'); } }
+    function escapeHtml(s) { return (s || '').replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
 
     function navigate(page) {
         const appDiv = document.getElementById('app');
-        if(page === 'home') appDiv.innerHTML = renderHome();
-        else if(page === 'cart') appDiv.innerHTML = renderCart();
-        else if(page === 'admin') { appDiv.innerHTML = renderAdmin(); renderAdminForm(); }
+        if (page === 'home') appDiv.innerHTML = renderHome();
+        else if (page === 'cart') appDiv.innerHTML = renderCart();
+        else if (page === 'admin') { appDiv.innerHTML = renderAdmin(); if (isAdminAuthenticated) renderAdminForm(); }
         updateCartCount();
-        window.scrollTo(0,0);
+        window.scrollTo(0, 0);
     }
 
-    // Создаём модальные окна
+    // Модальные окна
     const modalDiv = document.createElement('div');
     modalDiv.id = 'productModal';
     modalDiv.className = 'modal';
@@ -732,43 +709,7 @@
     const orderModalDiv = document.createElement('div');
     orderModalDiv.id = 'orderModal';
     orderModalDiv.className = 'order-modal';
-    orderModalDiv.innerHTML = `
-        <div class="order-modal-content">
-            <span class="close-modal" onclick="closeOrderModal()">&times;</span>
-            <h2 style="margin-bottom: 1rem;">🛍️ Оформление заказа</h2>
-            <label>Ваше имя *</label>
-            <input type="text" id="orderName" placeholder="Иван Иванов">
-            <label>Телефон *</label>
-            <input type="tel" id="orderPhone" placeholder="+7 999 123-45-67">
-            <label>Адрес доставки *</label>
-            <textarea id="orderAddress" rows="2" placeholder="Город, улица, дом, квартира"></textarea>
-            <label>Способ доставки</label>
-            <select id="orderDelivery">
-                <option>🚚 СДЭК</option>
-                <option>📮 Почта России</option>
-                <option>🛵 Курьером</option>
-                <option>📍 Самовывоз</option>
-            </select>
-            <button class="btn" style="margin-top: 1rem;" onclick="submitOrder()">✅ Отправить заказ</button>
-        </div>
-    `;
+    orderModalDiv.innerHTML = `<div class="order-modal-content"><span class="close-modal" onclick="closeOrderModal()">&times;</span><h2>Оформление заказа</h2><label>Имя *</label><input type="text" id="orderName" placeholder="Иван"><label>Телефон *</label><input type="tel" id="orderPhone" placeholder="+7 999 123-45-67"><label>Адрес *</label><textarea id="orderAddress" rows="2" placeholder="Город, улица, дом"></textarea><label>Доставка</label><select id="orderDelivery"><option>СДЭК</option><option>Почта России</option><option>Курьером</option><option>Самовывоз</option></select><button class="btn" style="margin-top:1rem;" onclick="submitOrder()">Отправить</button></div>`;
     document.body.appendChild(orderModalDiv);
 
-    window.openModal = openModal;
-    window.closeModal = closeModal;
-    window.switchAngle = switchAngle;
-    window.addToCart = addToCart;
-    window.removeFromCart = removeFromCart;
-    window.navigate = navigate;
-    window.openOrderModal = openOrderModal;
-    window.closeOrderModal = closeOrderModal;
-    window.submitOrder = submitOrder;
-    window.editProductAdmin = editProductAdmin;
-    window.deleteProductAdmin = deleteProductAdmin;
-    window.saveAdminProduct = saveAdminProduct;
-
-    updateCartCount();
-    navigate('home');
-</script>
-</body>
-</html>
+    const authModalDiv = document.createElement
