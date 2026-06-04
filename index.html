@@ -56,9 +56,11 @@
             .sidebar { width: 80px; padding: 1rem 0.5rem; }
             .sidebar .logo { font-size: 1.2rem; text-align: center; }
             .nav-links a span:not(.cart-badge) { display: none; }
+            .nav-links a { justify-content: center; }
             .main-content { padding: 1rem; }
             .products-grid { gap: 1rem; }
             .photo-upload-card { width: 100%; }
+            .cart-item { flex-wrap: wrap; justify-content: space-between; }
         }
     </style>
 </head>
@@ -119,33 +121,31 @@
     function updateCartCount() { const cnt = getCart().reduce((s,i)=>s+i.qty,0); const b = document.getElementById('cart-count'); if(b) b.innerText = cnt; }
     function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); }
     function addToCart(id) { let cart = getCart(); const ex = cart.find(i=>i.id===id); ex ? ex.qty++ : cart.push({id,qty:1}); saveCart(cart); showToast('✓ В корзине'); }
-    function removeFromCart(id) { let cart = getCart(); cart = cart.filter(i=>i.id!==id); saveCart(cart); navigate('cart'); }
+    
+    function removeFromCart(id) { 
+        let cart = getCart(); 
+        cart = cart.filter(i => i.id !== id); 
+        saveCart(cart); 
+        navigate('cart'); 
+        showToast('✓ Товар удалён');
+    }
 
     function sendOrderToTelegram(orderDetails, totalAmount, customerData) {
         const text = `🛍️ НОВЫЙ ЗАКАЗ PALO\n\n👤 Имя: ${customerData.name}\n📞 Телефон: ${customerData.phone}\n📍 Адрес: ${customerData.address}\n🚚 Доставка: ${customerData.delivery}\n\n📦 Состав заказа:\n${orderDetails}\n\n💰 ИТОГО: ${totalAmount.toLocaleString()} ₽\n\n🕐 ${new Date().toLocaleString()}`;
-        
         fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({chat_id: TELEGRAM_CHAT_ID, text: text})
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Telegram response:', data);
+        }).then(response => response.json()).then(data => {
             if (data.ok) {
                 showToast('✅ Заказ отправлен! Мы свяжемся с вами');
                 localStorage.removeItem('palo_cart');
                 updateCartCount();
                 setTimeout(() => navigate('home'), 1500);
             } else {
-                showToast('❌ Ошибка: ' + (data.description || 'Неизвестная ошибка'));
-                console.error('Telegram error:', data);
+                showToast('❌ Ошибка отправки');
             }
-        })
-        .catch(error => {
-            console.error('Fetch error:', error);
-            showToast('❌ Ошибка соединения');
-        });
+        }).catch(() => showToast('❌ Ошибка соединения'));
     }
 
     function openOrderModal() { if(getCart().length===0){ showToast('Корзина пуста'); return; } document.getElementById('orderModal').style.display='flex'; }
@@ -206,12 +206,35 @@
         products.forEach(p=>{ const preview=p.frontImg||p.sideImg||p.mannequinImg||''; html+=`<div class="product-card" onclick="openModal(${JSON.stringify(p).replace(/"/g,'&quot;')})"><div class="product-image">${preview?`<img src="${preview}">`:`<span style="font-size:3rem;">${p.emoji}</span>`}</div><div class="product-info"><div class="product-name">${p.name}</div><div class="product-price">${p.price.toLocaleString()} ₽</div><div style="font-size:0.75rem;">${p.desc}</div><button class="btn" onclick="event.stopPropagation();addToCart(${p.id})">➕ Добавить</button></div></div>`; });
         html+='</div>'; return html;
     }
-    function renderCart(){
-        const cart=getCart(), products=getProducts();
-        if(!cart.length) return '<div style="text-align:center;padding:3rem;">Корзина пуста</div>';
-        let total=0, html='<h2>Корзина</h2><div style="display:flex;flex-direction:column;gap:1rem;">';
-        cart.forEach(i=>{ const p=products.find(pr=>pr.id===i.id); if(p){ const s=p.price*i.qty; total+=s; const img=p.frontImg||p.sideImg||p.mannequinImg; html+=`<div style="display:flex;gap:1rem;align-items:center;background:white;padding:1rem;border-radius:28px;"><div style="width:70px;height:70px;background:#f2f5f9;border-radius:18px;display:flex;align-items:center;justify-content:center;">${img?`<img src="${img}" style="width:100%;height:100%;object-fit:cover;">`:p.emoji}</div><div style="flex:1"><strong>${p.name}</strong><br>${i.qty} шт × ${p.price} ₽</div><div><strong>${s.toLocaleString()} ₽</strong></div><button class="btn-outline" style="padding:0.3rem 1rem;" onclick="removeFromCart(${p.id})">Удалить</button></div>`; } });
-        html+=`<div style="text-align:right;font-size:1.5rem;font-weight:600;">Итого: ${total.toLocaleString()} ₽</div><button class="btn" style="width:200px;" onclick="openOrderModal()">Оформить заказ</button>`;
+    
+    function renderCart() {
+        const cart = getCart();
+        const products = getProducts();
+        if (!cart.length) return '<div style="text-align:center;padding:3rem;">🛒 Корзина пуста</div>';
+        let total = 0;
+        let html = '<h2>Корзина</h2><div style="display:flex;flex-direction:column;gap:1rem;">';
+        cart.forEach(item => {
+            const p = products.find(pr => pr.id === item.id);
+            if (!p) return;
+            const sum = p.price * item.qty;
+            total += sum;
+            const img = p.frontImg || p.sideImg || p.mannequinImg;
+            html += `
+                <div class="cart-item" data-product-id="${p.id}" style="display:flex; gap:1rem; align-items:center; background:white; padding:1rem; border-radius:28px; flex-wrap:wrap;">
+                    <div style="width:70px;height:70px;background:#f2f5f9;border-radius:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        ${img ? `<img src="${img}" style="width:100%;height:100%;object-fit:cover;border-radius:16px;">` : p.emoji}
+                    </div>
+                    <div style="flex:1; min-width:120px;">
+                        <div style="font-weight:700;">${p.name}</div>
+                        <div style="font-size:0.9rem;">${item.qty} шт × ${p.price} ₽</div>
+                    </div>
+                    <div style="font-weight:600;">${sum.toLocaleString()} ₽</div>
+                    <button class="btn-outline" style="padding:0.5rem 1rem; font-size:0.9rem;" onclick="removeFromCart(${p.id}); event.stopPropagation(); return false;">🗑️ Удалить</button>
+                </div>
+            `;
+        });
+        html += `<div style="text-align:right; font-size:1.5rem; font-weight:600; margin-top:1rem;">Итого: ${total.toLocaleString()} ₽</div>`;
+        html += `<button class="btn" style="width:200px; margin-top:1rem;" onclick="openOrderModal()">💳 Оформить заказ</button>`;
         return html;
     }
 
@@ -311,12 +334,4 @@
 
     window.openModal=openModal; window.closeModal=closeModal; window.switchAngle=switchAngle;
     window.addToCart=addToCart; window.removeFromCart=removeFromCart; window.navigate=navigate;
-    window.openOrderModal=openOrderModal; window.closeOrderModal=closeOrderModal; window.submitOrder=submitOrder;
-    window.editProduct=editProduct; window.deleteProduct=deleteProduct; window.saveProduct=saveProduct;
-    window.showAdminAuth=showAdminAuth; window.closeAdminAuth=closeAdminAuth; window.checkAdminPassword=checkAdminPassword;
-    window.setImageByUrl = setImageByUrl;
-
-    updateCartCount(); navigate('home');
-</script>
-</body>
-</html>
+    window.openOrderModal=openOrderModal; window.closeOrderModal=
