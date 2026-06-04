@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>PALO — магазин одежды</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .header {
+            background: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .nav a {
+            margin-left: 20px;
+            cursor: pointer;
+            text-decoration: none;
+            color: #333;
+        }
+        .cart-count {
+            background: black;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 8px;
+            margin-left: 5px;
+        }
+        .products {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .product {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .product-emoji {
+            font-size: 64px;
+        }
+        .product-name {
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .product-price {
+            color: #e67e22;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        button {
+            background: black;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+        }
+        .cart-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .total {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: right;
+            margin-top: 20px;
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: black;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            opacity: 0;
+            transition: 0.3s;
+        }
+        .toast.show { opacity: 1; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo" onclick="navigate('home')">PALO</div>
+        <div class="nav">
+            <a onclick="navigate('home')">Магазин</a>
+            <a onclick="navigate('cart')">Корзина <span class="cart-count" id="cartCount">0</span></a>
+        </div>
+    </div>
+    <div id="app"></div>
+    <div id="toast" class="toast"></div>
+
+    <script>
+        const products = [
+            { id: 1, name: "Кепка", price: 1500, emoji: "🧢", desc: "Хлопковая" },
+            { id: 2, name: "Футболка", price: 1900, emoji: "👕", desc: "Белая" },
+            { id: 3, name: "Брюки", price: 5200, emoji: "👖", desc: "Широкие" },
+            { id: 4, name: "Лонгслив", price: 2700, emoji: "🧥", desc: "Чёрный" }
+        ];
+        let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+
+        function saveCart() {
+            localStorage.setItem('cart', JSON.stringify(cart));
+            document.getElementById('cartCount').innerText = cart.reduce((s,i)=>s+i.qty,0);
+        }
+
+        function addToCart(id) {
+            let item = cart.find(i => i.id === id);
+            if(item) item.qty++;
+            else cart.push({id, qty: 1});
+            saveCart();
+            showToast('✓ Добавлено в корзину');
+        }
+
+        function removeFromCart(id) {
+            cart = cart.filter(i => i.id !== id);
+            saveCart();
+            navigate('cart');
+        }
+
+        function showToast(msg) {
+            let t = document.getElementById('toast');
+            t.innerText = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 1500);
+        }
+
+        function renderHome() {
+            let html = '<div class="products">';
+            products.forEach(p => {
+                html += `
+                    <div class="product">
+                        <div class="product-emoji">${p.emoji}</div>
+                        <div class="product-name">${p.name}</div>
+                        <div class="product-price">${p.price} ₽</div>
+                        <div style="font-size:14px; color:#666;">${p.desc}</div>
+                        <button onclick="addToCart(${p.id})">Добавить</button>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            return html;
+        }
+
+        function renderCart() {
+            if(cart.length === 0) return '<h2>Корзина пуста</h2>';
+            let total = 0;
+            let html = '<h2>Корзина</h2>';
+            cart.forEach(item => {
+                let p = products.find(x => x.id === item.id);
+                let sum = p.price * item.qty;
+                total += sum;
+                html += `
+                    <div class="cart-item">
+                        <div><strong>${p.name}</strong> × ${item.qty}</div>
+                        <div>${sum} ₽</div>
+                        <button style="width:auto; background:#999;" onclick="removeFromCart(${p.id})">Удалить</button>
+                    </div>
+                `;
+            });
+            html += `<div class="total">Итого: ${total} ₽</div>`;
+            html += `<button onclick="alert('Спасибо за заказ! Мы свяжемся с вами.')">Оформить заказ</button>`;
+            return html;
+        }
+
+        function navigate(page) {
+            let app = document.getElementById('app');
+            if(page === 'home') app.innerHTML = renderHome();
+            else if(page === 'cart') app.innerHTML = renderCart();
+        }
+
+        saveCart();
+        navigate('home');
+    </script>
+</body>
+</html>
