@@ -31,10 +31,10 @@
         .product-price { font-weight: 600; color: #2c3e50; margin: 0.4rem 0; }
         .btn { background: #1e2f3f; color: white; border: none; padding: 0.6rem; border-radius: 40px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 0.5rem; }
         .btn-outline { background: transparent; border: 1px solid #cbdde9; color: #1f2f3e; }
-        .btn-small { width: auto; padding: 0.4rem 1rem; font-size: 0.8rem; display: inline-block; margin-top: 0; }
+        .btn-success { background: #2e7d32; color: white; }
         .modal, .order-modal, .admin-auth-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); backdrop-filter: blur(12px); z-index: 2000; justify-content: center; align-items: center; }
         .modal-content, .order-modal-content, .admin-auth-content { background: white; border-radius: 40px; max-width: 1300px; width: 92%; padding: 1.6rem; position: relative; }
-        .order-modal-content, .admin-auth-content { max-width: 450px; text-align: center; }
+        .order-modal-content, .admin-auth-content { max-width: 500px; text-align: center; }
         .close-modal { position: absolute; top: 1rem; right: 1.8rem; font-size: 2rem; cursor: pointer; }
         .gallery-horizontal { display: flex; gap: 2rem; flex-wrap: wrap; }
         .zoom-preview { flex: 3; min-width: 280px; background: #f5f9ff; border-radius: 32px; display: flex; justify-content: center; align-items: center; min-height: 480px; position: relative; overflow: hidden; }
@@ -68,8 +68,19 @@
             border: 1px dashed #ccc;
         }
         .photo-preview img { width: 100%; height: 100%; object-fit: cover; }
-        .file-input { margin: 0.5rem 0; }
-        .order-modal-content input, .order-modal-content textarea, .order-modal-content select { width: 100%; padding: 0.8rem; margin: 0.5rem 0 1rem; border: 1px solid #ddd; border-radius: 20px; }
+        .payment-info {
+            background: #e8f5e9;
+            border-radius: 20px;
+            padding: 1rem;
+            margin: 1rem 0;
+            text-align: center;
+        }
+        .card-number {
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin: 0.5rem 0;
+        }
         .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 0.6rem 2rem; border-radius: 60px; opacity: 0; transition: 0.2s; z-index: 3000; }
         .toast.show { opacity: 1; }
         
@@ -82,6 +93,7 @@
             .products-grid { gap: 1rem; }
             .btn, .btn-outline { font-size: 14px; padding: 10px; min-height: 44px; }
             .photo-preview { width: 80px; height: 80px; }
+            .card-number { font-size: 1rem; letter-spacing: 1px; }
         }
     </style>
 </head>
@@ -151,14 +163,14 @@
     }
 
     function sendOrderToTelegram(orderDetails, totalAmount, customerData) {
-        const text = `🛍️ НОВЫЙ ЗАКАЗ PALO\n\n👤 Имя: ${customerData.name}\n📞 Телефон: ${customerData.phone}\n📍 Адрес: ${customerData.address}\n🚚 Доставка: ${customerData.delivery}\n\n📦 Состав заказа:\n${orderDetails}\n\n💰 ИТОГО: ${totalAmount.toLocaleString()} ₽\n\n🕐 ${new Date().toLocaleString()}`;
+        const text = `🛍️ НОВЫЙ ЗАКАЗ PALO\n\n👤 Имя: ${customerData.name}\n📞 Телефон: ${customerData.phone}\n📍 Адрес: ${customerData.address}\n🚚 Доставка: ${customerData.delivery}\n\n📦 Состав заказа:\n${orderDetails}\n\n💰 ИТОГО: ${totalAmount.toLocaleString()} ₽\n💳 Оплата: перевод на карту 2200 7020 0430 8479\n\n🕐 ${new Date().toLocaleString()}`;
         fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({chat_id: TELEGRAM_CHAT_ID, text: text})
         }).then(response => response.json()).then(data => {
             if (data.ok) {
-                showToast('✅ Заказ отправлен! Мы свяжемся с вами');
+                showToast('✅ Заказ отправлен! Проверьте Telegram');
                 localStorage.removeItem('palo_cart');
                 updateCartCount();
                 setTimeout(() => navigate('home'), 1500);
@@ -254,7 +266,7 @@
             `;
         });
         html += `<div style="text-align:right; font-size:1.5rem; font-weight:600; margin-top:1rem;">Итого: ${total.toLocaleString()} ₽</div>`;
-        html += `<button class="btn" style="width:200px; margin-top:1rem;" onclick="openOrderModal()">💳 Оформить заказ</button>`;
+        html += `<button class="btn" style="margin-top:1rem;" onclick="openOrderModal()">💳 Оформить заказ</button>`;
         return html;
     }
 
@@ -267,8 +279,8 @@
         products.forEach(p => {
             html += `<li style="display:flex;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid #e9edf2;">
                         <span>${p.emoji} ${p.name} — ${p.price}₽</span>
-                        <span><button onclick="editProduct(${p.id})" class="btn-outline btn-small">✏️</button> 
-                        <button onclick="deleteProduct(${p.id})" class="btn-outline btn-small" style="background:#fee;">🗑</button></span>
+                        <span><button onclick="editProduct(${p.id})" class="btn-outline" style="padding:0.2rem 1rem;">✏️</button> 
+                        <button onclick="deleteProduct(${p.id})" class="btn-outline" style="background:#fee; padding:0.2rem 1rem;">🗑</button></span>
                      </li>`;
         });
         html += `</ul></div>`;
@@ -278,21 +290,16 @@
     function handleImageUpload(event, type, previewId) {
         const file = event.target.files[0];
         if (!file) return;
-        
-        // Проверка размера (максимум 2 МБ)
         if (file.size > 2 * 1024 * 1024) {
-            showToast('⚠️ Файл больше 2 МБ. Выберите фото поменьше');
+            showToast('⚠️ Файл больше 2 МБ');
             return;
         }
-        
         const reader = new FileReader();
         reader.onload = function(e) {
             const dataUrl = e.target.result;
-            // Сохраняем в скрытое поле
             if (type === 'front') document.getElementById('frontVal').value = dataUrl;
             if (type === 'side') document.getElementById('sideVal').value = dataUrl;
             if (type === 'mannequin') document.getElementById('manVal').value = dataUrl;
-            // Показываем превью
             const preview = document.getElementById(previewId);
             if (preview) preview.innerHTML = `<img src="${dataUrl}">`;
             showToast('✅ Фото загружено');
@@ -310,12 +317,12 @@
             <div><input id="prodName" placeholder="Название" value="${escapeHtml(prod.name)}" style="width:100%;padding:0.8rem;margin-bottom:0.5rem;border-radius:16px;border:1px solid #ddd;"></div>
             <div><input id="prodPrice" type="number" placeholder="Цена" value="${prod.price}" style="width:100%;padding:0.8rem;margin-bottom:0.5rem;border-radius:16px;border:1px solid #ddd;"></div>
             <div><textarea id="prodDesc" rows="2" placeholder="Описание" style="width:100%;padding:0.8rem;margin-bottom:0.5rem;border-radius:16px;border:1px solid #ddd;">${escapeHtml(prod.desc)}</textarea></div>
-            <div><input id="prodEmoji" placeholder="Эмодзи (например 👕)" value="${prod.emoji}" style="width:100%;padding:0.8rem;margin-bottom:1rem;border-radius:16px;border:1px solid #ddd;"></div>
+            <div><input id="prodEmoji" placeholder="Эмодзи" value="${prod.emoji}" style="width:100%;padding:0.8rem;margin-bottom:1rem;border-radius:16px;border:1px solid #ddd;"></div>
             
             <div class="photo-group">
                 <div class="photo-label">📷 Фото 1 (спереди)</div>
                 <div class="photo-preview" id="frontPreview" onclick="document.getElementById('frontFileInput').click()">
-                    ${prod.frontImg ? `<img src="${prod.frontImg}">` : '📸<br>Нажмите для загрузки'}
+                    ${prod.frontImg ? `<img src="${prod.frontImg}">` : '📸<br>Нажмите'}
                 </div>
                 <input type="file" id="frontFileInput" accept="image/*" style="display:none" onchange="handleImageUpload(event, 'front', 'frontPreview')">
                 <input type="hidden" id="frontVal" value="${prod.frontImg || ''}">
@@ -324,7 +331,7 @@
             <div class="photo-group">
                 <div class="photo-label">📷 Фото 2 (сбоку)</div>
                 <div class="photo-preview" id="sidePreview" onclick="document.getElementById('sideFileInput').click()">
-                    ${prod.sideImg ? `<img src="${prod.sideImg}">` : '📸<br>Нажмите для загрузки'}
+                    ${prod.sideImg ? `<img src="${prod.sideImg}">` : '📸<br>Нажмите'}
                 </div>
                 <input type="file" id="sideFileInput" accept="image/*" style="display:none" onchange="handleImageUpload(event, 'side', 'sidePreview')">
                 <input type="hidden" id="sideVal" value="${prod.sideImg || ''}">
@@ -333,17 +340,16 @@
             <div class="photo-group">
                 <div class="photo-label">📷 Фото 3 (на манекене)</div>
                 <div class="photo-preview" id="manPreview" onclick="document.getElementById('manFileInput').click()">
-                    ${prod.mannequinImg ? `<img src="${prod.mannequinImg}">` : '🕴️<br>Нажмите для загрузки'}
+                    ${prod.mannequinImg ? `<img src="${prod.mannequinImg}">` : '🕴️<br>Нажмите'}
                 </div>
                 <input type="file" id="manFileInput" accept="image/*" style="display:none" onchange="handleImageUpload(event, 'mannequin', 'manPreview')">
                 <input type="hidden" id="manVal" value="${prod.mannequinImg || ''}">
             </div>
             
-            <button class="btn" style="width:auto; padding:0.8rem 2rem; margin-top:1rem;" onclick="saveProduct()">💾 Сохранить товар</button>
+            <button class="btn" style="width:auto; padding:0.8rem 2rem; margin-top:1rem;" onclick="saveProduct()">💾 Сохранить</button>
             <button class="btn-outline" style="margin-left:1rem; padding:0.8rem 2rem;" onclick="navigate('admin')">❌ Отмена</button>
         `;
         
-        // Восстанавливаем значения в скрытые поля
         document.getElementById('frontVal').value = prod.frontImg || '';
         document.getElementById('sideVal').value = prod.sideImg || '';
         document.getElementById('manVal').value = prod.mannequinImg || '';
@@ -358,10 +364,7 @@
         const sideImg = document.getElementById('sideVal').value;
         const mannequinImg = document.getElementById('manVal').value;
         
-        if (!name || isNaN(price)) { 
-            alert('❌ Заполните название и цену'); 
-            return; 
-        }
+        if (!name || isNaN(price)) { alert('❌ Заполните название и цену'); return; }
         
         let products = getProducts();
         if (editingId) {
@@ -414,7 +417,30 @@
     const orderDiv = document.createElement('div'); 
     orderDiv.id = 'orderModal'; 
     orderDiv.className = 'order-modal'; 
-    orderDiv.innerHTML = `<div class="order-modal-content"><span class="close-modal" onclick="closeOrderModal()">&times;</span><h2>🛍️ Оформление заказа</h2><input type="text" id="orderName" placeholder="Имя"><input type="tel" id="orderPhone" placeholder="Телефон"><textarea id="orderAddress" rows="2" placeholder="Адрес доставки"></textarea><select id="orderDelivery"><option>СДЭК</option><option>Почта России</option><option>Курьером</option><option>Самовывоз</option></select><button class="btn" onclick="submitOrder()">✅ Отправить заказ</button></div>`; 
+    orderDiv.innerHTML = `
+        <div class="order-modal-content">
+            <span class="close-modal" onclick="closeOrderModal()">&times;</span>
+            <h2>🛍️ Оформление заказа</h2>
+            
+            <input type="text" id="orderName" placeholder="Ваше имя *">
+            <input type="tel" id="orderPhone" placeholder="Телефон *">
+            <textarea id="orderAddress" rows="2" placeholder="Адрес доставки *"></textarea>
+            <select id="orderDelivery">
+                <option value="СДЭК">🚚 СДЭК</option>
+                <option value="Почта России">📮 Почта России</option>
+                <option value="Курьером">🛵 Курьер</option>
+                <option value="Самовывоз">📍 Самовывоз</option>
+            </select>
+            
+            <div class="payment-info">
+                💳 <strong>Оплата переводом на карту</strong><br>
+                <div class="card-number">2200 7020 0430 8479</div>
+                <div style="font-size:12px;">Сбербанк · После заказа переведите сумму на карту</div>
+            </div>
+            
+            <button class="btn" onclick="submitOrder()">✅ Оформить заказ</button>
+        </div>
+    `; 
     document.body.appendChild(orderDiv);
     
     const authDiv = document.createElement('div'); 
