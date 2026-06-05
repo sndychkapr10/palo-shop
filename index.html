@@ -7,7 +7,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', system-ui, sans-serif; background: #f4f6fa; color: #1a2634; overflow-x: hidden; }
-        .app-horizontal { display: flex; min-height: 100vh; flex-direction: row; }
+        .app-horizontal { display: flex; min-height: 100vh; }
         .sidebar {
             width: 280px; background: rgba(255,255,255,0.96); backdrop-filter: blur(12px);
             border-right: 1px solid #e2e8f0; padding: 2rem 1.5rem; position: sticky; top: 0;
@@ -20,67 +20,30 @@
         .cart-badge { background: #1f2a3e; color: white; border-radius: 40px; padding: 0.2rem 0.65rem; font-size: 0.7rem; margin-left: auto; }
         .admin-link-hidden { margin-top: auto; font-size: 0.85rem; opacity: 0; cursor: pointer; transition: opacity 0.3s; text-align: center; padding: 0.5rem; border-radius: 20px; background: rgba(0,0,0,0.05); }
         .admin-link-hidden.visible { opacity: 0.7; }
-        .main-content { flex: 1; padding: 2rem; width: 0; min-width: 0; }
+        .main-content { flex: 1; padding: 2rem; }
         .products-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem; margin-top: 1rem; }
         .product-card { background: white; border-radius: 28px; overflow: hidden; cursor: pointer; border: 1px solid #eef2f8; transition: 0.25s; }
         .product-card:hover { transform: translateY(-6px); box-shadow: 0 20px 30px -12px rgba(0,0,0,0.1); }
         .product-image { aspect-ratio: 3/4; background: #f8fafd; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .product-image img { width: 100%; height: 100%; object-fit: cover; }
         .product-info { padding: 1rem; }
-        .product-name { font-weight: 700; }
+        .product-name { font-weight: 700; font-size: 1.1rem; }
         .product-price { font-weight: 600; color: #2c3e50; margin: 0.4rem 0; }
         .btn { background: #1e2f3f; color: white; border: none; padding: 0.6rem; border-radius: 40px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 0.5rem; }
         .btn-outline { background: transparent; border: 1px solid #cbdde9; color: #1f2f3e; }
-        .btn-small { width: auto; padding: 0.4rem 1rem; font-size: 0.8rem; display: inline-block; margin-top: 0; }
+        .size-selector { margin: 0.8rem 0; padding: 0.8rem; background: #f8fafd; border-radius: 20px; }
+        .size-label { font-size: 0.8rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .size-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .size-btn { background: white; border: 1px solid #cbdde9; padding: 0.4rem 1rem; border-radius: 30px; font-size: 0.8rem; cursor: pointer; }
+        .size-btn.selected { background: #1e2f3f; color: white; border-color: #1e2f3f; }
+        .size-chart { font-size: 0.7rem; color: #666; margin-top: 0.3rem; }
         .modal, .order-modal, .admin-auth-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); backdrop-filter: blur(12px); z-index: 2000; justify-content: center; align-items: center; }
         .modal-content, .order-modal-content, .admin-auth-content { background: white; border-radius: 40px; max-width: 1300px; width: 92%; padding: 1.6rem; position: relative; }
         .order-modal-content, .admin-auth-content { max-width: 500px; text-align: center; }
         .close-modal { position: absolute; top: 1rem; right: 1.8rem; font-size: 2rem; cursor: pointer; }
-        
-        /* Стили для выбора размера в карточке товара */
-        .size-selector {
-            margin: 0.8rem 0;
-            padding: 0.8rem;
-            background: #f8fafd;
-            border-radius: 20px;
-        }
-        .size-label {
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            display: block;
-        }
-        .size-buttons {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-        .size-btn {
-            background: white;
-            border: 1px solid #cbdde9;
-            padding: 0.4rem 1rem;
-            border-radius: 30px;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .size-btn.selected {
-            background: #1e2f3f;
-            color: white;
-            border-color: #1e2f3f;
-        }
-        .size-chart {
-            font-size: 0.7rem;
-            color: #666;
-            margin-top: 0.3rem;
-            display: flex;
-            gap: 0.8rem;
-            flex-wrap: wrap;
-        }
-        
         .gallery-horizontal { display: flex; gap: 2rem; flex-wrap: wrap; }
-        .zoom-preview { flex: 3; min-width: 280px; background: #f5f9ff; border-radius: 32px; display: flex; justify-content: center; align-items: center; min-height: 480px; position: relative; overflow: hidden; }
-        .zoom-image-main { max-width: 100%; max-height: 540px; object-fit: contain; cursor: crosshair; transition: transform 0.2s; }
+        .zoom-preview { flex: 2; min-width: 280px; background: #f5f9ff; border-radius: 32px; display: flex; justify-content: center; align-items: center; min-height: 400px; position: relative; overflow: hidden; }
+        .zoom-image-main { max-width: 100%; max-height: 500px; object-fit: contain; cursor: crosshair; transition: transform 0.2s; }
         .zoom-lens { position: absolute; width: 130px; height: 130px; background: rgba(255,255,240,0.25); border: 2px solid white; border-radius: 50%; pointer-events: none; display: none; }
         .thumb-vertical { flex: 1; display: flex; flex-direction: column; gap: 1rem; min-width: 100px; }
         .thumb-angle { background: #f1f5f9; border-radius: 24px; padding: 0.6rem; cursor: pointer; border: 2px solid transparent; }
@@ -88,15 +51,13 @@
         .thumb-angle img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 18px; }
         .admin-panel { background: white; border-radius: 32px; padding: 2rem; }
         .photo-group { background: #f9fbfe; border-radius: 24px; padding: 1rem; margin-bottom: 1.5rem; border: 1px solid #eef2fa; }
-        .photo-label { font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+        .photo-label { font-weight: 600; margin-bottom: 0.5rem; }
         .photo-preview { width: 100px; height: 100px; background: #eef2fa; border-radius: 16px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin: 0.5rem 0; font-size: 2rem; cursor: pointer; border: 1px dashed #ccc; }
         .photo-preview img { width: 100%; height: 100%; object-fit: cover; }
-        .size-input { width: 100%; padding: 0.5rem; border-radius: 12px; border: 1px solid #ddd; margin-top: 0.5rem; }
         .payment-info { background: #e8f5e9; border-radius: 20px; padding: 1rem; margin: 1rem 0; text-align: center; }
         .card-number { font-size: 1.3rem; font-weight: 700; letter-spacing: 2px; margin: 0.5rem 0; }
         .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 0.6rem 2rem; border-radius: 60px; opacity: 0; transition: 0.2s; z-index: 3000; }
         .toast.show { opacity: 1; }
-        
         @media (max-width: 780px) {
             .sidebar { width: 80px; padding: 1rem 0.5rem; }
             .sidebar .logo { font-size: 1.2rem; text-align: center; }
@@ -104,11 +65,6 @@
             .nav-links a { justify-content: center; }
             .main-content { padding: 1rem; }
             .products-grid { gap: 1rem; }
-            .btn, .btn-outline { font-size: 14px; padding: 10px; min-height: 44px; }
-            .photo-preview { width: 80px; height: 80px; }
-            .card-number { font-size: 1rem; letter-spacing: 1px; }
-            .size-buttons { gap: 0.3rem; }
-            .size-btn { padding: 0.3rem 0.7rem; font-size: 0.7rem; }
         }
     </style>
 </head>
@@ -135,13 +91,78 @@
     let clickCount = 0;
     let clickTimer = null;
     
-    // Данные о размерах для каждого товара
+    // Размеры и замеры для каждого товара
     const sizeData = {
-        1: { name: "Кепка", sizes: ["S", "M", "L"], measurements: ["Обхват головы: 54-56 см", "57-59 см", "60-62 см"] },
-        2: { name: "Футболка", sizes: ["S", "M", "L", "XL"], measurements: ["Длина: 68 см, Ширина: 48 см", "Длина: 70 см, Ширина: 51 см", "Длина: 72 см, Ширина: 54 см", "Длина: 74 см, Ширина: 57 см"] },
-        3: { name: "Брюки", sizes: ["S", "M", "L", "XL"], measurements: ["Длина по боку: 100 см, Талия: 72 см", "Длина: 102 см, Талия: 76 см", "Длина: 104 см, Талия: 80 см", "Длина: 106 см, Талия: 84 см"] },
-        4: { name: "Лонгслив", sizes: ["S", "M", "L", "XL"], measurements: ["Длина рукава: 62 см, Грудь: 48 см", "Длина: 64 см, Грудь: 51 см", "Длина: 66 см, Грудь: 54 см", "Длина: 68 см, Грудь: 57 см"] }
+        1: { sizes: ["S", "M", "L"], measurements: ["Обхват головы: 54-56 см", "57-59 см", "60-62 см"] },
+        2: { sizes: ["S", "M", "L", "XL"], measurements: ["Длина: 68 см, Грудь: 48 см", "Длина: 70 см, Грудь: 51 см", "Длина: 72 см, Грудь: 54 см", "Длина: 74 см, Грудь: 57 см"] },
+        3: { sizes: ["S", "M", "L", "XL"], measurements: ["Длина: 100 см, Талия: 72 см", "Длина: 102 см, Талия: 76 см", "Длина: 104 см, Талия: 80 см", "Длина: 106 см, Талия: 84 см"] },
+        4: { sizes: ["S", "M", "L", "XL"], measurements: ["Рукав: 62 см, Грудь: 48 см", "Рукав: 64 см, Грудь: 51 см", "Рукав: 66 см, Грудь: 54 см", "Рукав: 68 см, Грудь: 57 см"] }
     };
+    
+    // Товары по умолчанию
+    const defaultProducts = [
+        { id: 1, name: "Кепка", price: 1500, desc: "Хлопок, козырёк. Отличный повседневный вариант.", frontImg: "", sideImg: "", mannequinImg: "", emoji: "🧢" },
+        { id: 2, name: "Футболка", price: 1900, desc: "Джерси, белый цвет. Дышащий материал.", frontImg: "", sideImg: "", mannequinImg: "", emoji: "👕" },
+        { id: 3, name: "Брюки", price: 5200, desc: "Костюмная ткань, стрелки. Элегантный крой.", frontImg: "", sideImg: "", mannequinImg: "", emoji: "👖" },
+        { id: 4, name: "Лонгслив", price: 2700, desc: "Трикотаж, чёрный цвет. Уютный и стильный.", frontImg: "", sideImg: "", mannequinImg: "", emoji: "🧥" }
+    ];
+
+    function getProducts() { 
+        const s = localStorage.getItem('palo_shop'); 
+        if (s) {
+            try { 
+                const parsed = JSON.parse(s);
+                if (parsed && parsed.length) return parsed;
+            } catch(e) {}
+        }
+        return JSON.parse(JSON.stringify(defaultProducts));
+    }
+    
+    function saveProducts(p) { localStorage.setItem('palo_shop', JSON.stringify(p)); }
+    function getCart() { const c = localStorage.getItem('palo_cart'); return c ? JSON.parse(c) : []; }
+    function saveCart(c) { localStorage.setItem('palo_cart', JSON.stringify(c)); updateCartCount(); }
+    function updateCartCount() { const cnt = getCart().reduce((s,i)=>s+i.qty,0); const b = document.getElementById('cart-count'); if(b) b.innerText = cnt; }
+    function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); }
+    
+    let selectedSizes = JSON.parse(localStorage.getItem('selected_sizes') || '{}');
+    
+    function selectSize(productId, size, idx) {
+        selectedSizes[productId] = size;
+        localStorage.setItem('selected_sizes', JSON.stringify(selectedSizes));
+        
+        document.querySelectorAll(`#size-buttons-${productId} .size-btn`).forEach((btn, i) => {
+            if (btn.innerText === size) btn.classList.add('selected');
+            else btn.classList.remove('selected');
+        });
+        
+        const sizeInfo = sizeData[productId];
+        if (sizeInfo && sizeInfo.measurements[idx]) {
+            document.getElementById(`size-chart-${productId}`).innerText = sizeInfo.measurements[idx];
+        }
+        showToast(`✅ Размер ${size} выбран`);
+    }
+    
+    function addToCartWithSize(id) {
+        const size = selectedSizes[id];
+        if (!size && sizeData[id]) {
+            showToast('⚠️ Сначала выберите размер!');
+            return;
+        }
+        let cart = getCart();
+        const existing = cart.find(i => i.id === id && i.size === size);
+        if (existing) existing.qty++;
+        else cart.push({ id, qty: 1, size: size || 'OS' });
+        saveCart(cart);
+        showToast(`✓ В корзине (размер ${size || 'OS'})`);
+    }
+
+    function removeFromCart(id, size) { 
+        let cart = getCart(); 
+        cart = cart.filter(i => !(i.id === id && i.size === size)); 
+        saveCart(cart); 
+        navigate('cart'); 
+        showToast('✓ Товар удалён');
+    }
 
     document.querySelector('.logo').addEventListener('click', function() {
         clickCount++;
@@ -162,108 +183,20 @@
         } else { showToast('❌ Неверный пароль'); document.getElementById('adminPassword').value = ''; }
     }
 
-    const defaultProducts = [
-        { id: 1, name: "Кепка", price: 1500, desc: "Хлопок, козырёк", frontImg: "", sideImg: "", mannequinImg: "", emoji: "🧢" },
-        { id: 2, name: "Футболка", price: 1900, desc: "Джерси, белый", frontImg: "", sideImg: "", mannequinImg: "", emoji: "👕" },
-        { id: 3, name: "Брюки", price: 5200, desc: "Костюмная ткань", frontImg: "", sideImg: "", mannequinImg: "", emoji: "👖" },
-        { id: 4, name: "Лонгслив", price: 2700, desc: "Трикотаж, чёрный", frontImg: "", sideImg: "", mannequinImg: "", emoji: "🧥" }
-    ];
-
-    function getProducts() { const s = localStorage.getItem('palo_shop'); return s ? JSON.parse(s) : JSON.parse(JSON.stringify(defaultProducts)); }
-    function saveProducts(p) { localStorage.setItem('palo_shop', JSON.stringify(p)); }
-    function getCart() { const c = localStorage.getItem('palo_cart'); return c ? JSON.parse(c) : []; }
-    function saveCart(c) { localStorage.setItem('palo_cart', JSON.stringify(c)); updateCartCount(); }
-    function updateCartCount() { const cnt = getCart().reduce((s,i)=>s+i.qty,0); const b = document.getElementById('cart-count'); if(b) b.innerText = cnt; }
-    function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); }
-    
-    // Функция для генерации HTML выбора размера
-    function renderSizeSelector(productId, selectedSize = null) {
-        const sizes = sizeData[productId];
-        if (!sizes) return '';
-        
-        let html = `<div class="size-selector">
-            <div class="size-label">📏 Выберите размер:</div>
-            <div class="size-buttons" id="size-buttons-${productId}">`;
-        
-        sizes.sizes.forEach((size, idx) => {
-            const isSelected = (selectedSize === size);
-            html += `<button class="size-btn ${isSelected ? 'selected' : ''}" onclick="selectSize(${productId}, '${size}', ${idx})">${size}</button>`;
-        });
-        
-        html += `</div>
-            <div class="size-chart" id="size-chart-${productId}">
-                ${selectedSize ? sizes.measurements[sizes.sizes.indexOf(selectedSize)] : 'Нажмите на размер, чтобы увидеть замеры'}
-            </div>
-        </div>`;
-        return html;
-    }
-    
-    function selectSize(productId, size, idx) {
-        // Сохраняем выбранный размер в localStorage для корзины
-        let selectedSizes = JSON.parse(localStorage.getItem('selected_sizes') || '{}');
-        selectedSizes[productId] = size;
-        localStorage.setItem('selected_sizes', JSON.stringify(selectedSizes));
-        
-        // Обновляем визуальное выделение
-        document.querySelectorAll(`#size-buttons-${productId} .size-btn`).forEach((btn, i) => {
-            if (btn.innerText === size) btn.classList.add('selected');
-            else btn.classList.remove('selected');
-        });
-        
-        // Показываем замеры
-        const sizeInfo = sizeData[productId];
-        if (sizeInfo && sizeInfo.measurements[idx]) {
-            document.getElementById(`size-chart-${productId}`).innerText = sizeInfo.measurements[idx];
-        }
-        
-        showToast(`✅ Размер ${size} выбран`);
-    }
-    
-    function addToCartWithSize(id) {
-        const selectedSizes = JSON.parse(localStorage.getItem('selected_sizes') || '{}');
-        const size = selectedSizes[id];
-        
-        if (!size && sizeData[id]) {
-            showToast('⚠️ Сначала выберите размер!');
-            return;
-        }
-        
-        let cart = getCart();
-        const existing = cart.find(i => i.id === id && i.size === size);
-        if (existing) {
-            existing.qty++;
-        } else {
-            cart.push({ id, qty: 1, size: size || 'OS' });
-        }
-        saveCart(cart);
-        showToast(`✓ В корзине (размер ${size || 'OS'})`);
-    }
-
-    function removeFromCart(id, size) { 
-        let cart = getCart(); 
-        cart = cart.filter(i => !(i.id === id && i.size === size)); 
-        saveCart(cart); 
-        navigate('cart'); 
-        showToast('✓ Товар удалён');
-    }
-
     function sendOrderToTelegram(orderDetails, totalAmount, customerData) {
-        const text = `🛍️ НОВЫЙ ЗАКАЗ PALO\n\n👤 Имя: ${customerData.name}\n📞 Телефон: ${customerData.phone}\n📍 Адрес: ${customerData.address}\n🚚 Доставка: ${customerData.delivery}\n\n📦 Состав заказа:\n${orderDetails}\n\n💰 ИТОГО: ${totalAmount.toLocaleString()} ₽\n💳 Оплата: перевод на карту 2200 7020 0430 8479\n\n🕐 ${new Date().toLocaleString()}`;
+        const text = `🛍️ НОВЫЙ ЗАКАЗ PALO\n\n👤 ${customerData.name}\n📞 ${customerData.phone}\n📍 ${customerData.address}\n🚚 ${customerData.delivery}\n\n📦 ${orderDetails}\n\n💰 ИТОГО: ${totalAmount.toLocaleString()} ₽\n💳 Перевод на карту 2200 7020 0430 8479\n\n🕐 ${new Date().toLocaleString()}`;
         fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({chat_id: TELEGRAM_CHAT_ID, text: text})
-        }).then(response => response.json()).then(data => {
-            if (data.ok) {
-                showToast('✅ Заказ отправлен! Проверьте Telegram');
-                localStorage.removeItem('palo_cart');
-                localStorage.removeItem('selected_sizes');
-                updateCartCount();
+        }).then(r=>r.json()).then(d=>{ 
+            if(d.ok){ 
+                showToast('✅ Заказ отправлен!'); 
+                localStorage.removeItem('palo_cart'); 
+                updateCartCount(); 
                 setTimeout(() => navigate('home'), 1500);
-            } else {
-                showToast('❌ Ошибка отправки');
-            }
-        }).catch(() => showToast('❌ Ошибка соединения'));
+            } else showToast('❌ Ошибка'); 
+        }).catch(()=>showToast('❌ Ошибка'));
     }
 
     function openOrderModal() { if(getCart().length===0){ showToast('Корзина пуста'); return; } document.getElementById('orderModal').style.display='flex'; }
@@ -276,9 +209,29 @@
         if(!name||!phone||!address){ showToast('Заполните все поля'); return; }
         const cart = getCart(); const products = getProducts();
         let lines=''; let total=0;
-        cart.forEach(i=>{ const p=products.find(pr=>pr.id===i.id); if(p){ const s=p.price*i.qty; total+=s; lines+=`• ${p.name} — Размер: ${i.size || 'OS'}, ${i.qty} шт × ${p.price} ₽ = ${s} ₽\n`; } });
+        cart.forEach(i=>{ const p=products.find(pr=>pr.id===i.id); if(p){ const s=p.price*i.qty; total+=s; lines+=`• ${p.name} (разм. ${i.size || 'OS'}) — ${i.qty}шт × ${p.price}₽ = ${s}₽\n`; } });
         sendOrderToTelegram(lines,total,{name,phone,address,delivery});
         closeOrderModal();
+    }
+
+    function renderSizeSelector(productId) {
+        const sizes = sizeData[productId];
+        if (!sizes) return '';
+        const currentSize = selectedSizes[productId] || '';
+        let html = `<div class="size-selector">
+            <div class="size-label">📏 Выберите размер:</div>
+            <div class="size-buttons" id="size-buttons-${productId}">`;
+        sizes.sizes.forEach((size, idx) => {
+            html += `<button class="size-btn ${currentSize === size ? 'selected' : ''}" onclick="selectSize(${productId}, '${size}', ${idx})">${size}</button>`;
+        });
+        html += `</div><div class="size-chart" id="size-chart-${productId}">`;
+        if (currentSize && sizes.sizes.indexOf(currentSize) >= 0) {
+            html += sizes.measurements[sizes.sizes.indexOf(currentSize)];
+        } else {
+            html += 'Нажмите на размер, чтобы увидеть замеры';
+        }
+        html += `</div></div>`;
+        return html;
     }
 
     let currentProduct=null, currentAngle='front';
@@ -297,10 +250,10 @@
                 <div class="zoom-preview" id="zoomArea">${activeImg?`<img id="zoomImg" class="zoom-image-main" src="${activeImg}">`:'<div>Нет фото</div>'}<div id="zoomLens" class="zoom-lens"></div></div>
                 <div class="thumb-vertical">${thumbs||'<div>Загрузите фото</div>'}</div>
             </div>
-            <div class="product-detail-info" style="flex:1; min-width:200px;">
+            <div style="flex:1; min-width:200px;">
                 <h2>${p.name}</h2>
-                <div class="product-price" style="font-size:1.5rem;">${p.price.toLocaleString()} ₽</div>
-                <div style="color:#666; margin:0.5rem 0;">${p.desc}</div>
+                <div style="font-size:1.5rem; font-weight:600; margin:0.5rem 0;">${p.price.toLocaleString()} ₽</div>
+                <div style="color:#666;">${p.desc}</div>
                 ${renderSizeSelector(p.id)}
                 <button class="btn" onclick="addToCartWithSize(${p.id}); closeModal();">🛒 Добавить в корзину</button>
             </div>
@@ -344,57 +297,45 @@
             total += sum;
             const img = p.frontImg || p.sideImg || p.mannequinImg;
             html += `
-                <div class="cart-item" style="display:flex; gap:1rem; align-items:center; background:white; padding:1rem; border-radius:28px; flex-wrap:wrap;">
-                    <div style="width:70px;height:70px;background:#f2f5f9;border-radius:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <div style="display:flex; gap:1rem; align-items:center; background:white; padding:1rem; border-radius:28px; flex-wrap:wrap;">
+                    <div style="width:70px;height:70px;background:#f2f5f9;border-radius:18px;display:flex;align-items:center;justify-content:center;">
                         ${img ? `<img src="${img}" style="width:100%;height:100%;object-fit:cover;border-radius:16px;">` : p.emoji}
                     </div>
                     <div style="flex:1; min-width:120px;">
                         <div style="font-weight:700;">${p.name}</div>
-                        <div style="font-size:0.8rem; color:#666;">Размер: ${item.size || 'OS'}</div>
-                        <div style="font-size:0.9rem;">${item.qty} шт × ${p.price} ₽</div>
+                        <div style="font-size:0.8rem;">Размер: ${item.size || 'OS'}</div>
+                        <div>${item.qty} шт × ${p.price} ₽</div>
                     </div>
                     <div style="font-weight:600;">${sum.toLocaleString()} ₽</div>
-                    <button class="btn-outline" style="padding:0.5rem 1rem; font-size:0.9rem;" onclick="removeFromCart(${p.id}, '${item.size}')">🗑️ Удалить</button>
+                    <button class="btn-outline" style="padding:0.5rem 1rem;" onclick="removeFromCart(${p.id}, '${item.size}')">🗑️ Удалить</button>
                 </div>
             `;
         });
         html += `<div style="text-align:right; font-size:1.5rem; font-weight:600; margin-top:1rem;">Итого: ${total.toLocaleString()} ₽</div>`;
-        html += `<button class="btn" style="margin-top:1rem;" onclick="openOrderModal()">💳 Оформить заказ</button>`;
+        html += `<button class="btn" onclick="openOrderModal()">💳 Оформить заказ</button>`;
         return html;
     }
 
     let editingId = null;
-    
-    function renderAdmin() {
+    function renderAdmin(){
         if(!isAdminAuthenticated){ showAdminAuth(); return '<div style="text-align:center;padding:3rem;">🔒 Доступ закрыт</div>'; }
-        const products = getProducts();
-        let html = `<div class="admin-panel"><h2>📷 Управление товарами</h2><div id="adminMsg"></div><div id="adminForm"></div><h3 style="margin:2rem 0 1rem;">Список товаров</h3><ul style="list-style:none;">`;
-        products.forEach(p => {
-            html += `<li style="display:flex;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid #e9edf2;">
-                        <span>${p.emoji} ${p.name} — ${p.price}₽</span>
-                        <span><button onclick="editProduct(${p.id})" class="btn-outline" style="padding:0.2rem 1rem;">✏️</button> 
-                        <button onclick="deleteProduct(${p.id})" class="btn-outline" style="background:#fee; padding:0.2rem 1rem;">🗑</button></span>
-                     </li>`;
-        });
-        html += `</ul></div>`;
-        return html;
+        const products=getProducts();
+        let html=`<div class="admin-panel"><h2>📷 Управление товарами</h2><div id="adminMsg"></div><div id="adminForm"></div><h3 style="margin:2rem 0 1rem;">Список</h3><ul style="list-style:none;">`;
+        products.forEach(p=>{ html+=`<li style="display:flex;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid #e9edf2;"><span>${p.emoji} ${p.name} — ${p.price}₽</span><span><button onclick="editProduct(${p.id})" class="btn-outline" style="padding:0.2rem 1rem;">✏️</button> <button onclick="deleteProduct(${p.id})" class="btn-outline" style="background:#fee;">🗑</button></span></li>`; });
+        html+=`</ul></div>`; return html;
     }
     
     function handleImageUpload(event, type, previewId) {
         const file = event.target.files[0];
         if (!file) return;
-        if (file.size > 2 * 1024 * 1024) {
-            showToast('⚠️ Файл больше 2 МБ');
-            return;
-        }
+        if (file.size > 2 * 1024 * 1024) { showToast('⚠️ Файл больше 2 МБ'); return; }
         const reader = new FileReader();
         reader.onload = function(e) {
             const dataUrl = e.target.result;
             if (type === 'front') document.getElementById('frontVal').value = dataUrl;
             if (type === 'side') document.getElementById('sideVal').value = dataUrl;
             if (type === 'mannequin') document.getElementById('manVal').value = dataUrl;
-            const preview = document.getElementById(previewId);
-            if (preview) preview.innerHTML = `<img src="${dataUrl}">`;
+            document.getElementById(previewId).innerHTML = `<img src="${dataUrl}">`;
             showToast('✅ Фото загружено');
         };
         reader.readAsDataURL(file);
@@ -405,44 +346,32 @@
         const prod = product || { name: '', price: '', desc: '', frontImg: '', sideImg: '', mannequinImg: '', emoji: '👕' };
         const formDiv = document.getElementById('adminForm');
         if (!formDiv) return;
-        
         formDiv.innerHTML = `
             <div><input id="prodName" placeholder="Название" value="${escapeHtml(prod.name)}" style="width:100%;padding:0.8rem;margin-bottom:0.5rem;border-radius:16px;border:1px solid #ddd;"></div>
             <div><input id="prodPrice" type="number" placeholder="Цена" value="${prod.price}" style="width:100%;padding:0.8rem;margin-bottom:0.5rem;border-radius:16px;border:1px solid #ddd;"></div>
             <div><textarea id="prodDesc" rows="2" placeholder="Описание" style="width:100%;padding:0.8rem;margin-bottom:0.5rem;border-radius:16px;border:1px solid #ddd;">${escapeHtml(prod.desc)}</textarea></div>
             <div><input id="prodEmoji" placeholder="Эмодзи" value="${prod.emoji}" style="width:100%;padding:0.8rem;margin-bottom:1rem;border-radius:16px;border:1px solid #ddd;"></div>
-            
             <div class="photo-group">
                 <div class="photo-label">📷 Фото 1 (спереди)</div>
-                <div class="photo-preview" id="frontPreview" onclick="document.getElementById('frontFileInput').click()">
-                    ${prod.frontImg ? `<img src="${prod.frontImg}">` : '📸<br>Нажмите'}
-                </div>
+                <div class="photo-preview" id="frontPreview" onclick="document.getElementById('frontFileInput').click()">${prod.frontImg ? `<img src="${prod.frontImg}">` : '📸<br>Нажмите'}</div>
                 <input type="file" id="frontFileInput" accept="image/*" style="display:none" onchange="handleImageUpload(event, 'front', 'frontPreview')">
                 <input type="hidden" id="frontVal" value="${prod.frontImg || ''}">
             </div>
-            
             <div class="photo-group">
                 <div class="photo-label">📷 Фото 2 (сбоку)</div>
-                <div class="photo-preview" id="sidePreview" onclick="document.getElementById('sideFileInput').click()">
-                    ${prod.sideImg ? `<img src="${prod.sideImg}">` : '📸<br>Нажмите'}
-                </div>
+                <div class="photo-preview" id="sidePreview" onclick="document.getElementById('sideFileInput').click()">${prod.sideImg ? `<img src="${prod.sideImg}">` : '📸<br>Нажмите'}</div>
                 <input type="file" id="sideFileInput" accept="image/*" style="display:none" onchange="handleImageUpload(event, 'side', 'sidePreview')">
                 <input type="hidden" id="sideVal" value="${prod.sideImg || ''}">
             </div>
-            
             <div class="photo-group">
                 <div class="photo-label">📷 Фото 3 (на манекене)</div>
-                <div class="photo-preview" id="manPreview" onclick="document.getElementById('manFileInput').click()">
-                    ${prod.mannequinImg ? `<img src="${prod.mannequinImg}">` : '🕴️<br>Нажмите'}
-                </div>
+                <div class="photo-preview" id="manPreview" onclick="document.getElementById('manFileInput').click()">${prod.mannequinImg ? `<img src="${prod.mannequinImg}">` : '🕴️<br>Нажмите'}</div>
                 <input type="file" id="manFileInput" accept="image/*" style="display:none" onchange="handleImageUpload(event, 'mannequin', 'manPreview')">
                 <input type="hidden" id="manVal" value="${prod.mannequinImg || ''}">
             </div>
-            
             <button class="btn" style="width:auto; padding:0.8rem 2rem; margin-top:1rem;" onclick="saveProduct()">💾 Сохранить</button>
             <button class="btn-outline" style="margin-left:1rem; padding:0.8rem 2rem;" onclick="navigate('admin')">❌ Отмена</button>
         `;
-        
         document.getElementById('frontVal').value = prod.frontImg || '';
         document.getElementById('sideVal').value = prod.sideImg || '';
         document.getElementById('manVal').value = prod.mannequinImg || '';
@@ -456,3 +385,29 @@
         const frontImg = document.getElementById('frontVal').value;
         const sideImg = document.getElementById('sideVal').value;
         const mannequinImg = document.getElementById('manVal').value;
+        if (!name || isNaN(price)) { alert('❌ Заполните название и цену'); return; }
+        let products = getProducts();
+        if (editingId) {
+            products = products.map(p => p.id === editingId ? {...p, name, price, desc, emoji, frontImg, sideImg, mannequinImg} : p);
+        } else {
+            const newId = products.length ? Math.max(...products.map(p => p.id)) + 1 : 5;
+            products.push({ id: newId, name, price, desc, emoji, frontImg, sideImg, mannequinImg });
+        }
+        saveProducts(products);
+        document.getElementById('adminMsg').innerHTML = '<div style="background:#e0f2e9; padding:0.8rem; border-radius:16px; margin-bottom:1rem;">✓ Товар сохранён</div>';
+        navigate('admin');
+    }
+    
+    function editProduct(id) { const products = getProducts(); const p = products.find(pr => pr.id === id); if (p) renderAdminForm(p); else navigate('admin'); }
+    function deleteProduct(id) { if (confirm('Удалить?')) { let products = getProducts(); products = products.filter(p => p.id !== id); saveProducts(products); navigate('admin'); } }
+    function escapeHtml(s) { return (s || '').replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
+
+    function navigate(page) {
+        const appDiv = document.getElementById('app');
+        if (page === 'home') appDiv.innerHTML = renderHome();
+        else if (page === 'cart') appDiv.innerHTML = renderCart();
+        else if (page === 'admin') { appDiv.innerHTML = renderAdmin(); if (isAdminAuthenticated) renderAdminForm(); }
+        updateCartCount(); window.scrollTo(0,0);
+    }
+
+    const modalDiv = document.createElement
