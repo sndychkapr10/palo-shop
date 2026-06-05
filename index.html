@@ -7,7 +7,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', system-ui, sans-serif; background: #f4f6fa; color: #1a2634; overflow-x: hidden; }
-        .app-horizontal { display: flex; min-height: 100vh; }
+        .app-horizontal { display: flex; min-height: 100vh; flex-direction: row; }
         .sidebar {
             width: 280px; background: rgba(255,255,255,0.96); backdrop-filter: blur(12px);
             border-right: 1px solid #e2e8f0; padding: 2rem 1.5rem; position: sticky; top: 0;
@@ -52,6 +52,8 @@
         .order-modal-content input, .order-modal-content textarea, .order-modal-content select { width: 100%; padding: 0.8rem; margin: 0.5rem 0 1rem; border: 1px solid #ddd; border-radius: 20px; }
         .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 0.6rem 2rem; border-radius: 60px; opacity: 0; transition: 0.2s; z-index: 3000; }
         .toast.show { opacity: 1; }
+        
+        /* Мобильные стили (исправлены проблемы с тачем) */
         @media (max-width: 780px) {
             .sidebar { width: 80px; padding: 1rem 0.5rem; }
             .sidebar .logo { font-size: 1.2rem; text-align: center; }
@@ -61,6 +63,11 @@
             .products-grid { gap: 1rem; }
             .photo-upload-card { width: 100%; }
             .cart-item { flex-wrap: wrap; justify-content: space-between; }
+            .btn, .btn-outline { 
+                font-size: 14px; 
+                padding: 10px;
+                min-height: 44px; /* для удобного тача */
+            }
         }
     </style>
 </head>
@@ -79,7 +86,6 @@
 <div id="toast" class="toast"></div>
 
 <script>
-    // ========== НАСТРОЙКИ TELEGRAM (ОБНОВЛЕНО) ==========
     const TELEGRAM_BOT_TOKEN = '8758635199:AAEG8B69jBqbW1fmwLZUbrso5w1VIrHonKg';
     const TELEGRAM_CHAT_ID = '5820655432';
     const ADMIN_PASSWORD = 'admin123';
@@ -220,7 +226,7 @@
             total += sum;
             const img = p.frontImg || p.sideImg || p.mannequinImg;
             html += `
-                <div class="cart-item" data-product-id="${p.id}" style="display:flex; gap:1rem; align-items:center; background:white; padding:1rem; border-radius:28px; flex-wrap:wrap;">
+                <div class="cart-item" style="display:flex; gap:1rem; align-items:center; background:white; padding:1rem; border-radius:28px; flex-wrap:wrap;">
                     <div style="width:70px;height:70px;background:#f2f5f9;border-radius:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                         ${img ? `<img src="${img}" style="width:100%;height:100%;object-fit:cover;border-radius:16px;">` : p.emoji}
                     </div>
@@ -229,7 +235,7 @@
                         <div style="font-size:0.9rem;">${item.qty} шт × ${p.price} ₽</div>
                     </div>
                     <div style="font-weight:600;">${sum.toLocaleString()} ₽</div>
-                    <button class="btn-outline" style="padding:0.5rem 1rem; font-size:0.9rem;" onclick="removeFromCart(${p.id}); event.stopPropagation(); return false;">🗑️ Удалить</button>
+                    <button class="btn-outline" style="padding:0.5rem 1rem; font-size:0.9rem;" onclick="removeFromCart(${p.id})">🗑️ Удалить</button>
                 </div>
             `;
         });
@@ -334,4 +340,12 @@
 
     window.openModal=openModal; window.closeModal=closeModal; window.switchAngle=switchAngle;
     window.addToCart=addToCart; window.removeFromCart=removeFromCart; window.navigate=navigate;
-    window.openOrderModal=openOrderModal; window.closeOrderModal=
+    window.openOrderModal=openOrderModal; window.closeOrderModal=closeOrderModal; window.submitOrder=submitOrder;
+    window.editProduct=editProduct; window.deleteProduct=deleteProduct; window.saveProduct=saveProduct;
+    window.showAdminAuth=showAdminAuth; window.closeAdminAuth=closeAdminAuth; window.checkAdminPassword=checkAdminPassword;
+    window.setImageByUrl = setImageByUrl;
+
+    updateCartCount(); navigate('home');
+</script>
+</body>
+</html>
