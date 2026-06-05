@@ -2,38 +2,35 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PALO — магазин одежды</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; background: #f0f2f5; }
-        .header { background: white; padding: 15px 20px; display: flex; justify-content: space-between; border-bottom: 1px solid #ddd; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
+        .header { background: white; padding: 15px 20px; display: flex; justify-content: space-between; border-radius: 12px; margin-bottom: 20px; }
         .logo { font-size: 24px; font-weight: bold; cursor: pointer; }
-        .nav a { margin-left: 20px; cursor: pointer; }
-        .cart-count { background: #333; color: white; border-radius: 50%; padding: 2px 8px; font-size: 12px; }
-        .main { max-width: 1200px; margin: 0 auto; padding: 20px; }
-        .products { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
-        .product { background: white; border-radius: 16px; padding: 15px; text-align: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .nav a { margin-left: 20px; cursor: pointer; color: #333; text-decoration: none; }
+        .cart-count { background: #333; color: white; border-radius: 50%; padding: 2px 8px; font-size: 12px; margin-left: 5px; }
+        .products { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+        .product { background: white; border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         .product-emoji { font-size: 64px; }
         .product-name { font-weight: bold; margin: 10px 0; }
-        .product-price { color: #e67e22; font-weight: bold; }
-        .btn { background: #333; color: white; border: none; padding: 8px 16px; border-radius: 30px; cursor: pointer; width: 100%; margin-top: 10px; }
-        .size-selector { margin: 15px 0; }
-        .size-btn { background: #eee; border: none; padding: 8px 15px; margin: 0 5px; border-radius: 30px; cursor: pointer; }
-        .size-btn.selected { background: #333; color: white; }
-        .size-chart { font-size: 12px; color: #666; margin-top: 8px; }
-        .cart-item { background: white; padding: 15px; border-radius: 16px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .total { font-size: 20px; font-weight: bold; text-align: right; margin-top: 20px; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: white; border-radius: 30px; max-width: 500px; width: 90%; padding: 20px; position: relative; }
-        .close-modal { position: absolute; top: 10px; right: 20px; font-size: 30px; cursor: pointer; }
-        .payment-info { background: #e8f5e9; padding: 15px; border-radius: 16px; margin: 15px 0; text-align: center; }
-        .card-number { font-size: 18px; font-weight: bold; letter-spacing: 2px; margin: 10px 0; }
-        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 30px; opacity: 0; transition: 0.3s; }
+        .product-price { color: #e67e22; font-weight: bold; font-size: 20px; }
+        .btn { background: #333; color: white; border: none; padding: 10px 20px; border-radius: 30px; cursor: pointer; width: 100%; margin-top: 10px; font-size: 14px; }
+        .cart-item { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .total { font-size: 24px; font-weight: bold; text-align: right; margin-top: 20px; }
+        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 30px; opacity: 0; transition: 0.3s; z-index: 1000; }
         .toast.show { opacity: 1; }
-        @media (max-width: 700px) {
-            .products { grid-template-columns: 1fr; }
-        }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: white; border-radius: 24px; max-width: 400px; width: 90%; padding: 20px; position: relative; }
+        .close { position: absolute; top: 10px; right: 20px; font-size: 28px; cursor: pointer; }
+        .size-buttons { display: flex; gap: 10px; justify-content: center; margin: 15px 0; flex-wrap: wrap; }
+        .size-btn { background: #eee; border: none; padding: 8px 20px; border-radius: 30px; cursor: pointer; }
+        .size-btn.selected { background: #333; color: white; }
+        .size-info { font-size: 12px; color: #666; text-align: center; margin: 10px 0; }
+        input, select, textarea { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 12px; font-family: inherit; }
+        .payment-info { background: #e8f5e9; padding: 15px; border-radius: 16px; text-align: center; margin: 15px 0; }
+        .card-number { font-size: 18px; font-weight: bold; letter-spacing: 2px; margin: 10px 0; }
     </style>
 </head>
 <body>
@@ -44,25 +41,24 @@
             <a onclick="navigate('cart')">Корзина <span class="cart-count" id="cartCount">0</span></a>
         </div>
     </div>
-    <div class="main" id="app"></div>
+    <div class="products" id="app"></div>
     <div id="toast" class="toast"></div>
 
     <script>
-        const TELEGRAM_BOT_TOKEN = '8758635199:AAEG8B69jBqbW1fmwLZUbrso5w1VIrHonKg';
-        const TELEGRAM_CHAT_ID = '5820655432';
-        
+        // Товары
         const products = [
-            { id: 1, name: "Кепка", price: 1500, desc: "Хлопок, козырёк", emoji: "🧢" },
-            { id: 2, name: "Футболка", price: 1900, desc: "Джерси, белый", emoji: "👕" },
-            { id: 3, name: "Брюки", price: 5200, desc: "Костюмная ткань", emoji: "👖" },
-            { id: 4, name: "Лонгслив", price: 2700, desc: "Трикотаж, чёрный", emoji: "🧥" }
+            { id: 1, name: "Кепка", price: 1500, emoji: "🧢", desc: "Хлопковая" },
+            { id: 2, name: "Футболка", price: 1900, emoji: "👕", desc: "Белая" },
+            { id: 3, name: "Брюки", price: 5200, emoji: "👖", desc: "Широкие" },
+            { id: 4, name: "Лонгслив", price: 2700, emoji: "🧥", desc: "Чёрный" }
         ];
         
-        const sizeData = {
-            1: { sizes: ["S", "M", "L"], measures: ["54-56 см", "57-59 см", "60-62 см"] },
-            2: { sizes: ["S", "M", "L", "XL"], measures: ["68 см, грудь 48", "70 см, грудь 51", "72 см, грудь 54", "74 см, грудь 57"] },
-            3: { sizes: ["S", "M", "L", "XL"], measures: ["100 см, талия 72", "102 см, талия 76", "104 см, талия 80", "106 см, талия 84"] },
-            4: { sizes: ["S", "M", "L", "XL"], measures: ["рукав 62, грудь 48", "рукав 64, грудь 51", "рукав 66, грудь 54", "рукав 68, грудь 57"] }
+        // Размеры
+        const sizes = {
+            1: { list: ["S", "M", "L"], info: ["54-56 см", "57-59 см", "60-62 см"] },
+            2: { list: ["S", "M", "L", "XL"], info: ["68 см/48 см", "70 см/51 см", "72 см/54 см", "74 см/57 см"] },
+            3: { list: ["S", "M", "L", "XL"], info: ["100 см/72 см", "102 см/76 см", "104 см/80 см", "106 см/84 см"] },
+            4: { list: ["S", "M", "L", "XL"], info: ["62 см/48 см", "64 см/51 см", "66 см/54 см", "68 см/57 см"] }
         };
         
         let cart = JSON.parse(localStorage.getItem('cart') || '[]');
@@ -70,7 +66,7 @@
         
         function saveCart() {
             localStorage.setItem('cart', JSON.stringify(cart));
-            document.getElementById('cartCount').innerText = cart.reduce((s,i)=>s+i.qty,0);
+            document.getElementById('cartCount').innerText = cart.reduce((s,i) => s + i.qty, 0);
         }
         
         function showToast(msg) {
@@ -80,20 +76,9 @@
             setTimeout(() => t.classList.remove('show'), 2000);
         }
         
-        function selectSize(productId, size, idx) {
-            selectedSizes[productId] = size;
-            localStorage.setItem('selectedSizes', JSON.stringify(selectedSizes));
-            document.querySelectorAll(`.size-btn-${productId}`).forEach((btn, i) => {
-                if (btn.innerText === size) btn.classList.add('selected');
-                else btn.classList.remove('selected');
-            });
-            document.getElementById(`size-chart-${productId}`).innerText = sizeData[productId].measures[idx];
-            showToast(`Размер ${size} выбран`);
-        }
-        
         function addToCart(id) {
-            const size = selectedSizes[id];
-            if (sizeData[id] && !size) {
+            let size = selectedSizes[id];
+            if (sizes[id] && !size) {
                 showToast('Сначала выберите размер!');
                 return;
             }
@@ -102,6 +87,7 @@
             else cart.push({ id, qty: 1, size: size || 'OS' });
             saveCart();
             showToast('✓ Добавлено в корзину');
+            navigate('cart');
         }
         
         function removeFromCart(id, size) {
@@ -110,77 +96,42 @@
             navigate('cart');
         }
         
-        function renderSizeSelector(productId) {
-            const data = sizeData[productId];
-            if (!data) return '';
-            const current = selectedSizes[productId] || '';
-            let html = `<div class="size-selector"><div>📏 Выберите размер:</div><div>`;
-            data.sizes.forEach((size, idx) => {
-                html += `<button class="size-btn size-btn-${productId} ${current === size ? 'selected' : ''}" onclick="selectSize(${productId}, '${size}', ${idx})">${size}</button>`;
+        function selectSize(productId, size, index) {
+            selectedSizes[productId] = size;
+            localStorage.setItem('selectedSizes', JSON.stringify(selectedSizes));
+            document.querySelectorAll(`.size-${productId}`).forEach((btn, i) => {
+                if (btn.innerText === size) btn.classList.add('selected');
+                else btn.classList.remove('selected');
             });
-            html += `</div><div class="size-chart" id="size-chart-${productId}">`;
-            if (current && data.sizes.indexOf(current) >= 0) {
-                html += data.measures[data.sizes.indexOf(current)];
-            } else {
-                html += 'Нажмите на размер для замеров';
-            }
-            html += `</div></div>`;
-            return html;
-        }
-        
-        function renderHome() {
-            let html = '<h2>Коллекция</h2><div class="products">';
-            products.forEach(p => {
-                html += `
-                    <div class="product" onclick="openModal(${p.id})">
-                        <div class="product-emoji">${p.emoji}</div>
-                        <div class="product-name">${p.name}</div>
-                        <div class="product-price">${p.price} ₽</div>
-                        <div style="font-size:12px;">${p.desc}</div>
-                        <button class="btn" onclick="event.stopPropagation();openModal(${p.id})">🔍 Выбрать размер</button>
-                    </div>
-                `;
-            });
-            html += '</div>';
-            return html;
+            document.getElementById(`sizeInfo-${productId}`).innerHTML = sizes[productId].info[index];
         }
         
         function openModal(productId) {
-            const p = products.find(pr => pr.id === productId);
-            const modal = document.getElementById('productModal');
+            let p = products.find(x => x.id === productId);
+            let s = sizes[productId];
+            let currentSize = selectedSizes[productId] || '';
+            let sizeHtml = '';
+            if (s) {
+                sizeHtml = `<div class="size-buttons">`;
+                s.list.forEach((size, idx) => {
+                    sizeHtml += `<button class="size-btn size-${productId} ${currentSize === size ? 'selected' : ''}" onclick="selectSize(${productId}, '${size}', ${idx})">${size}</button>`;
+                });
+                sizeHtml += `</div><div class="size-info" id="sizeInfo-${productId}">${currentSize ? s.info[s.list.indexOf(currentSize)] : 'Нажмите на размер'}</div>`;
+            }
             document.getElementById('modalBody').innerHTML = `
+                <span class="close" onclick="closeModal()">&times;</span>
                 <h2>${p.name}</h2>
-                <div class="product-price">${p.price} ₽</div>
-                <div style="margin:10px 0;">${p.desc}</div>
-                ${renderSizeSelector(productId)}
-                <button class="btn" onclick="addToCart(${productId}); closeModal();">🛒 Добавить в корзину</button>
+                <div style="font-size:32px; text-align:center; margin:10px 0;">${p.emoji}</div>
+                <div class="product-price" style="text-align:center;">${p.price} ₽</div>
+                <div style="text-align:center; margin:10px 0;">${p.desc}</div>
+                ${sizeHtml}
+                <button class="btn" onclick="addToCart(${productId}); closeModal();">Добавить в корзину</button>
             `;
-            modal.style.display = 'flex';
+            document.getElementById('productModal').style.display = 'flex';
         }
         
         function closeModal() {
             document.getElementById('productModal').style.display = 'none';
-        }
-        
-        function renderCart() {
-            if (cart.length === 0) return '<h2>Корзина пуста</h2>';
-            let total = 0;
-            let html = '<h2>Корзина</h2>';
-            cart.forEach(item => {
-                const p = products.find(pr => pr.id === item.id);
-                const sum = p.price * item.qty;
-                total += sum;
-                html += `
-                    <div class="cart-item">
-                        <div><strong>${p.name}</strong> (${item.size || 'OS'}) × ${item.qty}</div>
-                        <div>${sum} ₽</div>
-                        <button class="btn" style="width:auto; background:#999;" onclick="removeFromCart(${p.id}, '${item.size}')">Удалить</button>
-                    </div>
-                `;
-            });
-            html += `<div class="total">Итого: ${total} ₽</div>`;
-            html += `<button class="btn" onclick="openOrderModal()">💳 Оформить заказ</button>`;
-            return html;
         }
         
         function openOrderModal() {
@@ -192,28 +143,28 @@
             document.getElementById('orderModal').style.display = 'none';
         }
         
-        function submitOrder() {
-            const name = document.getElementById('orderName').value.trim();
-            const phone = document.getElementById('orderPhone').value.trim();
-            const address = document.getElementById('orderAddress').value.trim();
-            const delivery = document.getElementById('orderDelivery').value;
+        function sendOrder() {
+            let name = document.getElementById('orderName').value.trim();
+            let phone = document.getElementById('orderPhone').value.trim();
+            let address = document.getElementById('orderAddress').value.trim();
+            let delivery = document.getElementById('orderDelivery').value;
             if (!name || !phone || !address) { showToast('Заполните все поля'); return; }
             
-            let lines = '';
+            let items = '';
             let total = 0;
             cart.forEach(item => {
-                const p = products.find(pr => pr.id === item.id);
-                const sum = p.price * item.qty;
+                let p = products.find(x => x.id === item.id);
+                let sum = p.price * item.qty;
                 total += sum;
-                lines += `• ${p.name} (${item.size || 'OS'}) — ${item.qty}шт × ${p.price}₽ = ${sum}₽\n`;
+                items += `${p.name} (${item.size || 'OS'}) x${item.qty} = ${sum}₽\n`;
             });
             
-            const text = `🛍️ НОВЫЙ ЗАКАЗ PALO\n\n👤 ${name}\n📞 ${phone}\n📍 ${address}\n🚚 ${delivery}\n\n📦 ${lines}\n💰 ИТОГО: ${total} ₽\n💳 Перевод на карту 2200 7020 0430 8479`;
+            let text = `🛍️ НОВЫЙ ЗАКАЗ PALO\n\n👤 ${name}\n📞 ${phone}\n📍 ${address}\n🚚 ${delivery}\n\n📦 ${items}\n💰 ИТОГО: ${total}₽\n💳 Карта: 2200 7020 0430 8479`;
             
-            fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+            fetch(`https://api.telegram.org/bot8758635199:AAEG8B69jBqbW1fmwLZUbrso5w1VIrHonKg/sendMessage`, {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({chat_id: TELEGRAM_CHAT_ID, text: text})
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: '5820655432', text: text })
             }).then(r => r.json()).then(d => {
                 if (d.ok) {
                     showToast('✅ Заказ отправлен!');
@@ -227,54 +178,91 @@
             }).catch(() => showToast('❌ Ошибка соединения'));
         }
         
+        function renderHome() {
+            let html = '<div class="products">';
+            products.forEach(p => {
+                html += `
+                    <div class="product">
+                        <div class="product-emoji">${p.emoji}</div>
+                        <div class="product-name">${p.name}</div>
+                        <div class="product-price">${p.price} ₽</div>
+                        <div style="font-size:12px; margin:5px 0;">${p.desc}</div>
+                        <button class="btn" onclick="openModal(${p.id})">Выбрать размер</button>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            document.getElementById('app').innerHTML = html;
+        }
+        
+        function renderCart() {
+            if (cart.length === 0) {
+                document.getElementById('app').innerHTML = '<div style="text-align:center; padding:50px;">🛒 Корзина пуста</div>';
+                return;
+            }
+            let total = 0;
+            let html = '';
+            cart.forEach(item => {
+                let p = products.find(x => x.id === item.id);
+                let sum = p.price * item.qty;
+                total += sum;
+                html += `
+                    <div class="cart-item">
+                        <div><strong>${p.name}</strong> (${item.size || 'OS'}) x${item.qty}</div>
+                        <div>${sum} ₽</div>
+                        <button class="btn" style="width:auto; background:#999;" onclick="removeFromCart(${p.id}, '${item.size}')">Удалить</button>
+                    </div>
+                `;
+            });
+            html += `<div class="total">Итого: ${total} ₽</div>`;
+            html += `<button class="btn" onclick="openOrderModal()">💳 Оформить заказ</button>`;
+            document.getElementById('app').innerHTML = html;
+        }
+        
         function navigate(page) {
-            const app = document.getElementById('app');
-            if (page === 'home') app.innerHTML = renderHome();
-            else if (page === 'cart') app.innerHTML = renderCart();
+            if (page === 'home') renderHome();
+            else if (page === 'cart') renderCart();
         }
         
         saveCart();
         navigate('home');
         
-        window.selectSize = selectSize;
         window.addToCart = addToCart;
         window.removeFromCart = removeFromCart;
         window.openModal = openModal;
         window.closeModal = closeModal;
+        window.selectSize = selectSize;
         window.openOrderModal = openOrderModal;
         window.closeOrderModal = closeOrderModal;
-        window.submitOrder = submitOrder;
+        window.sendOrder = sendOrder;
         window.navigate = navigate;
     </script>
 
-    <!-- Модальное окно товара -->
+    <!-- Модалка выбора размера -->
     <div id="productModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeModal()">&times;</span>
-            <div id="modalBody"></div>
-        </div>
+        <div class="modal-content" id="modalBody"></div>
     </div>
 
-    <!-- Модальное окно заказа -->
+    <!-- Модалка оформления заказа -->
     <div id="orderModal" class="modal">
         <div class="modal-content">
-            <span class="close-modal" onclick="closeOrderModal()">&times;</span>
+            <span class="close" onclick="closeOrderModal()">&times;</span>
             <h2>🛍️ Оформление заказа</h2>
-            <input type="text" id="orderName" placeholder="Ваше имя *" style="width:100%; padding:10px; margin:10px 0; border-radius:10px; border:1px solid #ddd;">
-            <input type="tel" id="orderPhone" placeholder="Телефон *" style="width:100%; padding:10px; margin:10px 0; border-radius:10px; border:1px solid #ddd;">
-            <textarea id="orderAddress" rows="2" placeholder="Адрес доставки *" style="width:100%; padding:10px; margin:10px 0; border-radius:10px; border:1px solid #ddd;"></textarea>
-            <select id="orderDelivery" style="width:100%; padding:10px; margin:10px 0; border-radius:10px; border:1px solid #ddd;">
+            <input type="text" id="orderName" placeholder="Ваше имя">
+            <input type="tel" id="orderPhone" placeholder="Телефон">
+            <textarea id="orderAddress" rows="2" placeholder="Адрес доставки"></textarea>
+            <select id="orderDelivery">
                 <option>СДЭК</option>
                 <option>Почта России</option>
                 <option>Курьером</option>
                 <option>Самовывоз</option>
             </select>
             <div class="payment-info">
-                💳 <strong>Оплата переводом на карту</strong><br>
+                <strong>💳 Оплата переводом на карту</strong><br>
                 <div class="card-number">2200 7020 0430 8479</div>
-                <div style="font-size:12px;">После заказа переведите сумму на карту</div>
+                <small>После заказа переведите сумму на карту</small>
             </div>
-            <button class="btn" onclick="submitOrder()">✅ Оформить заказ</button>
+            <button class="btn" onclick="sendOrder()">✅ Отправить заказ</button>
         </div>
     </div>
 </body>
