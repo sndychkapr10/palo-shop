@@ -18,8 +18,16 @@
         .nav-links { display: flex; flex-direction: column; gap: 1.2rem; }
         .nav-links a { cursor: pointer; font-weight: 500; color: #2c3e50; padding: 0.6rem 0; display: flex; align-items: center; gap: 12px; }
         .cart-badge { background: #1f2a3e; color: white; border-radius: 40px; padding: 0.2rem 0.65rem; font-size: 0.7rem; margin-left: auto; }
-        .admin-link { margin-top: auto; font-size: 0.85rem; cursor: pointer; text-align: center; padding: 0.5rem; border-radius: 20px; background: rgba(0,0,0,0.05); }
-        .admin-link:hover { background: rgba(0,0,0,0.1); }
+        .admin-link { 
+            margin-top: 20px; 
+            padding: 10px; 
+            background: #1e2f3f; 
+            color: white !important; 
+            border-radius: 30px; 
+            text-align: center;
+            justify-content: center !important;
+        }
+        .admin-link:hover { background: #2c4a60; }
         .main-content { flex: 1; padding: 2rem; }
         .products-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem; margin-top: 1rem; }
         .product-card { background: white; border-radius: 28px; overflow: hidden; cursor: pointer; border: 1px solid #eef2f8; transition: 0.25s; }
@@ -39,12 +47,16 @@
         .photo-group { background: #f9fbfe; border-radius: 24px; padding: 1rem; margin-bottom: 1.5rem; }
         .photo-preview { width: 100px; height: 100px; background: #eef2fa; border-radius: 16px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin: 0.5rem 0; font-size: 2rem; cursor: pointer; border: 1px dashed #ccc; }
         .photo-preview img { width: 100%; height: 100%; object-fit: cover; }
+        .payment-info { background: #e8f5e9; border-radius: 20px; padding: 1rem; margin: 1rem 0; text-align: center; }
+        .card-number { font-size: 1.3rem; font-weight: 700; letter-spacing: 2px; margin: 0.5rem 0; }
         .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 0.6rem 2rem; border-radius: 60px; opacity: 0; transition: 0.2s; z-index: 3000; }
         .toast.show { opacity: 1; }
+        input, select, textarea { width: 100%; padding: 0.8rem; margin: 0.5rem 0 1rem; border: 1px solid #ddd; border-radius: 20px; font-family: inherit; }
         @media (max-width: 780px) {
             .sidebar { width: 80px; padding: 1rem 0.5rem; }
             .sidebar .logo { font-size: 1.2rem; text-align: center; }
             .nav-links a span:not(.cart-badge) { display: none; }
+            .admin-link span { display: inline !important; }
             .main-content { padding: 1rem; }
             .products-grid { gap: 1rem; }
         }
@@ -89,11 +101,11 @@
     function closeAdminAuth() { document.getElementById('adminAuthModal').style.display = 'none'; document.getElementById('adminPassword').value = ''; }
     function checkAdminPassword() {
         if (document.getElementById('adminPassword').value === ADMIN_PASSWORD) {
-            isAdminAuthenticated = true; closeAdminAuth(); showToast('✅ Доступ разрешён'); navigate('admin');
-        } else { showToast('❌ Неверный пароль'); document.getElementById('adminPassword').value = ''; }
+            isAdminAuthenticated = true; closeAdminAuth(); showToast('✅ Доступ разрешён'); renderAdmin();
+        } else { showToast('❌ Неверный пароль'); }
     }
     
-    function addToCart(id) { let item = cart.find(i => i.id === id); if (item) item.qty++; else cart.push({ id, qty: 1 }); saveCart(); showToast('✓ Добавлено'); navigate('cart'); }
+    function addToCart(id) { let item = cart.find(i => i.id === id); if (item) item.qty++; else cart.push({ id, qty: 1 }); saveCart(); showToast('✓ Добавлено'); }
     function removeFromCart(id) { cart = cart.filter(i => i.id !== id); saveCart(); navigate('cart'); }
     
     function sendOrderToTelegram(orderDetails, total, customer) {
@@ -117,17 +129,32 @@
         closeOrderModal();
     }
     
+    function handleImageUpload(event, type, previewId) {
+        let file = event.target.files[0];
+        if (!file) return;
+        let reader = new FileReader();
+        reader.onload = function(e) {
+            let dataUrl = e.target.result;
+            if (type === 'front') document.getElementById('frontVal').value = dataUrl;
+            if (type === 'side') document.getElementById('sideVal').value = dataUrl;
+            if (type === 'mannequin') document.getElementById('manVal').value = dataUrl;
+            document.getElementById(previewId).innerHTML = `<img src="${dataUrl}">`;
+            showToast('✅ Фото загружено');
+        };
+        reader.readAsDataURL(file);
+    }
+    
     function renderHome() {
         let html = '<h2 style="font-size:1.9rem;margin-bottom:1.8rem;">Коллекция</h2><div class="products-grid">';
         products.forEach(p => {
             let preview = p.frontImg || p.sideImg || p.mannequinImg || '';
-            html += `<div class="product-card" onclick="alert('Выберите размер в корзине')">
+            html += `<div class="product-card">
                         <div class="product-image">${preview ? `<img src="${preview}">` : `<span style="font-size:3rem;">${p.emoji}</span>`}</div>
                         <div class="product-info">
                             <div class="product-name">${p.name}</div>
                             <div class="product-price">${p.price.toLocaleString()} ₽</div>
                             <div style="font-size:0.75rem;">${p.desc}</div>
-                            <button class="btn" onclick="event.stopPropagation();addToCart(${p.id})">➕ Добавить в корзину</button>
+                            <button class="btn" onclick="addToCart(${p.id})">➕ Добавить в корзину</button>
                         </div>
                     </div>`;
         });
@@ -155,73 +182,75 @@
         document.getElementById('app').innerHTML = html;
     }
     
+    let currentEditId = null;
+    
     function renderAdmin() {
-        if (!isAdminAuthenticated) { document.getElementById('app').innerHTML = '<div style="text-align:center;padding:3rem;">🔒 Доступ закрыт. Введите пароль.</div>'; return; }
+        if (!isAdminAuthenticated) { 
+            document.getElementById('app').innerHTML = '<div style="text-align:center;padding:3rem;">🔒 Введите пароль для доступа к админке</div>';
+            return; 
+        }
         let html = `<div class="admin-panel"><h2>📷 Управление товарами</h2><div id="adminMsg"></div><div id="adminForm"></div><h3 style="margin:2rem 0 1rem;">Список товаров</h3><ul style="list-style:none;">`;
         products.forEach(p => {
             html += `<li style="display:flex;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid #e9edf2;">
                         <span>${p.emoji} ${p.name} — ${p.price}₽</span>
-                        <span><button onclick="editProduct(${p.id})" class="btn-outline" style="padding:0.2rem 1rem;">✏️</button></span>
+                        <span><button onclick="editProduct(${p.id})" class="btn-outline" style="padding:0.2rem 1rem;">✏️ Редактировать</button></span>
                      </li>`;
         });
         html += `</ul></div>`;
         document.getElementById('app').innerHTML = html;
-        if (window.currentEditId) renderAdminForm(products.find(p => p.id === window.currentEditId));
-        else renderAdminForm();
+        if (currentEditId) {
+            let prod = products.find(p => p.id === currentEditId);
+            if (prod) renderAdminForm(prod);
+        } else {
+            renderAdminForm(null);
+        }
     }
     
-    window.currentEditId = null;
-    function editProduct(id) { window.currentEditId = id; navigate('admin'); }
-    
-    function handleImageUpload(event, type, previewId) {
-        let file = event.target.files[0];
-        if (!file) return;
-        let reader = new FileReader();
-        reader.onload = function(e) {
-            let dataUrl = e.target.result;
-            if (type === 'front') document.getElementById('frontVal').value = dataUrl;
-            if (type === 'side') document.getElementById('sideVal').value = dataUrl;
-            if (type === 'mannequin') document.getElementById('manVal').value = dataUrl;
-            document.getElementById(previewId).innerHTML = `<img src="${dataUrl}">`;
-            showToast('✅ Фото загружено');
-        };
-        reader.readAsDataURL(file);
+    function editProduct(id) { 
+        currentEditId = id; 
+        renderAdmin(); 
     }
     
-    function renderAdminForm(product = null) {
-        let prod = product || { id: null, name: '', price: '', desc: '', frontImg: '', sideImg: '', mannequinImg: '', emoji: '👕' };
+    function renderAdminForm(prod) {
         let formDiv = document.getElementById('adminForm');
         if (!formDiv) return;
+        let product = prod || { id: null, name: '', price: '', desc: '', frontImg: '', sideImg: '', mannequinImg: '', emoji: '👕' };
         formDiv.innerHTML = `
-            <div><input id="prodName" placeholder="Название" value="${prod.name}" style="width:100%;padding:0.8rem;margin-bottom:0.5rem;border-radius:16px;border:1px solid #ddd;"></div>
-            <div><input id="prodPrice" type="number" placeholder="Цена" value="${prod.price}" style="width:100%;padding:0.8rem;margin-bottom:0.5rem;"></div>
-            <div><textarea id="prodDesc" rows="2" placeholder="Описание">${prod.desc}</textarea></div>
-            <div><input id="prodEmoji" placeholder="Эмодзи" value="${prod.emoji}" style="width:100%;padding:0.8rem;margin-bottom:1rem;"></div>
+            <div><input id="prodId" type="hidden" value="${product.id || ''}"></div>
+            <div><input id="prodName" placeholder="Название" value="${product.name}" style="width:100%;padding:0.8rem;margin-bottom:0.5rem;border-radius:16px;border:1px solid #ddd;"></div>
+            <div><input id="prodPrice" type="number" placeholder="Цена" value="${product.price}" style="width:100%;padding:0.8rem;margin-bottom:0.5rem;border-radius:16px;border:1px solid #ddd;"></div>
+            <div><textarea id="prodDesc" rows="2" placeholder="Описание" style="width:100%;padding:0.8rem;margin-bottom:0.5rem;border-radius:16px;border:1px solid #ddd;">${product.desc}</textarea></div>
+            <div><input id="prodEmoji" placeholder="Эмодзи" value="${product.emoji}" style="width:100%;padding:0.8rem;margin-bottom:1rem;border-radius:16px;border:1px solid #ddd;"></div>
             
             <div class="photo-group">
                 <div class="photo-label">📷 Фото 1 (спереди)</div>
-                <div class="photo-preview" id="frontPreview" onclick="document.getElementById('frontFileInput').click()">${prod.frontImg ? `<img src="${prod.frontImg}">` : '📸<br>Нажмите'}</div>
+                <div class="photo-preview" id="frontPreview" onclick="document.getElementById('frontFileInput').click()">${product.frontImg ? `<img src="${product.frontImg}">` : '📸<br>Нажмите для загрузки'}</div>
                 <input type="file" id="frontFileInput" accept="image/*" style="display:none" onchange="handleImageUpload(event, 'front', 'frontPreview')">
-                <input type="hidden" id="frontVal" value="${prod.frontImg || ''}">
+                <input type="hidden" id="frontVal" value="${product.frontImg || ''}">
             </div>
             
             <div class="photo-group">
                 <div class="photo-label">📷 Фото 2 (сбоку)</div>
-                <div class="photo-preview" id="sidePreview" onclick="document.getElementById('sideFileInput').click()">${prod.sideImg ? `<img src="${prod.sideImg}">` : '📸<br>Нажмите'}</div>
+                <div class="photo-preview" id="sidePreview" onclick="document.getElementById('sideFileInput').click()">${product.sideImg ? `<img src="${product.sideImg}">` : '📸<br>Нажмите для загрузки'}</div>
                 <input type="file" id="sideFileInput" accept="image/*" style="display:none" onchange="handleImageUpload(event, 'side', 'sidePreview')">
-                <input type="hidden" id="sideVal" value="${prod.sideImg || ''}">
+                <input type="hidden" id="sideVal" value="${product.sideImg || ''}">
             </div>
             
             <div class="photo-group">
                 <div class="photo-label">📷 Фото 3 (на манекене)</div>
-                <div class="photo-preview" id="manPreview" onclick="document.getElementById('manFileInput').click()">${prod.mannequinImg ? `<img src="${prod.mannequinImg}">` : '🕴️<br>Нажмите'}</div>
+                <div class="photo-preview" id="manPreview" onclick="document.getElementById('manFileInput').click()">${product.mannequinImg ? `<img src="${product.mannequinImg}">` : '🕴️<br>Нажмите для загрузки'}</div>
                 <input type="file" id="manFileInput" accept="image/*" style="display:none" onchange="handleImageUpload(event, 'mannequin', 'manPreview')">
-                <input type="hidden" id="manVal" value="${prod.mannequinImg || ''}">
+                <input type="hidden" id="manVal" value="${product.mannequinImg || ''}">
             </div>
             
             <button class="btn" style="width:auto; padding:0.8rem 2rem; margin-top:1rem;" onclick="saveProduct()">💾 Сохранить товар</button>
-            <button class="btn-outline" style="margin-left:1rem; padding:0.8rem 2rem;" onclick="navigate('admin')">❌ Отмена</button>
+            <button class="btn-outline" style="margin-left:1rem; padding:0.8rem 2rem;" onclick="cancelEdit()">❌ Отмена</button>
         `;
+    }
+    
+    function cancelEdit() {
+        currentEditId = null;
+        renderAdmin();
     }
     
     function saveProduct() {
@@ -234,23 +263,19 @@
         let mannequinImg = document.getElementById('manVal').value;
         if (!name || isNaN(price)) { alert('❌ Заполните название и цену'); return; }
         
-        if (window.currentEditId) {
-            let index = products.findIndex(p => p.id === window.currentEditId);
+        if (currentEditId) {
+            let index = products.findIndex(p => p.id === currentEditId);
             if (index !== -1) products[index] = { ...products[index], name, price, desc, emoji, frontImg, sideImg, mannequinImg };
-        } else {
-            let newId = products.length ? Math.max(...products.map(p => p.id)) + 1 : 5;
-            products.push({ id: newId, name, price, desc, emoji, frontImg, sideImg, mannequinImg });
         }
         localStorage.setItem('palo_products', JSON.stringify(products));
         document.getElementById('adminMsg').innerHTML = '<div style="background:#e0f2e9; padding:0.8rem; border-radius:16px;">✓ Товар сохранён</div>';
-        window.currentEditId = null;
-        navigate('admin');
+        currentEditId = null;
+        renderAdmin();
     }
     
     function navigate(page) {
         if (page === 'home') renderHome();
         else if (page === 'cart') renderCart();
-        else if (page === 'admin') renderAdmin();
         updateCartCount();
         window.scrollTo(0,0);
     }
@@ -263,8 +288,9 @@
     }
     
     saveCart();
-    navigate('home');
+    renderHome();
     
+    // Глобальные функции
     window.showAdminAuth = showAdminAuth;
     window.closeAdminAuth = closeAdminAuth;
     window.checkAdminPassword = checkAdminPassword;
@@ -275,8 +301,10 @@
     window.submitOrder = submitOrder;
     window.navigate = navigate;
     window.editProduct = editProduct;
-    window.handleImageUpload = handleImageUpload;
     window.saveProduct = saveProduct;
+    window.cancelEdit = cancelEdit;
+    window.handleImageUpload = handleImageUpload;
+    window.renderAdmin = renderAdmin;
 </script>
 
 <!-- Модалка входа в админку -->
