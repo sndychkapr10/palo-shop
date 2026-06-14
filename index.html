@@ -123,6 +123,7 @@
     let clickCount = 0;
     let clickTimer = null;
     
+    // Товары с эмодзи
     let products = [
         { id: 1, name: "Кепка", price: 1500, desc: "Хлопок, козырёк", frontImg: "", sideImg: "", mannequinImg: "", emoji: "🧢" },
         { id: 2, name: "Футболка", price: 1900, desc: "Джерси, белый", frontImg: "", sideImg: "", mannequinImg: "", emoji: "👕" },
@@ -130,16 +131,18 @@
         { id: 4, name: "Лонгслив", price: 2700, desc: "Трикотаж, чёрный", frontImg: "", sideImg: "", mannequinImg: "", emoji: "🧥" }
     ];
     
+    // Размеры и замеры
     const sizeData = {
         1: { sizes: ["S", "M", "L"], measures: ["54-56 см", "57-59 см", "60-62 см"] },
-        2: { sizes: ["S", "M", "L", "XL"], measures: ["68 см/48 см", "70 см/51 см", "72 см/54 см", "74 см/57 см"] },
-        3: { sizes: ["S", "M", "L", "XL"], measures: ["100 см/72 см", "102 см/76 см", "104 см/80 см", "106 см/84 см"] },
-        4: { sizes: ["S", "M", "L", "XL"], measures: ["62 см/48 см", "64 см/51 см", "66 см/54 см", "68 см/57 см"] }
+        2: { sizes: ["S", "M", "L", "XL"], measures: ["Дл. 68см, Груд. 48см", "Дл. 70см, Груд. 51см", "Дл. 72см, Груд. 54см", "Дл. 74см, Груд. 57см"] },
+        3: { sizes: ["S", "M", "L", "XL"], measures: ["Дл. 100см, Тал. 72см", "Дл. 102см, Тал. 76см", "Дл. 104см, Тал. 80см", "Дл. 106см, Тал. 84см"] },
+        4: { sizes: ["S", "M", "L", "XL"], measures: ["Рук. 62см, Груд. 48см", "Рук. 64см, Груд. 51см", "Рук. 66см, Груд. 54см", "Рук. 68см, Груд. 57см"] }
     };
     
     let cart = JSON.parse(localStorage.getItem('cart') || '[]');
     let selectedSizes = JSON.parse(localStorage.getItem('selectedSizes') || '{}');
     
+    // Секретный показ админки (5 кликов по логотипу)
     document.querySelector('.logo').addEventListener('click', function() {
         clickCount++;
         clearTimeout(clickTimer);
@@ -152,28 +155,38 @@
         }
     });
     
-    function saveCart() { localStorage.setItem('cart', JSON.stringify(cart)); updateCartCount(); }
+    function saveCart() { 
+        localStorage.setItem('cart', JSON.stringify(cart)); 
+        updateCartCount(); 
+    }
+    
     function updateCartCount() { 
-        let count = cart.reduce((s,i)=>s+i.qty,0);
+        let count = cart.reduce((s,i) => s + i.qty, 0);
         let el = document.getElementById('cart-count');
         if (el) el.innerText = count;
     }
+    
     function showToast(m) { 
         let t = document.getElementById('toast'); 
+        if (!t) return;
         t.innerText = m; 
         t.classList.add('show'); 
-        setTimeout(()=>t.classList.remove('show'), 2500); 
+        setTimeout(() => t.classList.remove('show'), 2500); 
     }
     
     function showAdminAuth() { 
         if (isAdminAuthenticated) { renderAdmin(); return; } 
-        document.getElementById('adminAuthModal').style.display = 'flex'; 
+        let modal = document.getElementById('adminAuthModal');
+        if (modal) modal.style.display = 'flex'; 
     }
+    
     function closeAdminAuth() { 
-        document.getElementById('adminAuthModal').style.display = 'none'; 
+        let modal = document.getElementById('adminAuthModal');
+        if (modal) modal.style.display = 'none'; 
         let pwd = document.getElementById('adminPassword');
         if (pwd) pwd.value = '';
     }
+    
     function checkAdminPassword() {
         let pwd = document.getElementById('adminPassword');
         if (pwd && pwd.value === ADMIN_PASSWORD) {
@@ -190,17 +203,22 @@
         selectedSizes[productId] = size;
         localStorage.setItem('selectedSizes', JSON.stringify(selectedSizes));
         let btns = document.querySelectorAll(`.size-btn-${productId}`);
-        btns.forEach((btn, i) => { 
+        btns.forEach((btn) => { 
             if (btn.innerText === size) btn.classList.add('selected'); 
             else btn.classList.remove('selected'); 
         });
         let chart = document.getElementById(`size-chart-${productId}`);
-        if (chart) chart.innerText = sizeData[productId].measures[idx];
+        if (chart && sizeData[productId]) {
+            chart.innerText = sizeData[productId].measures[idx];
+        }
     }
     
     function addToCart(id) {
         let size = selectedSizes[id];
-        if (sizeData[id] && !size) { showToast('Сначала выберите размер!'); return; }
+        if (sizeData[id] && !size) { 
+            showToast('⚠️ Сначала выберите размер!'); 
+            return; 
+        }
         let item = cart.find(i => i.id === id && i.size === size);
         if (item) item.qty++;
         else cart.push({ id, qty: 1, size: size || 'OS' });
@@ -219,13 +237,18 @@
         let data = sizeData[productId];
         if (!data) return '';
         let current = selectedSizes[productId] || '';
-        let html = `<div class="size-selector"><div class="size-label">📏 Выберите размер:</div><div class="size-buttons">`;
+        let html = `<div class="size-selector">
+                        <div class="size-label">📏 Выберите размер:</div>
+                        <div class="size-buttons">`;
         data.sizes.forEach((size, idx) => {
             html += `<button class="size-btn size-btn-${productId} ${current === size ? 'selected' : ''}" onclick="selectSize(${productId}, '${size}', ${idx})">${size}</button>`;
         });
         html += `</div><div class="size-chart" id="size-chart-${productId}">`;
-        if (current && data.sizes.indexOf(current) >= 0) html += data.measures[data.sizes.indexOf(current)];
-        else html += 'Нажмите на размер для замеров';
+        if (current && data.sizes.indexOf(current) >= 0) {
+            html += data.measures[data.sizes.indexOf(current)];
+        } else {
+            html += 'Нажмите на размер для замеров';
+        }
         html += `</div></div>`;
         return html;
     }
@@ -258,14 +281,16 @@
     
     function openOrderModal() { 
         if (cart.length === 0) { 
-            showToast('Корзина пуста'); 
+            showToast('🛒 Корзина пуста'); 
             return; 
         } 
-        document.getElementById('orderModal').style.display = 'flex'; 
+        let modal = document.getElementById('orderModal');
+        if (modal) modal.style.display = 'flex'; 
     }
     
     function closeOrderModal() { 
-        document.getElementById('orderModal').style.display = 'none'; 
+        let modal = document.getElementById('orderModal');
+        if (modal) modal.style.display = 'none'; 
     }
     
     function submitOrder() {
@@ -275,7 +300,7 @@
         let delivery = document.getElementById('orderDelivery').value;
         
         if (!name || !phone || !address) { 
-            showToast('Заполните все поля'); 
+            showToast('⚠️ Заполните все поля'); 
             return; 
         }
         
@@ -293,30 +318,71 @@
         closeOrderModal();
     }
     
+    // Галерея и лупа
     let currentProduct = null, currentAngle = 'front';
-    function openModal(p) { currentProduct = p; currentAngle = 'front'; renderModal(); document.getElementById('productModal').style.display = 'flex'; setTimeout(bindZoom, 100); }
-    function closeModal() { document.getElementById('productModal').style.display = 'none'; }
-    function switchAngle(a) { currentAngle = a; renderModal(); setTimeout(bindZoom, 100); }
+    
+    function openModal(p) { 
+        currentProduct = p; 
+        currentAngle = 'front'; 
+        renderModal(); 
+        let modal = document.getElementById('productModal');
+        if (modal) modal.style.display = 'flex'; 
+        setTimeout(bindZoom, 100); 
+    }
+    
+    function closeModal() { 
+        let modal = document.getElementById('productModal');
+        if (modal) modal.style.display = 'none'; 
+    }
+    
+    function switchAngle(a) { 
+        currentAngle = a; 
+        renderModal(); 
+        setTimeout(bindZoom, 100); 
+    }
     
     function renderModal() {
         let p = currentProduct;
-        let angles = [{key:'front',img:p.frontImg},{key:'side',img:p.sideImg},{key:'mannequin',img:p.mannequinImg}];
-        let activeImg = currentAngle==='front'?p.frontImg:(currentAngle==='side'?p.sideImg:p.mannequinImg);
-        if(!activeImg) activeImg = angles.find(a=>a.img)?.img||'';
+        if (!p) return;
+        let angles = [
+            { key: 'front', img: p.frontImg, label: 'Спереди' },
+            { key: 'side', img: p.sideImg, label: 'Сбоку' },
+            { key: 'mannequin', img: p.mannequinImg, label: 'На манекене' }
+        ];
+        let activeImg = '';
+        if (currentAngle === 'front') activeImg = p.frontImg;
+        else if (currentAngle === 'side') activeImg = p.sideImg;
+        else activeImg = p.mannequinImg;
+        
+        if (!activeImg) {
+            let found = angles.find(a => a.img && a.img.trim() !== '');
+            if (found) activeImg = found.img;
+        }
+        
         let thumbs = '';
-        angles.forEach(a=>{ if(a.img) thumbs+=`<div class="thumb-angle ${currentAngle===a.key?'active':''}" onclick="switchAngle('${a.key}')"><img src="${a.img}"></div>`; });
-        document.getElementById('modalBody').innerHTML = `
+        angles.forEach(angle => { 
+            if (angle.img && angle.img.trim() !== '') {
+                thumbs += `<div class="thumb-angle ${currentAngle === angle.key ? 'active' : ''}" onclick="switchAngle('${angle.key}')">
+                            <img src="${angle.img}" alt="${angle.label}">
+                           </div>`;
+            }
+        });
+        
+        let modalBody = document.getElementById('modalBody');
+        if (!modalBody) return;
+        
+        modalBody.innerHTML = `
             <div class="gallery-horizontal">
                 <div class="zoom-preview" id="zoomArea">
-                    ${activeImg ? `<img id="zoomImg" class="zoom-image-main" src="${activeImg}">` : '<div>Нет фото</div>'}
+                    ${activeImg ? `<img id="zoomImg" class="zoom-image-main" src="${activeImg}" alt="${p.name}">` : '<div style="padding:2rem;">📸 Нет фото, загрузите в админке</div>'}
                     <div id="zoomLens" class="zoom-lens"></div>
                 </div>
-                <div class="thumb-vertical">${thumbs || '<div>Загрузите фото в админке</div>'}</div>
+                <div class="thumb-vertical">${thumbs || '<div style="padding:1rem; text-align:center;">⬆️ Загрузите фото в админке</div>'}</div>
             </div>
             <div style="flex:1; min-width:200px; margin-top:1rem;">
                 <h2>${p.name}</h2>
-                <div style="font-size:1.5rem; font-weight:600;">${p.price.toLocaleString()} ₽</div>
-                <div style="color:#666;">${p.desc}</div>
+                <div style="font-size:1.5rem; font-weight:600; margin:0.5rem 0;">${p.price.toLocaleString()} ₽</div>
+                <div style="color:#666; margin-bottom:0.5rem;">${p.desc}</div>
                 ${renderSizeSelector(p.id)}
                 <button class="btn" onclick="addToCart(${p.id}); closeModal();">🛒 Добавить в корзину</button>
             </div>
@@ -328,10 +394,15 @@
         let lens = document.getElementById('zoomLens');
         let container = document.getElementById('zoomArea');
         if (!img || !lens || !container) return;
+        
         img.style.cursor = 'crosshair';
         lens.style.display = 'none';
+        
         img.onmouseenter = () => lens.style.display = 'block';
-        img.onmouseleave = () => { img.style.transform = 'scale(1)'; lens.style.display = 'none'; };
+        img.onmouseleave = () => { 
+            img.style.transform = 'scale(1)'; 
+            lens.style.display = 'none'; 
+        };
         img.onmousemove = (e) => {
             let rect = container.getBoundingClientRect();
             let x = e.clientX - rect.left;
@@ -352,17 +423,33 @@
         };
     }
     
+    // Админка
     let currentEditId = null;
+    
     function handleImageUpload(event, type, previewId) {
         let file = event.target.files[0];
         if (!file) return;
+        if (file.size > 2 * 1024 * 1024) {
+            showToast('⚠️ Файл больше 2 МБ');
+            return;
+        }
         let reader = new FileReader();
         reader.onload = function(e) {
             let dataUrl = e.target.result;
-            if (type === 'front') document.getElementById('frontVal').value = dataUrl;
-            if (type === 'side') document.getElementById('sideVal').value = dataUrl;
-            if (type === 'mannequin') document.getElementById('manVal').value = dataUrl;
-            document.getElementById(previewId).innerHTML = `<img src="${dataUrl}">`;
+            if (type === 'front') {
+                let frontVal = document.getElementById('frontVal');
+                if (frontVal) frontVal.value = dataUrl;
+            }
+            if (type === 'side') {
+                let sideVal = document.getElementById('sideVal');
+                if (sideVal) sideVal.value = dataUrl;
+            }
+            if (type === 'mannequin') {
+                let manVal = document.getElementById('manVal');
+                if (manVal) manVal.value = dataUrl;
+            }
+            let preview = document.getElementById(previewId);
+            if (preview) preview.innerHTML = `<img src="${dataUrl}">`;
             showToast('✅ Фото загружено');
         };
         reader.readAsDataURL(file);
@@ -372,142 +459,123 @@
         let html = '<h2 style="font-size:1.9rem;margin-bottom:1.8rem;">Коллекция</h2><div class="products-grid">';
         products.forEach(p => {
             let preview = p.frontImg || p.sideImg || p.mannequinImg || '';
-            html += `<div class="product-card" onclick="openModal(${JSON.stringify(p).replace(/"/g,'&quot;')})">
-                        <div class="product-image">${preview ? `<img src="${preview}">` : `<span style="font-size:3rem;">${p.emoji}</span>`}</div>
+            html += `<div class="product-card" onclick="openModal(${JSON.stringify(p).replace(/"/g, '&quot;')})">
+                        <div class="product-image">
+                            ${preview ? `<img src="${preview}" alt="${p.name}">` : `<span style="font-size:3rem;">${p.emoji}</span>`}
+                        </div>
                         <div class="product-info">
                             <div class="product-name">${p.name}</div>
                             <div class="product-price">${p.price.toLocaleString()} ₽</div>
-                            <div style="font-size:0.75rem;">${p.desc}</div>
-                            <button class="btn" onclick="event.stopPropagation();openModal(${JSON.stringify(p).replace(/"/g,'&quot;')})">🔍 Выбрать размер</button>
+                            <div style="font-size:0.75rem; color:#666;">${p.desc}</div>
+                            <button class="btn" onclick="event.stopPropagation();openModal(${JSON.stringify(p).replace(/"/g, '&quot;')})">🔍 Выбрать размер</button>
                         </div>
                     </div>`;
         });
         html += '</div>';
-        document.getElementById('app').innerHTML = html;
+        let app = document.getElementById('app');
+        if (app) app.innerHTML = html;
     }
     
     function renderCart() {
         if (cart.length === 0) { 
-            document.getElementById('app').innerHTML = '<div style="text-align:center;padding:3rem;">🛒 Корзина пуста</div>'; 
+            let app = document.getElementById('app');
+            if (app) app.innerHTML = '<div style="text-align:center;padding:3rem;">🛒 Корзина пуста</div>'; 
             return; 
         }
         let total = 0, html = '<h2>Корзина</h2><div style="display:flex;flex-direction:column;gap:1rem;">';
         cart.forEach(item => {
             let p = products.find(pr => pr.id === item.id);
             if (!p) return;
-            let sum = p.price * item.qty; total += sum;
+            let sum = p.price * item.qty; 
+            total += sum;
             let img = p.frontImg || p.sideImg || p.mannequinImg;
-            html += `<div style="display:flex; gap:1rem; align-items:center; background:white; padding:1rem; border-radius:28px;">
-                        <div style="width:70px;height:70px;background:#f2f5f9;border-radius:18px;display:flex;align-items:center;justify-content:center;">${img ? `<img src="${img}">` : p.emoji}</div>
-                        <div style="flex:1;"><strong>${p.name}</strong><br>${item.size ? `Размер: ${item.size}<br>` : ''}${item.qty} шт × ${p.price} ₽</div>
+            html += `<div style="display:flex; gap:1rem; align-items:center; background:white; padding:1rem; border-radius:28px; flex-wrap:wrap;">
+                        <div style="width:70px;height:70px;background:#f2f5f9;border-radius:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            ${img ? `<img src="${img}" style="width:100%;height:100%;object-fit:cover;border-radius:16px;">` : `<span style="font-size:2rem;">${p.emoji}</span>`}
+                        </div>
+                        <div style="flex:1; min-width:120px;">
+                            <strong>${p.name}</strong><br>
+                            ${item.size ? `Размер: ${item.size}<br>` : ''}
+                            ${item.qty} шт × ${p.price} ₽
+                        </div>
                         <div><strong>${sum.toLocaleString()} ₽</strong></div>
                         <button class="btn-outline" style="padding:0.3rem 1rem;" onclick="removeFromCart(${p.id}, '${item.size || ''}')">🗑️ Удалить</button>
                     </div>`;
         });
         html += `<div style="text-align:right; font-size:1.5rem; font-weight:600; margin-top:1rem;">Итого: ${total.toLocaleString()} ₽</div>`;
         html += `<button class="btn" style="margin-top:1rem;" onclick="openOrderModal()">💳 Оформить заказ</button>`;
-        document.getElementById('app').innerHTML = html;
+        let app = document.getElementById('app');
+        if (app) app.innerHTML = html;
     }
     
     function renderAdmin() {
         if (!isAdminAuthenticated) { 
-            document.getElementById('app').innerHTML = '<div style="text-align:center;padding:3rem;">🔒 Доступ закрыт. Введите пароль.</div>'; 
+            let app = document.getElementById('app');
+            if (app) app.innerHTML = '<div style="text-align:center;padding:3rem;">🔒 Доступ закрыт. Введите пароль.</div>'; 
             return; 
         }
-        let html = `<div class="admin-panel"><h2>📷 Управление товарами</h2><div id="adminMsg"></div><div id="adminForm"></div><h3 style="margin:2rem 0 1rem;">Список товаров</h3><ul style="list-style:none;">`;
+        let html = `<div class="admin-panel">
+                        <h2>📷 Управление товарами</h2>
+                        <div id="adminMsg"></div>
+                        <div id="adminForm"></div>
+                        <h3 style="margin:2rem 0 1rem;">Список товаров</h3>
+                        <ul style="list-style:none;">`;
         products.forEach(p => {
-            html += `<li style="display:flex;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid #e9edf2;">
-                        <span>${p.emoji} ${p.name} — ${p.price}₽</span>
-                        <span><button onclick="editProduct(${p.id})" class="btn-outline" style="padding:0.2rem 1rem;">✏️ Редактировать</button></span>
+            html += `<li style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0;border-bottom:1px solid #e9edf2;">
+                        <span style="font-size:1.5rem;">${p.emoji}</span>
+                        <span style="flex:1; margin-left:0.5rem;">${p.name} — ${p.price}₽</span>
+                        <button onclick="editProduct(${p.id})" class="btn-outline" style="padding:0.2rem 1rem;">✏️ Редактировать</button>
                      </li>`;
         });
         html += `</ul></div>`;
-        document.getElementById('app').innerHTML = html;
+        let app = document.getElementById('app');
+        if (app) app.innerHTML = html;
         if (currentEditId) {
             let prod = products.find(p => p.id === currentEditId);
             if (prod) renderAdminForm(prod);
-        } else { renderAdminForm(null); }
+        } else { 
+            renderAdminForm(null); 
+        }
     }
     
-    function editProduct(id) { currentEditId = id; renderAdmin(); }
+    function editProduct(id) { 
+        currentEditId = id; 
+        renderAdmin(); 
+    }
     
     function renderAdminForm(prod) {
         let formDiv = document.getElementById('adminForm');
         if (!formDiv) return;
         let product = prod || { id: null, name: '', price: '', desc: '', frontImg: '', sideImg: '', mannequinImg: '', emoji: '👕' };
         formDiv.innerHTML = `
-            <div><input id="prodId" type="hidden" value="${product.id || ''}"></div>
-            <div><input id="prodName" placeholder="Название" value="${escapeHtml(product.name)}" style="width:100%;padding:0.8rem;margin-bottom:0.5rem;border-radius:16px;border:1px solid #ddd;"></div>
-            <div><input id="prodPrice" type="number" placeholder="Цена" value="${product.price}" style="width:100%;padding:0.8rem;margin-bottom:0.5rem;border-radius:16px;border:1px solid #ddd;"></div>
-            <div><textarea id="prodDesc" rows="2" placeholder="Описание" style="width:100%;padding:0.8rem;margin-bottom:0.5rem;border-radius:16px;border:1px solid #ddd;">${escapeHtml(product.desc)}</textarea></div>
-            <div><input id="prodEmoji" placeholder="Эмодзи" value="${product.emoji}" style="width:100%;padding:0.8rem;margin-bottom:1rem;border-radius:16px;border:1px solid #ddd;"></div>
+            <div style="margin-bottom:1rem;">
+                <input id="prodName" placeholder="Название товара" value="${escapeHtml(product.name)}" style="width:100%;padding:0.8rem;border-radius:16px;border:1px solid #ddd;">
+            </div>
+            <div style="margin-bottom:1rem;">
+                <input id="prodPrice" type="number" placeholder="Цена" value="${product.price}" style="width:100%;padding:0.8rem;border-radius:16px;border:1px solid #ddd;">
+            </div>
+            <div style="margin-bottom:1rem;">
+                <textarea id="prodDesc" rows="2" placeholder="Описание" style="width:100%;padding:0.8rem;border-radius:16px;border:1px solid #ddd;">${escapeHtml(product.desc)}</textarea>
+            </div>
+            <div style="margin-bottom:1rem;">
+                <input id="prodEmoji" placeholder="Эмодзи (например 👕)" value="${product.emoji}" style="width:100%;padding:0.8rem;border-radius:16px;border:1px solid #ddd;">
+            </div>
             <div class="photo-group">
                 <div class="photo-label">📷 Фото 1 (спереди)</div>
-                <div class="photo-preview" id="frontPreview" onclick="document.getElementById('frontFileInput').click()">${product.frontImg ? `<img src="${product.frontImg}">` : '📸<br>Нажмите для загрузки'}</div>
+                <div class="photo-preview" id="frontPreview" onclick="document.getElementById('frontFileInput').click()">
+                    ${product.frontImg ? `<img src="${product.frontImg}">` : '📸<br>Нажмите для загрузки'}
+                </div>
                 <input type="file" id="frontFileInput" accept="image/*" style="display:none" onchange="handleImageUpload(event, 'front', 'frontPreview')">
                 <input type="hidden" id="frontVal" value="${product.frontImg || ''}">
             </div>
             <div class="photo-group">
                 <div class="photo-label">📷 Фото 2 (сбоку)</div>
-                <div class="photo-preview" id="sidePreview" onclick="document.getElementById('sideFileInput').click()">${product.sideImg ? `<img src="${product.sideImg}">` : '📸<br>Нажмите для загрузки'}</div>
+                <div class="photo-preview" id="sidePreview" onclick="document.getElementById('sideFileInput').click()">
+                    ${product.sideImg ? `<img src="${product.sideImg}">` : '📸<br>Нажмите для загрузки'}
+                </div>
                 <input type="file" id="sideFileInput" accept="image/*" style="display:none" onchange="handleImageUpload(event, 'side', 'sidePreview')">
                 <input type="hidden" id="sideVal" value="${product.sideImg || ''}">
             </div>
             <div class="photo-group">
                 <div class="photo-label">📷 Фото 3 (на манекене)</div>
-                <div class="photo-preview" id="manPreview" onclick="document.getElementById('manFileInput').click()">${product.mannequinImg ? `<img src="${product.mannequinImg}">` : '🕴️<br>Нажмите для загрузки'}</div>
-                <input type="file" id="manFileInput" accept="image/*" style="display:none" onchange="handleImageUpload(event, 'mannequin', 'manPreview')">
-                <input type="hidden" id="manVal" value="${product.mannequinImg || ''}">
-            </div>
-            <button class="btn" style="width:auto; padding:0.8rem 2rem; margin-top:1rem;" onclick="saveProduct()">💾 Сохранить товар</button>
-            <button class="btn-outline" style="margin-left:1rem; padding:0.8rem 2rem;" onclick="cancelEdit()">❌ Отмена</button>
-        `;
-    }
-    
-    function cancelEdit() { currentEditId = null; renderAdmin(); }
-    
-    function saveProduct() {
-        let name = document.getElementById('prodName').value.trim();
-        let price = parseInt(document.getElementById('prodPrice').value);
-        let desc = document.getElementById('prodDesc').value;
-        let emoji = document.getElementById('prodEmoji').value;
-        let frontImg = document.getElementById('frontVal').value;
-        let sideImg = document.getElementById('sideVal').value;
-        let mannequinImg = document.getElementById('manVal').value;
-        if (!name || isNaN(price)) { alert('❌ Заполните название и цену'); return; }
-        if (currentEditId) {
-            let index = products.findIndex(p => p.id === currentEditId);
-            if (index !== -1) products[index] = { ...products[index], name, price, desc, emoji, frontImg, sideImg, mannequinImg };
-        }
-        localStorage.setItem('palo_products', JSON.stringify(products));
-        document.getElementById('adminMsg').innerHTML = '<div style="background:#e0f2e9; padding:0.8rem; border-radius:16px;">✓ Товар сохранён</div>';
-        currentEditId = null;
-        renderAdmin();
-    }
-    
-    function escapeHtml(s) { return (s || '').replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
-    
-    function navigate(page) {
-        if (page === 'home') renderHome();
-        else if (page === 'cart') renderCart();
-        updateCartCount();
-        window.scrollTo(0,0);
-    }
-    
-    let saved = localStorage.getItem('palo_products');
-    if (saved) { 
-        try { 
-            let parsed = JSON.parse(saved); 
-            if (parsed && parsed.length) products = parsed; 
-        } catch(e) {} 
-    }
-    
-    saveCart();
-    renderHome();
-    
-    window.showAdminAuth = showAdminAuth;
-    window.closeAdminAuth = closeAdminAuth;
-    window.checkAdminPassword = checkAdminPassword;
-    window.selectSize = selectSize;
-    window.addToCart = addToCart;
-    window.removeFrom
+                <div class="photo-preview" id="manPreview" onclick="document.getElementById
