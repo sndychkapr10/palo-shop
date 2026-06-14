@@ -7,562 +7,759 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
-            font-family: 'Inter', system-ui, sans-serif; 
-            background: linear-gradient(135deg, #e3f2fd 0%, #bbdef5 50%, #e3f2fd 100%);
-            color: #1a2634; 
+            font-family: Arial, sans-serif; 
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdef5 100%);
             min-height: 100vh;
         }
-        .app-horizontal { display: flex; min-height: 100vh; }
-        .sidebar {
-            width: 280px; background: rgba(255,255,255,0.96); backdrop-filter: blur(12px);
-            border-right: 1px solid #e2e8f0; padding: 2rem 1.5rem; position: sticky; top: 0;
-            height: 100vh; display: flex; flex-direction: column; gap: 2rem;
+        
+        /* Шапка */
+        .header {
+            background: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-        .logo { font-size: 1.9rem; font-weight: 700; cursor: pointer; color: #0f1722; }
-        .logo span { font-weight: 300; color: #5b6e8c; }
-        .nav-links { display: flex; flex-direction: column; gap: 1.2rem; }
-        .nav-links a { cursor: pointer; font-weight: 500; color: #2c3e50; padding: 0.6rem 0; display: flex; align-items: center; gap: 12px; }
-        .cart-badge { background: #1f2a3e; color: white; border-radius: 40px; padding: 0.2rem 0.65rem; font-size: 0.7rem; margin-left: auto; }
-        .admin-link-hidden { margin-top: auto; font-size: 0.85rem; opacity: 0; cursor: pointer; transition: opacity 0.3s; text-align: center; padding: 0.5rem; border-radius: 20px; background: rgba(0,0,0,0.05); }
-        .admin-link-hidden.visible { opacity: 0.7; }
-        .main-content { flex: 1; padding: 2rem; }
-        .products-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem; margin-top: 1rem; }
-        .product-card { background: white; border-radius: 28px; overflow: hidden; cursor: pointer; border: 1px solid #eef2f8; transition: 0.25s; }
-        .product-card:hover { transform: translateY(-6px); box-shadow: 0 20px 30px -12px rgba(0,0,0,0.1); }
-        .product-image { aspect-ratio: 3/4; background: #f8fafd; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .product-image img { width: 100%; height: 100%; object-fit: cover; }
-        .product-info { padding: 1rem; }
-        .product-name { font-weight: 700; font-size: 1.1rem; }
-        .product-price { font-weight: 600; color: #2c3e50; margin: 0.4rem 0; }
-        .btn { background: #1e2f3f; color: white; border: none; padding: 0.6rem; border-radius: 40px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 0.5rem; }
-        .btn-outline { background: transparent; border: 1px solid #cbdde9; color: #1f2f3e; }
-        .modal, .order-modal, .admin-auth-modal { 
-            display: none; 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            background: rgba(0,0,0,0.85); 
-            backdrop-filter: blur(12px); 
-            z-index: 2000; 
-            justify-content: center; 
-            align-items: center; 
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #1a2634;
+        }
+        .logo span { color: #5b6e8c; font-weight: normal; }
+        .nav a {
+            margin-left: 20px;
+            cursor: pointer;
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+        }
+        .cart-count {
+            background: #1e2f3f;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 8px;
+            font-size: 12px;
+            margin-left: 5px;
+        }
+        
+        /* Основной контент */
+        .main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h2 { margin-bottom: 20px; }
+        
+        /* Сетка товаров - 2 в ряд */
+        .products {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        
+        /* Карточка товара */
+        .product {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .product:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        .product-emoji {
+            font-size: 64px;
+            margin-bottom: 10px;
+        }
+        .product-name {
+            font-weight: bold;
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        .product-price {
+            color: #e67e22;
+            font-weight: bold;
+            font-size: 20px;
+            margin: 5px 0;
+        }
+        .product-desc {
+            font-size: 13px;
+            color: #666;
+            margin: 10px 0;
+        }
+        
+        /* Кнопки */
+        .btn {
+            background: #1e2f3f;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #cbdde9;
+            color: #1e2f3f;
+        }
+        
+        /* Корзина */
+        .cart-item {
+            background: white;
+            padding: 15px;
+            border-radius: 16px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .total {
+            font-size: 22px;
+            font-weight: bold;
+            text-align: right;
+            margin-top: 20px;
+        }
+        
+        /* Модальные окна */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 30px;
+            max-width: 500px;
+            width: 90%;
+            padding: 20px;
+            position: relative;
+            max-height: 80vh;
             overflow-y: auto;
         }
-        .modal-content, .order-modal-content, .admin-auth-content { 
-            background: white; 
-            border-radius: 40px; 
-            max-width: 1300px; 
-            width: 92%; 
-            padding: 1.6rem; 
-            position: relative; 
-            margin: 20px auto;
-            max-height: 90vh;
-            overflow-y: auto;
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            cursor: pointer;
         }
-        .order-modal-content, .admin-auth-content { max-width: 500px; text-align: center; }
-        .close-modal { position: absolute; top: 1rem; right: 1.8rem; font-size: 2rem; cursor: pointer; color: #334155; }
-        .gallery-horizontal { display: flex; gap: 2rem; flex-wrap: wrap; }
-        .zoom-preview { flex: 3; min-width: 280px; background: #f5f9ff; border-radius: 32px; display: flex; justify-content: center; align-items: center; min-height: 400px; position: relative; overflow: hidden; }
-        .zoom-image-main { max-width: 100%; max-height: 500px; object-fit: contain; cursor: crosshair; transition: transform 0.2s; }
-        .zoom-lens { position: absolute; width: 130px; height: 130px; background: rgba(255,255,240,0.25); border: 2px solid white; border-radius: 50%; pointer-events: none; display: none; z-index: 10; }
-        .thumb-vertical { flex: 1; display: flex; flex-direction: column; gap: 1rem; min-width: 100px; }
-        .thumb-angle { background: #f1f5f9; border-radius: 24px; padding: 0.6rem; cursor: pointer; border: 2px solid transparent; }
-        .thumb-angle.active { border-color: #1e2f3f; background: white; }
-        .thumb-angle img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 18px; }
-        .admin-panel { background: white; border-radius: 32px; padding: 2rem; }
-        .photo-group { background: #f9fbfe; border-radius: 24px; padding: 1rem; margin-bottom: 1.5rem; }
-        .photo-label { font-weight: 600; margin-bottom: 0.5rem; }
-        .photo-preview { width: 100px; height: 100px; background: #eef2fa; border-radius: 16px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin: 0.5rem 0; font-size: 2rem; cursor: pointer; border: 1px dashed #ccc; }
-        .photo-preview img { width: 100%; height: 100%; object-fit: cover; }
-        .payment-info { background: #e8f5e9; border-radius: 20px; padding: 1rem; margin: 1rem 0; text-align: center; }
-        .card-number { font-size: 1.3rem; font-weight: 700; letter-spacing: 2px; margin: 0.5rem 0; }
-        .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 0.6rem 2rem; border-radius: 60px; opacity: 0; transition: 0.2s; z-index: 3000; }
+        
+        /* Размеры */
+        .size-section {
+            margin: 15px 0;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 16px;
+        }
+        .size-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 10px 0;
+        }
+        .size-btn {
+            background: white;
+            border: 1px solid #ddd;
+            padding: 8px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+        }
+        .size-btn.selected {
+            background: #1e2f3f;
+            color: white;
+            border-color: #1e2f3f;
+        }
+        .size-info {
+            font-size: 12px;
+            color: #666;
+            margin-top: 8px;
+        }
+        
+        /* Форма заказа */
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            font-size: 16px;
+        }
+        .payment-card {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 16px;
+            text-align: center;
+            margin: 15px 0;
+        }
+        .card-number {
+            font-size: 18px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin: 10px 0;
+        }
+        
+        /* Уведомления */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            opacity: 0;
+            transition: 0.3s;
+            z-index: 2000;
+        }
         .toast.show { opacity: 1; }
-        .size-selector { margin: 1rem 0; padding: 1rem; background: #f8fafd; border-radius: 20px; }
-        .size-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
-        .size-btn { background: white; border: 1px solid #cbdde9; padding: 0.4rem 1rem; border-radius: 30px; font-size: 0.8rem; cursor: pointer; }
-        .size-btn.selected { background: #1e2f3f; color: white; }
-        .size-chart { font-size: 0.7rem; color: #666; margin-top: 0.5rem; }
-        input, select, textarea { width: 100%; padding: 0.8rem; margin: 0.5rem 0 1rem; border: 1px solid #ddd; border-radius: 20px; font-family: inherit; font-size: 16px; }
-        @media (max-width: 780px) {
-            .sidebar { width: 80px; padding: 1rem 0.5rem; }
-            .sidebar .logo { font-size: 1.2rem; text-align: center; }
-            .nav-links a span:not(.cart-badge) { display: none; }
-            .main-content { padding: 1rem; }
-            .products-grid { gap: 1rem; }
-            .gallery-horizontal { flex-direction: column; }
-            .thumb-vertical { flex-direction: row; flex-wrap: wrap; }
-            .thumb-angle { width: 70px; }
-            .modal-content, .order-modal-content { padding: 1rem; }
-            .btn { padding: 0.8rem; font-size: 1rem; }
+        
+        /* Админ-ссылка (скрыта, появляется после 5 кликов) */
+        .admin-link {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 12px;
+            opacity: 0;
+            cursor: pointer;
+            padding: 8px;
+            background: #eee;
+            border-radius: 20px;
+            transition: 0.3s;
+        }
+        .admin-link.visible {
+            opacity: 0.7;
+        }
+        .admin-link.visible:hover {
+            opacity: 1;
+            background: #ddd;
+        }
+        
+        @media (max-width: 600px) {
+            .products { gap: 10px; }
+            .product { padding: 12px; }
+            .product-emoji { font-size: 48px; }
+            .product-name { font-size: 14px; }
+            .product-price { font-size: 16px; }
         }
     </style>
 </head>
 <body>
-<div class="app-horizontal">
-    <aside class="sidebar">
+    <div class="header">
         <div class="logo" onclick="navigate('home')">PALO<span>.</span></div>
-        <div class="nav-links">
-            <a onclick="navigate('home')">🏠 <span>Магазин</span></a>
-            <a onclick="navigate('cart')">🛒 <span>Корзина</span> <span class="cart-badge" id="cart-count">0</span></a>
+        <div class="nav">
+            <a onclick="navigate('home')">🏠 Магазин</a>
+            <a onclick="navigate('cart')">🛒 Корзина <span class="cart-count" id="cartCount">0</span></a>
         </div>
-        <div id="adminSecretLink" class="admin-link-hidden" onclick="showAdminAuth()">🔒 <span>Админ</span></div>
-    </aside>
-    <main class="main-content" id="app"></main>
-</div>
-<div id="toast" class="toast"></div>
+    </div>
+    <div class="main" id="app"></div>
+    <div id="toast" class="toast"></div>
 
-<script>
-    const TELEGRAM_BOT_TOKEN = '8758635199:AAEG8B69jBqbW1fmwLZUbrso5w1VIrHonKg';
-    const TELEGRAM_CHAT_ID = '5820655432';
-    const ADMIN_PASSWORD = 'admin123';
-    
-    let isAdminAuthenticated = false;
-    let clickCount = 0;
-    let clickTimer = null;
-    
-    // ТОВАРЫ С ЭМОДЗИ
-    let products = [
-        { id: 1, name: "Кепка", price: 1500, desc: "Хлопок, козырёк", frontImg: "", sideImg: "", mannequinImg: "", emoji: "🧢" },
-        { id: 2, name: "Футболка", price: 1900, desc: "Джерси, белый", frontImg: "", sideImg: "", mannequinImg: "", emoji: "👕" },
-        { id: 3, name: "Брюки", price: 5200, desc: "Костюмная ткань", frontImg: "", sideImg: "", mannequinImg: "", emoji: "👖" },
-        { id: 4, name: "Лонгслив", price: 2700, desc: "Трикотаж, чёрный", frontImg: "", sideImg: "", mannequinImg: "", emoji: "🧥" }
-    ];
-    
-    // РАЗМЕРЫ
-    const sizeData = {
-        1: { sizes: ["S", "M", "L"], measures: ["Обхват: 54-56 см", "Обхват: 57-59 см", "Обхват: 60-62 см"] },
-        2: { sizes: ["S", "M", "L", "XL"], measures: ["Дл.68/Гр.48 см", "Дл.70/Гр.51 см", "Дл.72/Гр.54 см", "Дл.74/Гр.57 см"] },
-        3: { sizes: ["S", "M", "L", "XL"], measures: ["Дл.100/Тал.72 см", "Дл.102/Тал.76 см", "Дл.104/Тал.80 см", "Дл.106/Тал.84 см"] },
-        4: { sizes: ["S", "M", "L", "XL"], measures: ["Рук.62/Гр.48 см", "Рук.64/Гр.51 см", "Рук.66/Гр.54 см", "Рук.68/Гр.57 см"] }
-    };
-    
-    let cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    let selectedSizes = JSON.parse(localStorage.getItem('selectedSizes') || '{}');
-    
-    // АДМИНКА ПО 5 КЛИКАМ
-    document.querySelector('.logo').addEventListener('click', function() {
-        clickCount++;
-        clearTimeout(clickTimer);
-        clickTimer = setTimeout(() => { clickCount = 0; }, 1000);
-        if (clickCount >= 5) {
-            clickCount = 0;
-            let link = document.getElementById('adminSecretLink');
-            if (link) link.classList.add('visible');
-            showToast('🔓 Админ-панель активирована');
-        }
-    });
-    
-    function saveCart() { localStorage.setItem('cart', JSON.stringify(cart)); updateCartCount(); }
-    function updateCartCount() { 
-        let count = cart.reduce((s,i) => s + i.qty, 0);
-        let el = document.getElementById('cart-count');
-        if (el) el.innerText = count;
-    }
-    function showToast(m) { 
-        let t = document.getElementById('toast'); 
-        if (!t) return;
-        t.innerText = m; 
-        t.classList.add('show'); 
-        setTimeout(() => t.classList.remove('show'), 2500); 
-    }
-    
-    function showAdminAuth() { 
-        if (isAdminAuthenticated) { renderAdmin(); return; } 
-        let modal = document.getElementById('adminAuthModal');
-        if (modal) modal.style.display = 'flex'; 
-    }
-    function closeAdminAuth() { 
-        let modal = document.getElementById('adminAuthModal');
-        if (modal) modal.style.display = 'none'; 
-        let pwd = document.getElementById('adminPassword');
-        if (pwd) pwd.value = '';
-    }
-    function checkAdminPassword() {
-        let pwd = document.getElementById('adminPassword');
-        if (pwd && pwd.value === ADMIN_PASSWORD) {
-            isAdminAuthenticated = true; 
-            closeAdminAuth(); 
-            showToast('✅ Доступ разрешён'); 
-            renderAdmin();
-        } else { 
-            showToast('❌ Неверный пароль'); 
-        }
-    }
-    
-    function selectSize(productId, size, idx) {
-        selectedSizes[productId] = size;
-        localStorage.setItem('selectedSizes', JSON.stringify(selectedSizes));
-        let btns = document.querySelectorAll(`.size-btn-${productId}`);
-        btns.forEach((btn) => { 
-            if (btn.innerText === size) btn.classList.add('selected'); 
-            else btn.classList.remove('selected'); 
-        });
-        let chart = document.getElementById(`size-chart-${productId}`);
-        if (chart && sizeData[productId]) {
-            chart.innerText = sizeData[productId].measures[idx];
-        }
-    }
-    
-    function addToCart(id) {
-        let size = selectedSizes[id];
-        if (sizeData[id] && !size) { 
-            showToast('⚠️ Сначала выберите размер!'); 
-            return; 
-        }
-        let item = cart.find(i => i.id === id && i.size === size);
-        if (item) item.qty++;
-        else cart.push({ id, qty: 1, size: size || 'OS' });
-        saveCart();
-        showToast('✓ Добавлено в корзину');
-        navigate('cart');
-    }
-    
-    function removeFromCart(id, size) {
-        cart = cart.filter(i => !(i.id === id && i.size === size));
-        saveCart();
-        navigate('cart');
-    }
-    
-    function renderSizeSelector(productId) {
-        let data = sizeData[productId];
-        if (!data) return '';
-        let current = selectedSizes[productId] || '';
-        let html = `<div class="size-selector">
-                        <div class="size-label">📏 Выберите размер:</div>
-                        <div class="size-buttons">`;
-        data.sizes.forEach((size, idx) => {
-            html += `<button class="size-btn size-btn-${productId} ${current === size ? 'selected' : ''}" onclick="selectSize(${productId}, '${size}', ${idx})">${size}</button>`;
-        });
-        html += `</div><div class="size-chart" id="size-chart-${productId}">`;
-        if (current && data.sizes.indexOf(current) >= 0) {
-            html += data.measures[data.sizes.indexOf(current)];
-        } else {
-            html += 'Нажмите на размер для замеров';
-        }
-        html += `</div></div>`;
-        return html;
-    }
-    
-    function sendOrderToTelegram(orderDetails, total, customer) {
-        let text = `🛍️ НОВЫЙ ЗАКАЗ PALO\n\n👤 Имя: ${customer.name}\n📞 Телефон: ${customer.phone}\n📍 Адрес: ${customer.address}\n🚚 Доставка: ${customer.delivery}\n\n📦 Состав заказа:\n${orderDetails}\n\n💰 ИТОГО: ${total} ₽\n💳 Оплата: перевод на карту 2200 7020 0430 8479`;
-        
-        fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: text })
-        })
-        .then(response => response.json())
-        .then(data => { 
-            if (data.ok) { 
-                showToast('✅ Заказ отправлен! Мы свяжемся с вами'); 
-                cart = []; 
-                saveCart(); 
-                closeOrderModal(); 
-                navigate('home'); 
-            } else { 
-                showToast('❌ Ошибка отправки. Попробуйте позже'); 
-            } 
-        })
-        .catch(error => { 
-            console.error('Ошибка:', error);
-            showToast('❌ Ошибка соединения. Проверьте интернет'); 
-        });
-    }
-    
-    function openOrderModal() { 
-        if (cart.length === 0) { 
-            showToast('🛒 Корзина пуста'); 
-            return; 
-        } 
-        let modal = document.getElementById('orderModal');
-        if (modal) modal.style.display = 'flex'; 
-    }
-    function closeOrderModal() { 
-        let modal = document.getElementById('orderModal');
-        if (modal) modal.style.display = 'none'; 
-    }
-    function submitOrder() {
-        let name = document.getElementById('orderName').value.trim();
-        let phone = document.getElementById('orderPhone').value.trim();
-        let address = document.getElementById('orderAddress').value.trim();
-        let delivery = document.getElementById('orderDelivery').value;
-        
-        if (!name || !phone || !address) { 
-            showToast('⚠️ Заполните все поля'); 
-            return; 
-        }
-        
-        let lines = '', total = 0;
-        cart.forEach(item => { 
-            let p = products.find(pr => pr.id === item.id); 
-            if (p) { 
-                let s = p.price * item.qty; 
-                total += s; 
-                lines += `• ${p.name} (размер ${item.size || 'OS'}) — ${item.qty} шт × ${p.price} ₽ = ${s} ₽\n`; 
-            } 
-        });
-        
-        sendOrderToTelegram(lines, total, { name, phone, address, delivery });
-        closeOrderModal();
-    }
-    
-    // ГАЛЕРЕЯ И ЛУПА
-    let currentProduct = null, currentAngle = 'front';
-    function openModal(p) { 
-        currentProduct = p; 
-        currentAngle = 'front'; 
-        renderModal(); 
-        let modal = document.getElementById('productModal');
-        if (modal) modal.style.display = 'flex'; 
-        setTimeout(bindZoom, 100); 
-    }
-    function closeModal() { 
-        let modal = document.getElementById('productModal');
-        if (modal) modal.style.display = 'none'; 
-    }
-    function switchAngle(a) { 
-        currentAngle = a; 
-        renderModal(); 
-        setTimeout(bindZoom, 100); 
-    }
-    
-    function renderModal() {
-        let p = currentProduct;
-        if (!p) return;
-        let angles = [
-            { key: 'front', img: p.frontImg, label: 'Спереди' },
-            { key: 'side', img: p.sideImg, label: 'Сбоку' },
-            { key: 'mannequin', img: p.mannequinImg, label: 'На манекене' }
+    <script>
+        // === ТОВАРЫ ===
+        const products = [
+            { id: 1, name: "Кепка", price: 1500, desc: "Хлопок, козырёк", emoji: "🧢", 
+              sizes: ["S", "M", "L"], measures: ["54-56 см", "57-59 см", "60-62 см"] },
+            { id: 2, name: "Футболка", price: 1900, desc: "Джерси, белый", emoji: "👕", 
+              sizes: ["S", "M", "L", "XL"], measures: ["68/48 см", "70/51 см", "72/54 см", "74/57 см"] },
+            { id: 3, name: "Брюки", price: 5200, desc: "Костюмная ткань", emoji: "👖", 
+              sizes: ["S", "M", "L", "XL"], measures: ["100/72 см", "102/76 см", "104/80 см", "106/84 см"] },
+            { id: 4, name: "Лонгслив", price: 2700, desc: "Трикотаж, чёрный", emoji: "🧥", 
+              sizes: ["S", "M", "L", "XL"], measures: ["62/48 см", "64/51 см", "66/54 см", "68/57 см"] }
         ];
-        let activeImg = '';
-        if (currentAngle === 'front') activeImg = p.frontImg;
-        else if (currentAngle === 'side') activeImg = p.sideImg;
-        else activeImg = p.mannequinImg;
         
-        if (!activeImg) {
-            let found = angles.find(a => a.img && a.img.trim() !== '');
-            if (found) activeImg = found.img;
+        // === ДАННЫЕ ===
+        let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        let selectedSizes = JSON.parse(localStorage.getItem('selectedSizes') || '{}');
+        
+        // === ОБНОВЛЕНИЕ КОРЗИНЫ ===
+        function saveCart() {
+            localStorage.setItem('cart', JSON.stringify(cart));
+            document.getElementById('cartCount').innerText = cart.reduce((s,i) => s + i.qty, 0);
         }
         
-        let thumbs = '';
-        angles.forEach(angle => { 
-            if (angle.img && angle.img.trim() !== '') {
-                thumbs += `<div class="thumb-angle ${currentAngle === angle.key ? 'active' : ''}" onclick="switchAngle('${angle.key}')">
-                            <img src="${angle.img}" alt="${angle.label}">
-                           </div>`;
+        function showToast(msg) {
+            let t = document.getElementById('toast');
+            t.innerText = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2000);
+        }
+        
+        // === ВЫБОР РАЗМЕРА ===
+        function selectSize(productId, size, idx) {
+            selectedSizes[productId] = size;
+            localStorage.setItem('selectedSizes', JSON.stringify(selectedSizes));
+            
+            // Обновляем визуальное выделение
+            document.querySelectorAll(`.size-${productId}`).forEach(btn => {
+                if (btn.innerText === size) btn.classList.add('selected');
+                else btn.classList.remove('selected');
+            });
+            
+            // Показываем замеры
+            let product = products.find(p => p.id === productId);
+            if (product) {
+                document.getElementById(`sizeInfo-${productId}`).innerText = product.measures[idx];
             }
-        });
+        }
         
-        let modalBody = document.getElementById('modalBody');
-        if (!modalBody) return;
+        // === ДОБАВЛЕНИЕ В КОРЗИНУ ===
+        function addToCart(id) {
+            let product = products.find(p => p.id === id);
+            let size = selectedSizes[id];
+            
+            if (product.sizes && !size) {
+                showToast('⚠️ Сначала выберите размер!');
+                return;
+            }
+            
+            let item = cart.find(i => i.id === id && i.size === size);
+            if (item) item.qty++;
+            else cart.push({ id, qty: 1, size: size || 'OS' });
+            
+            saveCart();
+            showToast('✓ Добавлено в корзину');
+            navigate('cart');
+        }
         
-        modalBody.innerHTML = `
-            <div class="gallery-horizontal">
-                <div class="zoom-preview" id="zoomArea">
-                    ${activeImg ? `<img id="zoomImg" class="zoom-image-main" src="${activeImg}" alt="${p.name}">` : '<div style="padding:2rem;">📸 Нет фото, загрузите в админке</div>'}
-                    <div id="zoomLens" class="zoom-lens"></div>
+        function removeFromCart(id, size) {
+            cart = cart.filter(i => !(i.id === id && i.size === size));
+            saveCart();
+            navigate('cart');
+        }
+        
+        // === ОТПРАВКА В TELEGRAM ===
+        function sendOrderToTelegram(orderDetails, total, customer) {
+            const TOKEN = '8758635199:AAEG8B69jBqbW1fmwLZUbrso5w1VIrHonKg';
+            const CHAT_ID = '5820655432';
+            
+            let text = `🛍️ НОВЫЙ ЗАКАЗ PALO\n\n👤 Имя: ${customer.name}\n📞 Телефон: ${customer.phone}\n📍 Адрес: ${customer.address}\n🚚 Доставка: ${customer.delivery}\n\n📦 Состав:\n${orderDetails}\n\n💰 ИТОГО: ${total} ₽\n💳 Оплата: 2200 7020 0430 8479`;
+            
+            fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: CHAT_ID, text: text })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.ok) {
+                    showToast('✅ Заказ отправлен!');
+                    cart = [];
+                    saveCart();
+                    closeOrderModal();
+                    navigate('home');
+                } else {
+                    showToast('❌ Ошибка отправки');
+                }
+            })
+            .catch(() => showToast('❌ Ошибка соединения'));
+        }
+        
+        // === МОДАЛЬНЫЕ ОКНА ===
+        function openProductModal(productId) {
+            let p = products.find(pr => pr.id === productId);
+            let currentSize = selectedSizes[productId] || '';
+            
+            let sizeHtml = '';
+            if (p.sizes) {
+                sizeHtml = `<div class="size-section">
+                    <div>📏 Выберите размер:</div>
+                    <div class="size-buttons">`;
+                p.sizes.forEach((size, idx) => {
+                    sizeHtml += `<button class="size-btn size-${p.id} ${currentSize === size ? 'selected' : ''}" onclick="selectSize(${p.id}, '${size}', ${idx})">${size}</button>`;
+                });
+                sizeHtml += `</div>
+                    <div class="size-info" id="sizeInfo-${p.id}">${currentSize ? p.measures[p.sizes.indexOf(currentSize)] : 'Нажмите на размер'}</div>
+                </div>`;
+            }
+            
+            document.getElementById('productModalContent').innerHTML = `
+                <span class="close" onclick="closeProductModal()">&times;</span>
+                <div style="text-align:center;">
+                    <div style="font-size:64px;">${p.emoji}</div>
+                    <h2>${p.name}</h2>
+                    <div class="product-price" style="margin:10px 0;">${p.price} ₽</div>
+                    <div style="color:#666;">${p.desc}</div>
+                    ${sizeHtml}
+                    <button class="btn" onclick="addToCart(${p.id}); closeProductModal();">🛒 Добавить в корзину</button>
                 </div>
-                <div class="thumb-vertical">${thumbs || '<div style="padding:1rem; text-align:center;">⬆️ Загрузите фото в админке</div>'}</div>
-            </div>
-            <div style="flex:1; min-width:200px; margin-top:1rem;">
-                <h2>${p.name}</h2>
-                <div style="font-size:1.5rem; font-weight:600; margin:0.5rem 0;">${p.price.toLocaleString()} ₽</div>
-                <div style="color:#666; margin-bottom:0.5rem;">${p.desc}</div>
-                ${renderSizeSelector(p.id)}
-                <button class="btn" onclick="addToCart(${p.id}); closeModal();">🛒 Добавить в корзину</button>
-            </div>
-        `;
-    }
-    
-    function bindZoom() {
-        let img = document.getElementById('zoomImg');
-        let lens = document.getElementById('zoomLens');
-        let container = document.getElementById('zoomArea');
-        if (!img || !lens || !container) return;
+            `;
+            document.getElementById('productModal').style.display = 'flex';
+        }
         
-        img.style.cursor = 'crosshair';
-        lens.style.display = 'none';
+        function closeProductModal() {
+            document.getElementById('productModal').style.display = 'none';
+        }
         
-        img.onmouseenter = () => lens.style.display = 'block';
-        img.onmouseleave = () => { 
-            img.style.transform = 'scale(1)'; 
-            lens.style.display = 'none'; 
-        };
-        img.onmousemove = (e) => {
-            let rect = container.getBoundingClientRect();
-            let x = e.clientX - rect.left;
-            let y = e.clientY - rect.top;
-            x = Math.min(Math.max(x, 0), rect.width);
-            y = Math.min(Math.max(y, 0), rect.height);
-            let lensSize = 130;
-            let lensX = x - lensSize/2;
-            let lensY = y - lensSize/2;
-            lensX = Math.min(Math.max(lensX, 0), rect.width - lensSize);
-            lensY = Math.min(Math.max(lensY, 0), rect.height - lensSize);
-            lens.style.left = lensX + 'px';
-            lens.style.top = lensY + 'px';
-            let percentX = (x / rect.width) * 100;
-            let percentY = (y / rect.height) * 100;
-            img.style.transformOrigin = `${percentX}% ${percentY}%`;
-            img.style.transform = 'scale(2.2)';
-        };
-    }
-    
-    // АДМИНКА
-    let currentEditId = null;
-    function handleImageUpload(event, type, previewId) {
-        let file = event.target.files[0];
-        if (!file) return;
-        if (file.size > 2 * 1024 * 1024) {
-            showToast('⚠️ Файл больше 2 МБ');
-            return;
-        }
-        let reader = new FileReader();
-        reader.onload = function(e) {
-            let dataUrl = e.target.result;
-            if (type === 'front') {
-                let frontVal = document.getElementById('frontVal');
-                if (frontVal) frontVal.value = dataUrl;
+        function openOrderModal() {
+            if (cart.length === 0) {
+                showToast('Корзина пуста');
+                return;
             }
-            if (type === 'side') {
-                let sideVal = document.getElementById('sideVal');
-                if (sideVal) sideVal.value = dataUrl;
+            document.getElementById('orderModal').style.display = 'flex';
+        }
+        
+        function closeOrderModal() {
+            document.getElementById('orderModal').style.display = 'none';
+        }
+        
+        function submitOrder() {
+            let name = document.getElementById('orderName').value.trim();
+            let phone = document.getElementById('orderPhone').value.trim();
+            let address = document.getElementById('orderAddress').value.trim();
+            let delivery = document.getElementById('orderDelivery').value;
+            
+            if (!name || !phone || !address) {
+                showToast('Заполните все поля');
+                return;
             }
-            if (type === 'mannequin') {
-                let manVal = document.getElementById('manVal');
-                if (manVal) manVal.value = dataUrl;
+            
+            let lines = '';
+            let total = 0;
+            cart.forEach(item => {
+                let p = products.find(pr => pr.id === item.id);
+                let sum = p.price * item.qty;
+                total += sum;
+                lines += `• ${p.name} (${item.size || 'OS'}) — ${item.qty}шт × ${p.price}₽ = ${sum}₽\n`;
+            });
+            
+            sendOrderToTelegram(lines, total, { name, phone, address, delivery });
+            closeOrderModal();
+        }
+        
+        // === ОТОБРАЖЕНИЕ СТРАНИЦ ===
+        function renderHome() {
+            let html = '<h2>Коллекция</h2><div class="products">';
+            products.forEach(p => {
+                html += `
+                    <div class="product" onclick="openProductModal(${p.id})">
+                        <div class="product-emoji">${p.emoji}</div>
+                        <div class="product-name">${p.name}</div>
+                        <div class="product-price">${p.price} ₽</div>
+                        <div class="product-desc">${p.desc}</div>
+                        <button class="btn" onclick="event.stopPropagation(); openProductModal(${p.id})">🔍 Выбрать размер</button>
+                    </div>
+                `;
+            });
+            html += `</div>
+                <div id="adminLink" class="admin-link" onclick="showAdminAuth()">🔒 Админ-панель</div>
+            `;
+            document.getElementById('app').innerHTML = html;
+            
+            // Проверяем, показывать ли админ-ссылку
+            let adminLink = document.getElementById('adminLink');
+            if (localStorage.getItem('adminShown') === 'true') {
+                adminLink.classList.add('visible');
             }
-            let preview = document.getElementById(previewId);
-            if (preview) preview.innerHTML = `<img src="${dataUrl}">`;
-            showToast('✅ Фото загружено');
-        };
-        reader.readAsDataURL(file);
-    }
-    
-    function renderHome() {
-        let html = '<h2 style="font-size:1.9rem;margin-bottom:1.8rem;">Коллекция</h2><div class="products-grid">';
-        products.forEach(p => {
-            let preview = p.frontImg || p.sideImg || p.mannequinImg || '';
-            html += `<div class="product-card" onclick="openModal(${JSON.stringify(p).replace(/"/g, '&quot;')})">
-                        <div class="product-image">
-                            ${preview ? `<img src="${preview}" alt="${p.name}">` : `<span style="font-size:3rem;">${p.emoji}</span>`}
-                        </div>
-                        <div class="product-info">
-                            <div class="product-name">${p.name}</div>
-                            <div class="product-price">${p.price.toLocaleString()} ₽</div>
-                            <div style="font-size:0.75rem; color:#666;">${p.desc}</div>
-                            <button class="btn" onclick="event.stopPropagation();openModal(${JSON.stringify(p).replace(/"/g, '&quot;')})">🔍 Выбрать размер</button>
-                        </div>
-                    </div>`;
-        });
-        html += '</div>';
-        let app = document.getElementById('app');
-        if (app) app.innerHTML = html;
-    }
-    
-    function renderCart() {
-        if (cart.length === 0) { 
-            let app = document.getElementById('app');
-            if (app) app.innerHTML = '<div style="text-align:center;padding:3rem;">🛒 Корзина пуста</div>'; 
-            return; 
         }
-        let total = 0, html = '<h2>Корзина</h2><div style="display:flex;flex-direction:column;gap:1rem;">';
-        cart.forEach(item => {
-            let p = products.find(pr => pr.id === item.id);
-            if (!p) return;
-            let sum = p.price * item.qty; 
-            total += sum;
-            let img = p.frontImg || p.sideImg || p.mannequinImg;
-            html += `<div style="display:flex; gap:1rem; align-items:center; background:white; padding:1rem; border-radius:28px; flex-wrap:wrap;">
-                        <div style="width:70px;height:70px;background:#f2f5f9;border-radius:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                            ${img ? `<img src="${img}" style="width:100%;height:100%;object-fit:cover;border-radius:16px;">` : `<span style="font-size:2rem;">${p.emoji}</span>`}
-                        </div>
-                        <div style="flex:1; min-width:120px;">
-                            <strong>${p.name}</strong><br>
-                            ${item.size ? `Размер: ${item.size}<br>` : ''}
-                            ${item.qty} шт × ${p.price} ₽
-                        </div>
-                        <div><strong>${sum.toLocaleString()} ₽</strong></div>
-                        <button class="btn-outline" style="padding:0.3rem 1rem;" onclick="removeFromCart(${p.id}, '${item.size || ''}')">🗑️ Удалить</button>
-                    </div>`;
-        });
-        html += `<div style="text-align:right; font-size:1.5rem; font-weight:600; margin-top:1rem;">Итого: ${total.toLocaleString()} ₽</div>`;
-        html += `<button class="btn" style="margin-top:1rem;" onclick="openOrderModal()">💳 Оформить заказ</button>`;
-        let app = document.getElementById('app');
-        if (app) app.innerHTML = html;
-    }
-    
-    function renderAdmin() {
-        if (!isAdminAuthenticated) { 
-            let app = document.getElementById('app');
-            if (app) app.innerHTML = '<div style="text-align:center;padding:3rem;">🔒 Доступ закрыт. Нажмите 5 раз на логотип PALO и введите пароль admin123</div>'; 
-            return; 
+        
+        function renderCart() {
+            if (cart.length === 0) {
+                document.getElementById('app').innerHTML = '<h2>Корзина</h2><div style="text-align:center;padding:50px;">🛒 Корзина пуста</div>';
+                return;
+            }
+            
+            let total = 0;
+            let html = '<h2>Корзина</h2>';
+            cart.forEach(item => {
+                let p = products.find(pr => pr.id === item.id);
+                let sum = p.price * item.qty;
+                total += sum;
+                html += `
+                    <div class="cart-item">
+                        <div><strong>${p.name}</strong> ${item.size ? `(${item.size})` : ''}<br>${item.qty} шт × ${p.price} ₽</div>
+                        <div><strong>${sum} ₽</strong></div>
+                        <button class="btn-outline" style="width:auto; padding:8px 15px;" onclick="removeFromCart(${p.id}, '${item.size || ''}')">🗑 Удалить</button>
+                    </div>
+                `;
+            });
+            html += `<div class="total">Итого: ${total} ₽</div>`;
+            html += `<button class="btn" onclick="openOrderModal()">💳 Оформить заказ</button>`;
+            document.getElementById('app').innerHTML = html;
         }
-        let html = `<div class="admin-panel">
-                        <h2>📷 Управление товарами</h2>
-                        <div id="adminMsg"></div>
-                        <div id="adminForm"></div>
-                        <h3 style="margin:2rem 0 1rem;">Список товаров</h3>
-                        <ul style="list-style:none;">`;
-        products.forEach(p => {
-            html += `<li style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0;border-bottom:1px solid #e9edf2;">
-                        <span style="font-size:1.5rem;">${p.emoji}</span>
-                        <span style="flex:1; margin-left:0.5rem;">${p.name} — ${p.price}₽</span>
-                        <button onclick="editProduct(${p.id})" class="btn-outline" style="padding:0.2rem 1rem;">✏️ Редактировать</button>
-                     </li>`;
+        
+        // === АДМИНКА (5 кликов по логотипу) ===
+        let clickCount = 0;
+        let clickTimer = null;
+        
+        document.querySelector('.logo').addEventListener('click', function() {
+            clickCount++;
+            clearTimeout(clickTimer);
+            clickTimer = setTimeout(() => { clickCount = 0; }, 1000);
+            if (clickCount >= 5) {
+                clickCount = 0;
+                localStorage.setItem('adminShown', 'true');
+                let adminLink = document.getElementById('adminLink');
+                if (adminLink) adminLink.classList.add('visible');
+                showToast('🔓 Админ-панель активирована');
+            }
         });
-        html += `</ul></div>`;
-        let app = document.getElementById('app');
-        if (app) app.innerHTML = html;
-        if (currentEditId) {
-            let prod = products.find(p => p.id === currentEditId);
-            if (prod) renderAdminForm(prod);
-        } else { 
-            renderAdminForm(null); 
+        
+        let isAdminAuthenticated = false;
+        
+        function showAdminAuth() {
+            if (isAdminAuthenticated) {
+                renderAdmin();
+                return;
+            }
+            document.getElementById('adminAuthModal').style.display = 'flex';
         }
-    }
-    
-    function editProduct(id) { 
-        currentEditId = id; 
-        renderAdmin(); 
-    }
-    
-    function renderAdminForm(prod) {
-        let formDiv = document.getElementById('adminForm');
-        if (!formDiv) return;
-        let product = prod || { id: null, name: '', price: '', desc: '', frontImg: '', sideImg: '', mannequinImg: '', emoji: '👕' };
-        formDiv.innerHTML = `
-            <div style="margin-bottom:1rem;">
-                <input id="prodName" placeholder="Название товара" value="${escapeHtml(product.name)}" style="width:100%;padding:0.8rem;border-radius:16px;border:1px solid #ddd;">
-            </div>
-            <div style="margin-bottom:1rem;">
-                <input id="prodPrice" type="number" placeholder="Цена" value="${product.price}" style="width:100%;padding:0.8rem;border-radius:16px;border:1px solid #ddd;">
-            </div>
-            <div style="margin-bottom:1rem;">
-                <textarea id="prodDesc" rows="2" placeholder="Описание" style="width:100%;padding:0.8rem;border-radius:16px;border:1px solid #ddd;">${escapeHtml(product.desc)}</textarea>
-            </div>
-            <div style="margin-bottom:1rem;">
-                <input id="prodEmoji" placeholder="Эмодзи (например 👕)" value="${product.emoji}" style="width:100%;padding:0.8rem;border-radius:16px;border:1px solid #ddd;">
-            </div>
-            <div class="photo-group">
-                <div class="photo-label">📷 Фото 1 (спереди)</div>
-                <div class="photo-preview" id="frontPreview" onclick="document.getElementById('frontFileInput').click()">
-                    ${product.frontImg ? `<img src="${product.frontImg}">` : '📸<br>Нажмите для загрузки'}
+        
+        function closeAdminAuth() {
+            document.getElementById('adminAuthModal').style.display = 'none';
+            document.getElementById('adminPassword').value = '';
+        }
+        
+        function checkAdminPassword() {
+            let pwd = document.getElementById('adminPassword').value;
+            if (pwd === 'admin123') {
+                isAdminAuthenticated = true;
+                closeAdminAuth();
+                showToast('✅ Добро пожаловать в админку');
+                renderAdmin();
+            } else {
+                showToast('❌ Неверный пароль');
+            }
+        }
+        
+        let currentEditId = null;
+        
+        function renderAdmin() {
+            if (!isAdminAuthenticated) {
+                showAdminAuth();
+                return;
+            }
+            
+            let html = `<div style="background:white; border-radius:24px; padding:20px;">
+                <h2>📷 Управление товарами</h2>
+                <div id="adminMsg"></div>
+                <div id="adminForm"></div>
+                <h3 style="margin:20px 0 10px;">Список товаров</h3>
+                <ul style="list-style:none;">`;
+            
+            products.forEach(p => {
+                html += `<li style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #eee;">
+                    <span style="font-size:28px;">${p.emoji}</span>
+                    <span style="flex:1; margin-left:10px;"><strong>${p.name}</strong> — ${p.price}₽</span>
+                    <button onclick="editProduct(${p.id})" class="btn-outline" style="padding:5px 15px; width:auto;">✏️ Редактировать</button>
+                </li>`;
+            });
+            html += `</ul></div>`;
+            document.getElementById('app').innerHTML = html;
+            
+            if (currentEditId) {
+                let prod = products.find(p => p.id === currentEditId);
+                if (prod) renderAdminForm(prod);
+            } else {
+                renderAdminForm(null);
+            }
+        }
+        
+        function editProduct(id) {
+            currentEditId = id;
+            renderAdmin();
+        }
+        
+        function handleImageUpload(event, fieldId, previewId) {
+            let file = event.target.files[0];
+            if (!file) return;
+            if (file.size > 1024 * 1024) {
+                showToast('⚠️ Файл больше 1 МБ');
+                return;
+            }
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById(fieldId).value = e.target.result;
+                document.getElementById(previewId).innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;">`;
+                showToast('✅ Фото загружено');
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function renderAdminForm(prod) {
+            let formDiv = document.getElementById('adminForm');
+            if (!formDiv) return;
+            
+            let p = prod || { id: null, name: '', price: '', desc: '', emoji: '👕', frontImg: '', sideImg: '', mannequinImg: '' };
+            
+            formDiv.innerHTML = `
+                <div style="margin:15px 0;">
+                    <input id="prodName" placeholder="Название" value="${p.name}" style="width:100%; padding:10px; border-radius:12px; border:1px solid #ddd;">
                 </div>
-                <input type="file" id="frontFileInput" accept="image/*" style="display:none" onchange="handleImageUpload(event, 'front', 'frontPreview')">
-                <input type="hidden" id="frontVal" value="${product.frontImg || ''}">
-            </div>
-            <div class="photo-group">
-                <div class="photo-label">📷 Фото 2 (сбоку)</div>
-                <div class="photo-preview" id="sidePreview" onclick="document.getElementById('sideFileInput').click()">
-                    ${product.sideImg ? `<img src="${product.sideImg}">` : '📸<br>Нажмите для загрузки'}
+                <div style="margin:15px 0;">
+                    <input id="prodPrice" type="number" placeholder="Цена" value="${p.price}" style="width:100%; padding:10px; border-radius:12px; border:1px solid #ddd;">
                 </div>
-                <input type="file" id="sideFileInput" accept="image/*" style="display:none" onchange="handleImageUpload(event, 'side', 'sidePreview')">
-                <input type="hidden" id="sideVal" value="${product.sideImg || ''}">
+                <div style="margin:15px 0;">
+                    <textarea id="prodDesc" rows="2" placeholder="Описание" style="width:100%; padding:10px; border-radius:12px; border:1px solid #ddd;">${p.desc}</textarea>
+                </div>
+                <div style="margin:15px 0;">
+                    <input id="prodEmoji" placeholder="Эмодзи" value="${p.emoji}" style="width:100%; padding:10px; border-radius:12px; border:1px solid #ddd;">
+                </div>
+                <div style="background:#f5f5f5; padding:15px; border-radius:16px; margin:10px 0;">
+                    <div><strong>📷 Фото 1 (спереди)</strong></div>
+                    <div id="frontPreview" style="width:100px; height:100px; background:#ddd; border-radius:12px; margin:10px 0; display:flex; align-items:center; justify-content:center; overflow:hidden; cursor:pointer;" onclick="document.getElementById('frontFile').click()">
+                        ${p.frontImg ? `<img src="${p.frontImg}" style="width:100%;height:100%;object-fit:cover;">` : '📸'}
+                    </div>
+                    <input type="file" id="frontFile" style="display:none" accept="image/*" onchange="handleImageUpload(event, 'frontVal', 'frontPreview')">
+                    <input type="hidden" id="frontVal" value="${p.frontImg || ''}">
+                </div>
+                <div style="background:#f5f5f5; padding:15px; border-radius:16px; margin:10px 0;">
+                    <div><strong>📷 Фото 2 (сбоку)</strong></div>
+                    <div id="sidePreview" style="width:100px; height:100px; background:#ddd; border-radius:12px; margin:10px 0; display:flex; align-items:center; justify-content:center; overflow:hidden; cursor:pointer;" onclick="document.getElementById('sideFile').click()">
+                        ${p.sideImg ? `<img src="${p.sideImg}" style="width:100%;height:100%;object-fit:cover;">` : '📸'}
+                    </div>
+                    <input type="file" id="sideFile" style="display:none" accept="image/*" onchange="handleImageUpload(event, 'sideVal', 'sidePreview')">
+                    <input type="hidden" id="sideVal" value="${p.sideImg || ''}">
+                </div>
+                <div style="background:#f5f5f5; padding:15px; border-radius:16px; margin:10px 0;">
+                    <div><strong>📷 Фото 3 (на манекене)</strong></div>
+                    <div id="manPreview" style="width:100px; height:100px; background:#ddd; border-radius:12px; margin:10px 0; display:flex; align-items:center; justify-content:center; overflow:hidden; cursor:pointer;" onclick="document.getElementById('manFile').click()">
+                        ${p.mannequinImg ? `<img src="${p.mannequinImg}" style="width:100%;height:100%;object-fit:cover;">` : '🕴️'}
+                    </div>
+                    <input type="file" id="manFile" style="display:none" accept="image/*" onchange="handleImageUpload(event, 'manVal', 'manPreview')">
+                    <input type="hidden" id="manVal" value="${p.mannequinImg || ''}">
+                </div>
+                <button class="btn" onclick="saveProduct()">💾 Сохранить</button>
+                <button class="btn-outline" style="margin-left:10px;" onclick="cancelEdit()">Отмена</button>
+            `;
+        }
+        
+        function cancelEdit() {
+            currentEditId = null;
+            renderAdmin();
+        }
+        
+        function saveProduct() {
+            let name = document.getElementById('prodName').value.trim();
+            let price = parseInt(document.getElementById('prodPrice').value);
+            let desc = document.getElementById('prodDesc').value;
+            let emoji = document.getElementById('prodEmoji').value;
+            let frontImg = document.getElementById('frontVal').value;
+            let sideImg = document.getElementById('sideVal').value;
+            let mannequinImg = document.getElementById('manVal').value;
+            
+            if (!name || isNaN(price)) {
+                showToast('Заполните название и цену');
+                return;
+            }
+            
+            if (currentEditId) {
+                let index = products.findIndex(p => p.id === currentEditId);
+                if (index !== -1) {
+                    products[index] = { ...products[index], name, price, desc, emoji, frontImg, sideImg, mannequinImg };
+                }
+            }
+            
+            localStorage.setItem('palo_products', JSON.stringify(products));
+            document.getElementById('adminMsg').innerHTML = '<div style="background:#e0f2e9; padding:10px; border-radius:12px;">✓ Товар сохранён</div>';
+            currentEditId = null;
+            renderAdmin();
+        }
+        
+        // === НАВИГАЦИЯ ===
+        function navigate(page) {
+            if (page === 'home') renderHome();
+            else if (page === 'cart') renderCart();
+            else if (page === 'admin') renderAdmin();
+            window.scrollTo(0, 0);
+        }
+        
+        // === ЗАГРУЗКА СОХРАНЁННЫХ ДАННЫХ ===
+        let saved = localStorage.getItem('palo_products');
+        if (saved) {
+            try {
+                let parsed = JSON.parse(saved);
+                if (parsed && parsed.length) {
+                    for (let i = 0; i < parsed.length; i++) {
+                        if (products[i]) {
+                            products[i].frontImg = parsed[i].frontImg || '';
+                            products[i].sideImg = parsed[i].sideImg || '';
+                            products[i].mannequinImg = parsed[i].mannequinImg || '';
+                        }
+                    }
+                }
+            } catch(e) {}
+        }
+        
+        saveCart();
+        navigate('home');
+        
+        // Глобальные функции
+        window.selectSize = selectSize;
+        window.addToCart = addToCart;
+        window.removeFromCart = removeFromCart;
+        window.openProductModal = openProductModal;
+        window.closeProductModal = closeProductModal;
+        window.openOrderModal = openOrderModal;
+        window.closeOrderModal = closeOrderModal;
+        window.submitOrder = submitOrder;
+        window.navigate = navigate;
+        window.showAdminAuth = showAdminAuth;
+        window.closeAdminAuth = closeAdminAuth;
+        window.checkAdminPassword = checkAdminPassword;
+        window.editProduct = editProduct;
+        window.handleImageUpload = handleImageUpload;
+        window.saveProduct = saveProduct;
+        window.cancelEdit = cancelEdit;
+    </script>
+
+    <!-- Модалка товара -->
+    <div id="productModal" class="modal">
+        <div class="modal-content" id="productModalContent"></div>
+    </div>
+
+    <!-- Модалка заказа -->
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeOrderModal()">&times;</span>
+            <h2>🛍️ Оформление заказа</h2>
+            <input type="text" id="orderName" placeholder="Ваше имя">
+            <input type="tel" id="orderPhone" placeholder="Телефон">
+            <textarea id="orderAddress" rows="2" placeholder="Адрес доставки"></textarea>
+            <select id="orderDelivery">
+                <option>СДЭК</option>
+                <option>Почта России</option>
+                <option>Курьером</option>
+                <option>Самовывоз</option>
+            </select>
+            <div class="payment-card">
+                <strong>💳 Оплата переводом на карту</strong>
+                <div class="card-number">2200 7020 0430 8479</div>
+                <small>После заказа переведите сумму</small>
             </div>
-            <div class="photo-group">
-                <div class="photo-label">📷 Фото 3 (на манекене)</div>
-                <div class="photo-preview" id="manPreview" onclick="
+            <button class="btn" onclick="submitOrder()">✅ Отправить заказ</button>
+        </div>
+    </div>
+
+    <!-- Модалка админки -->
+    <div id="adminAuthModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAdminAuth()">&times;</span>
+            <h2>🔐 Вход в админку</h2>
+            <input type="password" id="adminPassword" placeholder="Пароль">
+            <button class="btn" onclick="checkAdminPassword()">Войти</button>
+        </div>
+    </div>
+</body>
+</html>
