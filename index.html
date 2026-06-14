@@ -123,7 +123,7 @@
     let clickCount = 0;
     let clickTimer = null;
     
-    // Товары с эмодзи
+    // ТОВАРЫ С ЭМОДЗИ
     let products = [
         { id: 1, name: "Кепка", price: 1500, desc: "Хлопок, козырёк", frontImg: "", sideImg: "", mannequinImg: "", emoji: "🧢" },
         { id: 2, name: "Футболка", price: 1900, desc: "Джерси, белый", frontImg: "", sideImg: "", mannequinImg: "", emoji: "👕" },
@@ -131,18 +131,18 @@
         { id: 4, name: "Лонгслив", price: 2700, desc: "Трикотаж, чёрный", frontImg: "", sideImg: "", mannequinImg: "", emoji: "🧥" }
     ];
     
-    // Размеры и замеры
+    // РАЗМЕРЫ
     const sizeData = {
-        1: { sizes: ["S", "M", "L"], measures: ["54-56 см", "57-59 см", "60-62 см"] },
-        2: { sizes: ["S", "M", "L", "XL"], measures: ["Дл. 68см, Груд. 48см", "Дл. 70см, Груд. 51см", "Дл. 72см, Груд. 54см", "Дл. 74см, Груд. 57см"] },
-        3: { sizes: ["S", "M", "L", "XL"], measures: ["Дл. 100см, Тал. 72см", "Дл. 102см, Тал. 76см", "Дл. 104см, Тал. 80см", "Дл. 106см, Тал. 84см"] },
-        4: { sizes: ["S", "M", "L", "XL"], measures: ["Рук. 62см, Груд. 48см", "Рук. 64см, Груд. 51см", "Рук. 66см, Груд. 54см", "Рук. 68см, Груд. 57см"] }
+        1: { sizes: ["S", "M", "L"], measures: ["Обхват: 54-56 см", "Обхват: 57-59 см", "Обхват: 60-62 см"] },
+        2: { sizes: ["S", "M", "L", "XL"], measures: ["Дл.68/Гр.48 см", "Дл.70/Гр.51 см", "Дл.72/Гр.54 см", "Дл.74/Гр.57 см"] },
+        3: { sizes: ["S", "M", "L", "XL"], measures: ["Дл.100/Тал.72 см", "Дл.102/Тал.76 см", "Дл.104/Тал.80 см", "Дл.106/Тал.84 см"] },
+        4: { sizes: ["S", "M", "L", "XL"], measures: ["Рук.62/Гр.48 см", "Рук.64/Гр.51 см", "Рук.66/Гр.54 см", "Рук.68/Гр.57 см"] }
     };
     
     let cart = JSON.parse(localStorage.getItem('cart') || '[]');
     let selectedSizes = JSON.parse(localStorage.getItem('selectedSizes') || '{}');
     
-    // Секретный показ админки (5 кликов по логотипу)
+    // АДМИНКА ПО 5 КЛИКАМ
     document.querySelector('.logo').addEventListener('click', function() {
         clickCount++;
         clearTimeout(clickTimer);
@@ -151,21 +151,16 @@
             clickCount = 0;
             let link = document.getElementById('adminSecretLink');
             if (link) link.classList.add('visible');
-            showToast('🔓 Секретная панель активирована');
+            showToast('🔓 Админ-панель активирована');
         }
     });
     
-    function saveCart() { 
-        localStorage.setItem('cart', JSON.stringify(cart)); 
-        updateCartCount(); 
-    }
-    
+    function saveCart() { localStorage.setItem('cart', JSON.stringify(cart)); updateCartCount(); }
     function updateCartCount() { 
         let count = cart.reduce((s,i) => s + i.qty, 0);
         let el = document.getElementById('cart-count');
         if (el) el.innerText = count;
     }
-    
     function showToast(m) { 
         let t = document.getElementById('toast'); 
         if (!t) return;
@@ -179,14 +174,12 @@
         let modal = document.getElementById('adminAuthModal');
         if (modal) modal.style.display = 'flex'; 
     }
-    
     function closeAdminAuth() { 
         let modal = document.getElementById('adminAuthModal');
         if (modal) modal.style.display = 'none'; 
         let pwd = document.getElementById('adminPassword');
         if (pwd) pwd.value = '';
     }
-    
     function checkAdminPassword() {
         let pwd = document.getElementById('adminPassword');
         if (pwd && pwd.value === ADMIN_PASSWORD) {
@@ -287,12 +280,10 @@
         let modal = document.getElementById('orderModal');
         if (modal) modal.style.display = 'flex'; 
     }
-    
     function closeOrderModal() { 
         let modal = document.getElementById('orderModal');
         if (modal) modal.style.display = 'none'; 
     }
-    
     function submitOrder() {
         let name = document.getElementById('orderName').value.trim();
         let phone = document.getElementById('orderPhone').value.trim();
@@ -318,9 +309,8 @@
         closeOrderModal();
     }
     
-    // Галерея и лупа
+    // ГАЛЕРЕЯ И ЛУПА
     let currentProduct = null, currentAngle = 'front';
-    
     function openModal(p) { 
         currentProduct = p; 
         currentAngle = 'front'; 
@@ -329,12 +319,10 @@
         if (modal) modal.style.display = 'flex'; 
         setTimeout(bindZoom, 100); 
     }
-    
     function closeModal() { 
         let modal = document.getElementById('productModal');
         if (modal) modal.style.display = 'none'; 
     }
-    
     function switchAngle(a) { 
         currentAngle = a; 
         renderModal(); 
@@ -423,9 +411,8 @@
         };
     }
     
-    // Админка
+    // АДМИНКА
     let currentEditId = null;
-    
     function handleImageUpload(event, type, previewId) {
         let file = event.target.files[0];
         if (!file) return;
@@ -511,7 +498,7 @@
     function renderAdmin() {
         if (!isAdminAuthenticated) { 
             let app = document.getElementById('app');
-            if (app) app.innerHTML = '<div style="text-align:center;padding:3rem;">🔒 Доступ закрыт. Введите пароль.</div>'; 
+            if (app) app.innerHTML = '<div style="text-align:center;padding:3rem;">🔒 Доступ закрыт. Нажмите 5 раз на логотип PALO и введите пароль admin123</div>'; 
             return; 
         }
         let html = `<div class="admin-panel">
@@ -578,4 +565,4 @@
             </div>
             <div class="photo-group">
                 <div class="photo-label">📷 Фото 3 (на манекене)</div>
-                <div class="photo-preview" id="manPreview" onclick="document.getElementById
+                <div class="photo-preview" id="manPreview" onclick="
