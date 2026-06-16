@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <!-- Google Search Console верификация -->
     <meta name="google-site-verification" content="тут_будет_ваш_код">
     <title>PALO — магазин одежды</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', system-ui, sans-serif; background: #f4f6fa; color: #1a2634; overflow-x: hidden; }
+        body { font-family: 'Inter', system-ui, sans-serif; background: linear-gradient(135deg, #e3f2fd 0%, #bbdef5 50%, #e3f2fd 100%); color: #1a2634; min-height: 100vh; }
         .app-horizontal { display: flex; min-height: 100vh; }
         .sidebar {
             width: 280px; background: rgba(255,255,255,0.96); backdrop-filter: blur(12px);
@@ -33,10 +32,10 @@
         .product-price { font-weight: 600; color: #2c3e50; margin: 0.4rem 0; }
         .btn { background: #1e2f3f; color: white; border: none; padding: 0.6rem; border-radius: 40px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 0.5rem; }
         .btn-outline { background: transparent; border: 1px solid #cbdde9; color: #1f2f3e; }
-        .modal, .order-modal, .admin-auth-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); backdrop-filter: blur(12px); z-index: 2000; justify-content: center; align-items: center; }
-        .modal-content, .order-modal-content, .admin-auth-content { background: white; border-radius: 40px; max-width: 1300px; width: 92%; padding: 1.6rem; position: relative; }
+        .modal, .order-modal, .admin-auth-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); backdrop-filter: blur(12px); z-index: 2000; justify-content: center; align-items: center; overflow-y: auto; }
+        .modal-content, .order-modal-content, .admin-auth-content { background: white; border-radius: 40px; max-width: 1300px; width: 92%; padding: 1.6rem; position: relative; margin: 20px auto; max-height: 90vh; overflow-y: auto; }
         .order-modal-content, .admin-auth-content { max-width: 450px; text-align: center; }
-        .close-modal { position: absolute; top: 1rem; right: 1.8rem; font-size: 2rem; cursor: pointer; }
+        .close-modal { position: absolute; top: 1rem; right: 1.8rem; font-size: 2rem; cursor: pointer; color: #334155; }
         .gallery-horizontal { display: flex; gap: 2rem; flex-wrap: wrap; }
         .zoom-preview { flex: 3; min-width: 280px; background: #f5f9ff; border-radius: 32px; display: flex; justify-content: center; align-items: center; min-height: 480px; position: relative; overflow: hidden; }
         .zoom-image-main { max-width: 100%; max-height: 540px; object-fit: contain; cursor: crosshair; transition: transform 0.2s; }
@@ -46,7 +45,6 @@
         .thumb-angle.active { border-color: #1e2f3f; background: white; }
         .thumb-angle img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 18px; }
         
-        /* Стили для выбора размера */
         .size-selector { margin: 1rem 0; padding: 1rem; background: #f8fafd; border-radius: 20px; }
         .size-label { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem; }
         .size-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
@@ -54,7 +52,6 @@
         .size-btn.selected { background: #1e2f3f; color: white; border-color: #1e2f3f; }
         .size-chart { font-size: 0.7rem; color: #666; margin-top: 0.5rem; }
         
-        /* Стили для корзины */
         .cart-item { display: flex; gap: 1rem; align-items: center; background: white; padding: 1rem; border-radius: 28px; flex-wrap: wrap; }
         .cart-item-img { width: 70px; height: 70px; background: #f2f5f9; border-radius: 18px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
         .cart-item-img img { width: 100%; height: 100%; object-fit: cover; border-radius: 16px; }
@@ -83,6 +80,9 @@
             .products-grid { gap: 1rem; }
             .photo-upload-card { width: 100%; }
             .cart-item { flex-wrap: wrap; justify-content: space-between; }
+            .gallery-horizontal { flex-direction: column; }
+            .thumb-vertical { flex-direction: row; flex-wrap: wrap; }
+            .thumb-angle { width: 70px; }
         }
     </style>
 </head>
@@ -393,9 +393,12 @@
         const products = getProducts();
         let html = '<h2 style="font-size:1.9rem;margin-bottom:1.8rem;">Коллекция</h2><div class="products-grid">';
         products.forEach(p => {
+            // БЕРЁМ ПЕРВОЕ ФОТО (frontImg) ДЛЯ ОТОБРАЖЕНИЯ В КАРТОЧКЕ
             const preview = p.frontImg || p.sideImg || p.mannequinImg || '';
             html += `<div class="product-card" onclick="openModal(${JSON.stringify(p).replace(/"/g, '&quot;')})">
-                <div class="product-image">${preview ? `<img src="${preview}">` : `<span style="font-size:3rem;">${p.emoji}</span>`}</div>
+                <div class="product-image">
+                    ${preview ? `<img src="${preview}" alt="${p.name}">` : `<span style="font-size:3rem;">${p.emoji}</span>`}
+                </div>
                 <div class="product-info">
                     <div class="product-name">${p.name}</div>
                     <div class="product-price">${p.price.toLocaleString()} ₽</div>
@@ -476,32 +479,4 @@
                     <input type="hidden" id="frontVal" value="${prod.frontImg || ''}">
                 </div>
                 <div class="photo-upload-card">
-                    <div class="preview-circle" id="sidePrev">${prod.sideImg ? `<img src="${prod.sideImg}">` : '📸'}</div>
-                    <input type="text" id="sideUrl" class="url-input" placeholder="Ссылка на фото" value="${prod.sideImg || ''}">
-                    <button class="btn-outline" style="width:100%; margin-top:0.3rem;" onclick="setImageByUrl('side')">🔗 Сохранить по ссылке</button>
-                    <input type="hidden" id="sideVal" value="${prod.sideImg || ''}">
-                </div>
-                <div class="photo-upload-card">
-                    <div class="preview-circle" id="manPrev">${prod.mannequinImg ? `<img src="${prod.mannequinImg}">` : '🕴️'}</div>
-                    <input type="text" id="manUrl" class="url-input" placeholder="Ссылка на фото" value="${prod.mannequinImg || ''}">
-                    <button class="btn-outline" style="width:100%; margin-top:0.3rem;" onclick="setImageByUrl('mannequin')">🔗 Сохранить по ссылке</button>
-                    <input type="hidden" id="manVal" value="${prod.mannequinImg || ''}">
-                </div>
-            </div>
-            <button class="btn" style="width:auto;padding:0.6rem 2rem;" onclick="saveProduct()">💾 Сохранить</button>
-            <button class="btn-outline" style="margin-left:1rem;" onclick="navigate('admin')">Отмена</button>
-        `;
-        if (prod.frontImg) document.getElementById('frontUrl').value = prod.frontImg;
-        if (prod.sideImg) document.getElementById('sideUrl').value = prod.sideImg;
-        if (prod.mannequinImg) document.getElementById('manUrl').value = prod.mannequinImg;
-    }
-    
-    function setImageByUrl(type) {
-        let url = '';
-        if (type === 'front') url = document.getElementById('frontUrl').value.trim();
-        if (type === 'side') url = document.getElementById('sideUrl').value.trim();
-        if (type === 'mannequin') url = document.getElementById('manUrl').value.trim();
-        if (!url) { showToast('Введите ссылку на фото'); return; }
-        if (type === 'front') { 
-            document.getElementById('frontVal').value = url; 
-            document.getElementById('frontPrev').innerHTML = `<
+                    <div class="preview-circle" id="side
