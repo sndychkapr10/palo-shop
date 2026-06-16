@@ -336,4 +336,6 @@
         if (!name || isNaN(price)) { showToast('Заполните название и цену'); return; }
         let products = getProducts();
         if (editingId) { products = products.map(p => p.id === editingId ? { ...p, name, price, desc, emoji, frontImg, sideImg, mannequinImg } : p); }
-        else { const newId = products.length ? Math.max(...products.map(p => p.id)) + 1 : 5; products.push({ id: newId, name, price, desc, emoji, frontImg, sideImg,
+        else { const newId = products.length ? Math.max(...products.map(p => p.id)) + 1 : 5; products.push({ id: newId, name, price, desc, emoji, frontImg, sideImg, mannequinImg }); }
+        saveProducts(products);
+        document.getElementById('adminMsg').innerHTML = '<div style="background:#e0f2e
