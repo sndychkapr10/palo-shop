@@ -39,7 +39,19 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         .product:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
-        .product-emoji { font-size: 64px; margin-bottom: 10px; }
+        .product-image {
+            width: 100%;
+            height: 200px;
+            background: #f0f2f5;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        .product-image img { width: 100%; height: 100%; object-fit: cover; }
+        .product-image .emoji { font-size: 64px; }
         .product-name { font-weight: bold; font-size: 18px; margin: 10px 0; }
         .product-price { color: #e67e22; font-weight: bold; font-size: 20px; margin: 5px 0; }
         .product-desc { font-size: 13px; color: #666; margin: 10px 0; }
@@ -79,15 +91,16 @@
             z-index: 1000;
             justify-content: center;
             align-items: center;
+            padding: 20px;
         }
         .modal-content {
             background: white;
             border-radius: 30px;
             max-width: 500px;
-            width: 90%;
+            width: 100%;
             padding: 20px;
             position: relative;
-            max-height: 80vh;
+            max-height: 90vh;
             overflow-y: auto;
         }
         .close { position: absolute; top: 15px; right: 20px; font-size: 28px; cursor: pointer; }
@@ -133,12 +146,27 @@
         }
         .admin-link.visible { opacity: 0.7; }
         .admin-link.visible:hover { opacity: 1; background: #ddd; }
+        
+        /* Мобильные стили */
         @media (max-width: 600px) {
             .products { gap: 10px; }
             .product { padding: 12px; }
-            .product-emoji { font-size: 48px; }
+            .product-image { height: 150px; }
+            .product-image .emoji { font-size: 48px; }
             .product-name { font-size: 14px; }
             .product-price { font-size: 16px; }
+            .nav a { margin-left: 10px; font-size: 14px; }
+            .header { padding: 10px 15px; }
+            .modal { padding: 10px; }
+            .modal-content { padding: 15px; }
+            .btn { padding: 12px; font-size: 16px; min-height: 44px; }
+            .size-btn { padding: 10px 16px; min-height: 40px; }
+            input, select, textarea { font-size: 16px; padding: 14px; }
+        }
+        @media (max-width: 400px) {
+            .products { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+            .product { padding: 8px; }
+            .product-image { height: 120px; }
         }
     </style>
 </head>
@@ -177,17 +205,17 @@
                 try {
                     let parsed = JSON.parse(saved);
                     if (parsed && parsed.length) {
-                        // Обновляем только фото, остальные данные оставляем из products
                         for (let i = 0; i < products.length; i++) {
                             if (parsed[i]) {
                                 products[i].frontImg = parsed[i].frontImg || '';
                                 products[i].sideImg = parsed[i].sideImg || '';
                                 products[i].mannequinImg = parsed[i].mannequinImg || '';
-                                // Если нужно обновить и другие поля
                                 if (parsed[i].name) products[i].name = parsed[i].name;
                                 if (parsed[i].price) products[i].price = parsed[i].price;
                                 if (parsed[i].desc) products[i].desc = parsed[i].desc;
                                 if (parsed[i].emoji) products[i].emoji = parsed[i].emoji;
+                                if (parsed[i].sizes) products[i].sizes = parsed[i].sizes;
+                                if (parsed[i].measures) products[i].measures = parsed[i].measures;
                             }
                         }
                     }
@@ -199,7 +227,6 @@
         
         function saveProductsToStorage() {
             localStorage.setItem('palo_products', JSON.stringify(products));
-            console.log('✅ Товары сохранены в localStorage');
         }
         
         // === КОРЗИНА ===
@@ -215,7 +242,7 @@
             let t = document.getElementById('toast');
             t.innerText = msg;
             t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 2000);
+            setTimeout(() => t.classList.remove('show'), 2500);
         }
         
         // === РАЗМЕРЫ ===
@@ -230,7 +257,8 @@
             
             let product = products.find(p => p.id === productId);
             if (product) {
-                document.getElementById(`sizeInfo-${productId}`).innerText = product.measures[idx];
+                let info = document.getElementById(`sizeInfo-${productId}`);
+                if (info) info.innerText = product.measures[idx];
             }
         }
         
@@ -239,7 +267,7 @@
             let product = products.find(p => p.id === id);
             let size = selectedSizes[id];
             
-            if (product.sizes && !size) {
+            if (product.sizes && product.sizes.length > 0 && !size) {
                 showToast('⚠️ Сначала выберите размер!');
                 return;
             }
@@ -280,7 +308,7 @@
                     closeOrderModal();
                     navigate('home');
                 } else {
-                    showToast('❌ Ошибка отправки');
+                    showToast('❌ Ошибка отправки: ' + (data.description || 'неизвестная ошибка'));
                 }
             })
             .catch(() => showToast('❌ Ошибка соединения'));
@@ -292,7 +320,7 @@
             let currentSize = selectedSizes[productId] || '';
             
             let sizeHtml = '';
-            if (p.sizes) {
+            if (p.sizes && p.sizes.length > 0) {
                 sizeHtml = `<div class="size-section">
                     <div>📏 Выберите размер:</div>
                     <div class="size-buttons">`;
@@ -304,7 +332,10 @@
                 </div>`;
             }
             
-            document.getElementById('productModalContent').innerHTML = `
+            let productModalContent = document.getElementById('productModalContent');
+            if (!productModalContent) return;
+            
+            productModalContent.innerHTML = `
                 <span class="close" onclick="closeProductModal()">&times;</span>
                 <div style="text-align:center;">
                     <div style="font-size:64px;">${p.emoji}</div>
@@ -362,9 +393,16 @@
         function renderHome() {
             let html = '<h2>Коллекция</h2><div class="products">';
             products.forEach(p => {
+                let imgHtml = '';
+                if (p.frontImg && p.frontImg.trim() !== '') {
+                    imgHtml = `<img src="${p.frontImg}" alt="${p.name}">`;
+                } else {
+                    imgHtml = `<span class="emoji">${p.emoji}</span>`;
+                }
+                
                 html += `
                     <div class="product" onclick="openProductModal(${p.id})">
-                        <div class="product-emoji">${p.emoji}</div>
+                        <div class="product-image">${imgHtml}</div>
                         <div class="product-name">${p.name}</div>
                         <div class="product-price">${p.price} ₽</div>
                         <div class="product-desc">${p.desc}</div>
@@ -494,6 +532,7 @@
             renderAdmin();
         }
         
+        // Обработка загрузки фото на мобильных устройствах
         function handleImageUpload(event, fieldId, previewId) {
             let file = event.target.files[0];
             if (!file) return;
@@ -501,6 +540,7 @@
             // Лимит 5 МБ
             if (file.size > 5 * 1024 * 1024) {
                 showToast('⚠️ Файл больше 5 МБ');
+                event.target.value = '';
                 return;
             }
             
@@ -508,23 +548,54 @@
             reader.onload = function(e) {
                 let dataUrl = e.target.result;
                 document.getElementById(fieldId).value = dataUrl;
-                document.getElementById(previewId).innerHTML = `<img src="${dataUrl}" style="width:100%;height:100%;object-fit:cover;">`;
+                let preview = document.getElementById(previewId);
+                if (preview) {
+                    preview.innerHTML = `<img src="${dataUrl}" style="width:100%;height:100%;object-fit:cover;">`;
+                }
                 showToast('✅ Фото загружено');
-                // Автоматически сохраняем после загрузки фото
-                autoSaveProduct();
+                // Автосохранение
+                saveProductSilent();
             };
             reader.onerror = function() {
                 showToast('❌ Ошибка чтения файла');
+                event.target.value = '';
             };
             reader.readAsDataURL(file);
         }
         
-        function autoSaveProduct() {
-            // Автоматически сохраняем товар после загрузки фото
-            saveProduct(true);
+        function saveProductSilent() {
+            let name = document.getElementById('prodName').value.trim();
+            let price = parseInt(document.getElementById('prodPrice').value);
+            let desc = document.getElementById('prodDesc').value;
+            let emoji = document.getElementById('prodEmoji').value;
+            let frontImg = document.getElementById('frontVal').value;
+            let sideImg = document.getElementById('sideVal').value;
+            let mannequinImg = document.getElementById('manVal').value;
+            
+            if (!name || isNaN(price)) return;
+            
+            if (currentEditId) {
+                let index = products.findIndex(p => p.id === currentEditId);
+                if (index !== -1) {
+                    products[index].name = name;
+                    products[index].price = price;
+                    products[index].desc = desc;
+                    products[index].emoji = emoji;
+                    products[index].frontImg = frontImg;
+                    products[index].sideImg = sideImg;
+                    products[index].mannequinImg = mannequinImg;
+                }
+            }
+            
+            saveProductsToStorage();
+            let msg = document.getElementById('adminMsg');
+            if (msg) {
+                msg.innerHTML = '<div style="background:#e0f2e9; padding:10px; border-radius:12px;">✓ Товар сохранён</div>';
+                setTimeout(() => { msg.innerHTML = ''; }, 3000);
+            }
         }
         
-        function saveProduct(silent = false) {
+        function saveProduct() {
             let name = document.getElementById('prodName').value.trim();
             let price = parseInt(document.getElementById('prodPrice').value);
             let desc = document.getElementById('prodDesc').value;
@@ -534,7 +605,7 @@
             let mannequinImg = document.getElementById('manVal').value;
             
             if (!name || isNaN(price)) {
-                if (!silent) showToast('Заполните название и цену');
+                showToast('Заполните название и цену');
                 return;
             }
             
@@ -552,14 +623,12 @@
             }
             
             saveProductsToStorage();
-            
             let msg = document.getElementById('adminMsg');
             if (msg) {
                 msg.innerHTML = '<div style="background:#e0f2e9; padding:10px; border-radius:12px;">✓ Товар сохранён</div>';
                 setTimeout(() => { msg.innerHTML = ''; }, 3000);
             }
-            
-            if (!silent) showToast('✅ Товар сохранён');
+            showToast('✅ Товар сохранён');
             currentEditId = null;
             renderAdmin();
         }
@@ -583,34 +652,41 @@
                 <div style="margin:15px 0;">
                     <input id="prodEmoji" placeholder="Эмодзи" value="${p.emoji}" style="width:100%; padding:10px; border-radius:12px; border:1px solid #ddd;">
                 </div>
+                
+                <!-- Фото 1 -->
                 <div style="background:#f5f5f5; padding:15px; border-radius:16px; margin:10px 0;">
                     <div><strong>📷 Фото 1 (спереди)</strong></div>
-                    <div id="frontPreview" style="width:100px; height:100px; background:#ddd; border-radius:12px; margin:10px 0; display:flex; align-items:center; justify-content:center; overflow:hidden; cursor:pointer;" onclick="document.getElementById('frontFile').click()">
+                    <div id="frontPreview" style="width:100px; height:100px; background:#ddd; border-radius:12px; margin:10px 0; display:flex; align-items:center; justify-content:center; overflow:hidden;">
                         ${p.frontImg ? `<img src="${p.frontImg}" style="width:100%;height:100%;object-fit:cover;">` : '📸'}
                     </div>
-                    <input type="file" id="frontFile" style="display:none" accept="image/*" onchange="handleImageUpload(event, 'frontVal', 'frontPreview')">
+                    <input type="file" id="frontFile" accept="image/*" style="display:none;" onchange="handleImageUpload(event, 'frontVal', 'frontPreview')">
                     <input type="hidden" id="frontVal" value="${p.frontImg || ''}">
-                    <button class="btn-outline" style="width:auto; padding:5px 15px; margin-top:5px;" onclick="document.getElementById('frontFile').click()">Выбрать фото</button>
+                    <button class="btn-outline" style="width:auto; padding:8px 20px; margin-top:5px;" onclick="document.getElementById('frontFile').click()">📁 Выбрать фото</button>
                 </div>
+                
+                <!-- Фото 2 -->
                 <div style="background:#f5f5f5; padding:15px; border-radius:16px; margin:10px 0;">
                     <div><strong>📷 Фото 2 (сбоку)</strong></div>
-                    <div id="sidePreview" style="width:100px; height:100px; background:#ddd; border-radius:12px; margin:10px 0; display:flex; align-items:center; justify-content:center; overflow:hidden; cursor:pointer;" onclick="document.getElementById('sideFile').click()">
+                    <div id="sidePreview" style="width:100px; height:100px; background:#ddd; border-radius:12px; margin:10px 0; display:flex; align-items:center; justify-content:center; overflow:hidden;">
                         ${p.sideImg ? `<img src="${p.sideImg}" style="width:100%;height:100%;object-fit:cover;">` : '📸'}
                     </div>
-                    <input type="file" id="sideFile" style="display:none" accept="image/*" onchange="handleImageUpload(event, 'sideVal', 'sidePreview')">
+                    <input type="file" id="sideFile" accept="image/*" style="display:none;" onchange="handleImageUpload(event, 'sideVal', 'sidePreview')">
                     <input type="hidden" id="sideVal" value="${p.sideImg || ''}">
-                    <button class="btn-outline" style="width:auto; padding:5px 15px; margin-top:5px;" onclick="document.getElementById('sideFile').click()">Выбрать фото</button>
+                    <button class="btn-outline" style="width:auto; padding:8px 20px; margin-top:5px;" onclick="document.getElementById('sideFile').click()">📁 Выбрать фото</button>
                 </div>
+                
+                <!-- Фото 3 -->
                 <div style="background:#f5f5f5; padding:15px; border-radius:16px; margin:10px 0;">
                     <div><strong>📷 Фото 3 (на манекене)</strong></div>
-                    <div id="manPreview" style="width:100px; height:100px; background:#ddd; border-radius:12px; margin:10px 0; display:flex; align-items:center; justify-content:center; overflow:hidden; cursor:pointer;" onclick="document.getElementById('manFile').click()">
+                    <div id="manPreview" style="width:100px; height:100px; background:#ddd; border-radius:12px; margin:10px 0; display:flex; align-items:center; justify-content:center; overflow:hidden;">
                         ${p.mannequinImg ? `<img src="${p.mannequinImg}" style="width:100%;height:100%;object-fit:cover;">` : '🕴️'}
                     </div>
-                    <input type="file" id="manFile" style="display:none" accept="image/*" onchange="handleImageUpload(event, 'manVal', 'manPreview')">
+                    <input type="file" id="manFile" accept="image/*" style="display:none;" onchange="handleImageUpload(event, 'manVal', 'manPreview')">
                     <input type="hidden" id="manVal" value="${p.mannequinImg || ''}">
-                    <button class="btn-outline" style="width:auto; padding:5px 15px; margin-top:5px;" onclick="document.getElementById('manFile').click()">Выбрать фото</button>
+                    <button class="btn-outline" style="width:auto; padding:8px 20px; margin-top:5px;" onclick="document.getElementById('manFile').click()">📁 Выбрать фото</button>
                 </div>
-                <button class="btn" onclick="saveProduct(false)">💾 Сохранить товар</button>
+                
+                <button class="btn" onclick="saveProduct()">💾 Сохранить товар</button>
                 <button class="btn-outline" style="margin-left:10px;" onclick="cancelEdit()">Отмена</button>
             `;
         }
@@ -651,40 +727,4 @@
 
     <!-- Модалка товара -->
     <div id="productModal" class="modal">
-        <div class="modal-content" id="productModalContent"></div>
-    </div>
-
-    <!-- Модалка заказа -->
-    <div id="orderModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeOrderModal()">&times;</span>
-            <h2>🛍️ Оформление заказа</h2>
-            <input type="text" id="orderName" placeholder="Ваше имя">
-            <input type="tel" id="orderPhone" placeholder="Телефон">
-            <textarea id="orderAddress" rows="2" placeholder="Адрес доставки"></textarea>
-            <select id="orderDelivery">
-                <option>СДЭК</option>
-                <option>Почта России</option>
-                <option>Курьером</option>
-                <option>Самовывоз</option>
-            </select>
-            <div class="payment-card">
-                <strong>💳 Оплата переводом на карту</strong>
-                <div class="card-number">2200 7020 0430 8479</div>
-                <small>После заказа переведите сумму</small>
-            </div>
-            <button class="btn" onclick="submitOrder()">✅ Отправить заказ</button>
-        </div>
-    </div>
-
-    <!-- Модалка админки -->
-    <div id="adminAuthModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeAdminAuth()">&times;</span>
-            <h2>🔐 Вход в админку</h2>
-            <input type="password" id="adminPassword" placeholder="Пароль">
-            <button class="btn" onclick="checkAdminPassword()">Войти</button>
-        </div>
-    </div>
-</body>
-</html>
+        <div class
