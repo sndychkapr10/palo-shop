@@ -34,8 +34,6 @@
             cursor: pointer;
             border: 1px solid #eef2f8;
             transition: 0.25s;
-            display: flex;
-            flex-direction: column;
         }
         .product-card:hover { transform: translateY(-6px); box-shadow: 0 20px 30px -12px rgba(0,0,0,0.1); }
         .product-image {
@@ -45,7 +43,6 @@
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            position: relative;
         }
         .product-image img { width: 100%; height: 100%; object-fit: cover; }
         .product-image .emoji { font-size: 4rem; }
@@ -54,8 +51,6 @@
         .product-price { font-weight: 600; color: #2c3e50; margin: 0.4rem 0; }
         .btn { background: #1e2f3f; color: white; border: none; padding: 0.6rem; border-radius: 40px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 0.5rem; }
         .btn-outline { background: transparent; border: 1px solid #cbdde9; color: #1f2f3e; }
-        
-        /* Модальные окна с галереей */
         .modal, .order-modal, .admin-auth-modal { 
             display: none; 
             position: fixed; 
@@ -83,7 +78,6 @@
         }
         .order-modal-content, .admin-auth-content { max-width: 500px; text-align: center; }
         .close-modal { position: absolute; top: 1rem; right: 1.8rem; font-size: 2rem; cursor: pointer; color: #334155; }
-        
         .gallery-horizontal { display: flex; gap: 2rem; flex-wrap: wrap; }
         .zoom-preview { 
             flex: 3; 
@@ -125,25 +119,21 @@
         }
         .thumb-angle.active { border-color: #1e2f3f; background: white; }
         .thumb-angle img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 18px; }
-        
         .admin-panel { background: white; border-radius: 32px; padding: 2rem; }
         .photo-group { background: #f9fbfe; border-radius: 24px; padding: 1rem; margin-bottom: 1.5rem; }
         .photo-label { font-weight: 600; margin-bottom: 0.5rem; }
         .photo-preview { width: 100px; height: 100px; background: #eef2fa; border-radius: 16px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin: 0.5rem 0; font-size: 2rem; cursor: pointer; border: 1px dashed #ccc; }
         .photo-preview img { width: 100%; height: 100%; object-fit: cover; }
-        
         .size-selector { margin: 1rem 0; padding: 1rem; background: #f8fafd; border-radius: 20px; }
         .size-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
         .size-btn { background: white; border: 1px solid #cbdde9; padding: 0.4rem 1rem; border-radius: 30px; font-size: 0.8rem; cursor: pointer; }
         .size-btn.selected { background: #1e2f3f; color: white; }
         .size-chart { font-size: 0.7rem; color: #666; margin-top: 0.5rem; }
-        
         .payment-info { background: #e8f5e9; border-radius: 20px; padding: 1rem; margin: 1rem 0; text-align: center; }
         .card-number { font-size: 1.3rem; font-weight: 700; letter-spacing: 2px; margin: 0.5rem 0; }
         .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 0.6rem 2rem; border-radius: 60px; opacity: 0; transition: 0.2s; z-index: 3000; }
         .toast.show { opacity: 1; }
         input, select, textarea { width: 100%; padding: 0.8rem; margin: 0.5rem 0 1rem; border: 1px solid #ddd; border-radius: 20px; font-family: inherit; font-size: 16px; }
-        
         @media (max-width: 780px) {
             .sidebar { width: 80px; padding: 1rem 0.5rem; }
             .sidebar .logo { font-size: 1.2rem; text-align: center; }
@@ -182,7 +172,6 @@
     let clickCount = 0;
     let clickTimer = null;
     
-    // === ТОВАРЫ ===
     let products = [
         { id: 1, name: "Кепка", price: 1500, desc: "Хлопок, козырёк", emoji: "🧢", 
           sizes: ["S", "M", "L"], measures: ["54-56 см", "57-59 см", "60-62 см"],
@@ -198,7 +187,6 @@
           frontImg: "", sideImg: "", mannequinImg: "" }
     ];
     
-    // === ЗАГРУЗКА СОХРАНЁННЫХ ДАННЫХ ===
     function loadSavedProducts() {
         let saved = localStorage.getItem('palo_products');
         if (saved) {
@@ -207,9 +195,9 @@
                 if (parsed && parsed.length) {
                     for (let i = 0; i < products.length; i++) {
                         if (parsed[i]) {
-                            if (parsed[i].frontImg) products[i].frontImg = parsed[i].frontImg;
-                            if (parsed[i].sideImg) products[i].sideImg = parsed[i].sideImg;
-                            if (parsed[i].mannequinImg) products[i].mannequinImg = parsed[i].mannequinImg;
+                            if (parsed[i].frontImg !== undefined) products[i].frontImg = parsed[i].frontImg;
+                            if (parsed[i].sideImg !== undefined) products[i].sideImg = parsed[i].sideImg;
+                            if (parsed[i].mannequinImg !== undefined) products[i].mannequinImg = parsed[i].mannequinImg;
                             if (parsed[i].name) products[i].name = parsed[i].name;
                             if (parsed[i].price) products[i].price = parsed[i].price;
                             if (parsed[i].desc) products[i].desc = parsed[i].desc;
@@ -225,7 +213,6 @@
         localStorage.setItem('palo_products', JSON.stringify(products));
     }
     
-    // === КОРЗИНА ===
     let cart = JSON.parse(localStorage.getItem('cart') || '[]');
     let selectedSizes = JSON.parse(localStorage.getItem('selectedSizes') || '{}');
     
@@ -248,7 +235,6 @@
         setTimeout(() => t.classList.remove('show'), 2500);
     }
     
-    // === СЕКРЕТНАЯ АДМИНКА ===
     document.querySelector('.logo').addEventListener('click', function() {
         clickCount++;
         clearTimeout(clickTimer);
@@ -283,16 +269,13 @@
         }
     }
     
-    // === РАЗМЕРЫ ===
     function selectSize(productId, size, idx) {
         selectedSizes[productId] = size;
         localStorage.setItem('selectedSizes', JSON.stringify(selectedSizes));
-        
         document.querySelectorAll(`.size-btn-${productId}`).forEach(btn => {
             if (btn.innerText === size) btn.classList.add('selected');
             else btn.classList.remove('selected');
         });
-        
         let chart = document.getElementById(`size-chart-${productId}`);
         if (chart) {
             let product = products.find(p => p.id === productId);
@@ -303,16 +286,13 @@
     function addToCart(id) {
         let product = products.find(p => p.id === id);
         let size = selectedSizes[id];
-        
         if (product.sizes && product.sizes.length > 0 && !size) {
             showToast('⚠️ Сначала выберите размер!');
             return;
         }
-        
         let item = cart.find(i => i.id === id && i.size === size);
         if (item) item.qty++;
         else cart.push({ id, qty: 1, size: size || 'OS' });
-        
         saveCart();
         showToast('✓ Добавлено в корзину');
         navigate('cart');
@@ -324,10 +304,8 @@
         navigate('cart');
     }
     
-    // === ОТПРАВКА В TELEGRAM ===
     function sendOrderToTelegram(orderDetails, total, customer) {
         let text = `🛍️ НОВЫЙ ЗАКАЗ PALO\n\n👤 Имя: ${customer.name}\n📞 Телефон: ${customer.phone}\n📍 Адрес: ${customer.address}\n🚚 Доставка: ${customer.delivery}\n\n📦 Состав:\n${orderDetails}\n\n💰 ИТОГО: ${total} ₽\n💳 Оплата: 2200 7020 0430 8479`;
-        
         fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -349,10 +327,7 @@
     }
     
     function openOrderModal() {
-        if (cart.length === 0) {
-            showToast('Корзина пуста');
-            return;
-        }
+        if (cart.length === 0) { showToast('Корзина пуста'); return; }
         document.getElementById('orderModal').style.display = 'flex';
     }
     
@@ -365,12 +340,10 @@
         let phone = document.getElementById('orderPhone').value.trim();
         let address = document.getElementById('orderAddress').value.trim();
         let delivery = document.getElementById('orderDelivery').value;
-        
         if (!name || !phone || !address) {
             showToast('⚠️ Заполните все поля');
             return;
         }
-        
         let lines = '';
         let total = 0;
         cart.forEach(item => {
@@ -381,12 +354,10 @@
                 lines += `• ${p.name} (${item.size || 'OS'}) — ${item.qty}шт × ${p.price}₽ = ${s}₽\n`;
             }
         });
-        
         sendOrderToTelegram(lines, total, { name, phone, address, delivery });
         closeOrderModal();
     }
     
-    // === ГАЛЕРЕЯ И ЛУПА ===
     let currentProduct = null;
     let currentAngle = 'front';
     
@@ -411,16 +382,13 @@
     function renderSizeSelector(productId) {
         let product = products.find(p => p.id === productId);
         if (!product || !product.sizes || product.sizes.length === 0) return '';
-        
         let current = selectedSizes[productId] || '';
         let html = `<div class="size-selector">
             <div class="size-label">📏 Выберите размер:</div>
             <div class="size-buttons">`;
-        
         product.sizes.forEach((size, idx) => {
             html += `<button class="size-btn size-btn-${productId} ${current === size ? 'selected' : ''}" onclick="selectSize(${productId}, '${size}', ${idx})">${size}</button>`;
         });
-        
         html += `</div><div class="size-chart" id="size-chart-${productId}">`;
         if (current && product.sizes.indexOf(current) >= 0) {
             html += product.measures[product.sizes.indexOf(current)];
@@ -434,39 +402,33 @@
     function renderModal() {
         let p = currentProduct;
         if (!p) return;
-        
         let angles = [
-            { key: 'front', img: p.frontImg, label: 'Спереди' },
-            { key: 'side', img: p.sideImg, label: 'Сбоку' },
-            { key: 'mannequin', img: p.mannequinImg, label: 'На манекене' }
+            { key: 'front', img: p.frontImg },
+            { key: 'side', img: p.sideImg },
+            { key: 'mannequin', img: p.mannequinImg }
         ];
-        
         let activeImg = '';
         if (currentAngle === 'front') activeImg = p.frontImg;
         else if (currentAngle === 'side') activeImg = p.sideImg;
         else activeImg = p.mannequinImg;
-        
         if (!activeImg) {
             let found = angles.find(a => a.img && a.img.trim() !== '');
             if (found) activeImg = found.img;
         }
-        
         let thumbs = '';
         angles.forEach(angle => {
             if (angle.img && angle.img.trim() !== '') {
                 thumbs += `<div class="thumb-angle ${currentAngle === angle.key ? 'active' : ''}" onclick="switchAngle('${angle.key}')">
-                    <img src="${angle.img}" alt="${angle.label}">
+                    <img src="${angle.img}">
                 </div>`;
             }
         });
-        
         let modalBody = document.getElementById('modalBody');
         if (!modalBody) return;
-        
         modalBody.innerHTML = `
             <div class="gallery-horizontal">
                 <div class="zoom-preview" id="zoomArea">
-                    ${activeImg ? `<img id="zoomImg" class="zoom-image-main" src="${activeImg}" alt="${p.name}">` : '<div style="padding:2rem;">📸 Нет фото</div>'}
+                    ${activeImg ? `<img id="zoomImg" class="zoom-image-main" src="${activeImg}">` : '<div style="padding:2rem;">📸 Нет фото</div>'}
                     <div id="zoomLens" class="zoom-lens"></div>
                 </div>
                 <div class="thumb-vertical">${thumbs || '<div style="padding:1rem;">⬆️ Загрузите фото в админке</div>'}</div>
@@ -486,10 +448,8 @@
         let lens = document.getElementById('zoomLens');
         let container = document.getElementById('zoomArea');
         if (!img || !lens || !container) return;
-        
         img.style.cursor = 'crosshair';
         lens.style.display = 'none';
-        
         img.onmouseenter = () => lens.style.display = 'block';
         img.onmouseleave = () => {
             img.style.transform = 'scale(1)';
@@ -515,14 +475,13 @@
         };
     }
     
-    // === СТРАНИЦЫ ===
     function renderHome() {
         let html = '<h2 style="font-size:1.9rem;margin-bottom:1.8rem;">Коллекция</h2><div class="products-grid">';
         products.forEach(p => {
             let preview = p.frontImg || p.sideImg || p.mannequinImg || '';
             html += `<div class="product-card" onclick="openModal(${JSON.stringify(p).replace(/"/g,'&quot;')})">
                 <div class="product-image">
-                    ${preview ? `<img src="${preview}" alt="${p.name}">` : `<span class="emoji">${p.emoji}</span>`}
+                    ${preview ? `<img src="${preview}">` : `<span class="emoji">${p.emoji}</span>`}
                 </div>
                 <div class="product-info">
                     <div class="product-name">${p.name}</div>
@@ -567,7 +526,6 @@
         document.getElementById('app').innerHTML = html;
     }
     
-    // === АДМИНКА ===
     let currentEditId = null;
     
     function renderAdmin() {
@@ -575,14 +533,12 @@
             document.getElementById('app').innerHTML = '<div style="text-align:center;padding:3rem;">🔒 Нажмите 5 раз на логотип PALO и введите пароль admin123</div>';
             return;
         }
-        
         let html = `<div class="admin-panel">
             <h2>📷 Управление товарами</h2>
             <div id="adminMsg"></div>
             <div id="adminForm"></div>
             <h3 style="margin:2rem 0 1rem;">Список товаров</h3>
             <ul style="list-style:none;">`;
-        
         products.forEach(p => {
             html += `<li style="display:flex; justify-content:space-between; align-items:center; padding:0.6rem 0; border-bottom:1px solid #e9edf2;">
                 <span style="font-size:1.5rem;">${p.emoji}</span>
@@ -592,7 +548,6 @@
         });
         html += `</ul></div>`;
         document.getElementById('app').innerHTML = html;
-        
         if (currentEditId) {
             let prod = products.find(p => p.id === currentEditId);
             if (prod) renderAdminForm(prod);
@@ -638,13 +593,11 @@
         let name = document.getElementById('prodName').value.trim();
         let price = parseInt(document.getElementById('prodPrice').value);
         if (!name || isNaN(price)) return;
-        
         let desc = document.getElementById('prodDesc').value;
         let emoji = document.getElementById('prodEmoji').value;
         let frontImg = document.getElementById('frontVal').value;
         let sideImg = document.getElementById('sideVal').value;
         let mannequinImg = document.getElementById('manVal').value;
-        
         if (currentEditId) {
             let index = products.findIndex(p => p.id === currentEditId);
             if (index !== -1) {
@@ -673,12 +626,10 @@
         let frontImg = document.getElementById('frontVal').value;
         let sideImg = document.getElementById('sideVal').value;
         let mannequinImg = document.getElementById('manVal').value;
-        
         if (!name || isNaN(price)) {
             showToast('Заполните название и цену');
             return;
         }
-        
         if (currentEditId) {
             let index = products.findIndex(p => p.id === currentEditId);
             if (index !== -1) {
@@ -687,4 +638,26 @@
                 products[index].desc = desc;
                 products[index].emoji = emoji;
                 products[index].frontImg = frontImg;
-                products[index].sideImg = sideImg
+                products[index].sideImg = sideImg;
+                products[index].mannequinImg = mannequinImg;
+            }
+        }
+        saveProductsToStorage();
+        let msg = document.getElementById('adminMsg');
+        if (msg) {
+            msg.innerHTML = '<div style="background:#e0f2e9; padding:10px; border-radius:12px;">✓ Товар сохранён</div>';
+            setTimeout(() => { msg.innerHTML = ''; }, 3000);
+        }
+        showToast('✅ Товар сохранён');
+        currentEditId = null;
+        renderAdmin();
+    }
+    
+    function renderAdminForm(prod) {
+        let formDiv = document.getElementById('adminForm');
+        if (!formDiv) return;
+        let p = prod || { id: null, name: '', price: '', desc: '', emoji: '👕', frontImg: '', sideImg: '', mannequinImg: '' };
+        formDiv.innerHTML = `
+            <div style="margin:15px 0;">
+                <input id="prodName" placeholder="Название" value="${p.name}" style="width:100%; padding:10px; border-radius:12px; border:1px solid #ddd;">
+            </div
