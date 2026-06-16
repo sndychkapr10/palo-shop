@@ -3,11 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <meta name="google-site-verification" content="тут_будет_ваш_код">
     <title>PALO — магазин одежды</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', system-ui, sans-serif; background: linear-gradient(135deg, #e3f2fd 0%, #bbdef5 50%, #e3f2fd 100%); color: #1a2634; min-height: 100vh; }
+        body { 
+            font-family: 'Inter', system-ui, sans-serif; 
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdef5 50%, #e3f2fd 100%);
+            color: #1a2634; 
+            min-height: 100vh;
+        }
         .app-horizontal { display: flex; min-height: 100vh; }
         .sidebar {
             width: 280px; background: rgba(255,255,255,0.96); backdrop-filter: blur(12px);
@@ -27,28 +31,51 @@
         .product-card:hover { transform: translateY(-6px); box-shadow: 0 20px 30px -12px rgba(0,0,0,0.1); }
         .product-image { aspect-ratio: 3/4; background: #f8fafd; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .product-image img { width: 100%; height: 100%; object-fit: cover; }
+        .product-image .emoji { font-size: 4rem; }
         .product-info { padding: 1rem; }
-        .product-name { font-weight: 700; }
+        .product-name { font-weight: 700; font-size: 1.1rem; }
         .product-price { font-weight: 600; color: #2c3e50; margin: 0.4rem 0; }
         .btn { background: #1e2f3f; color: white; border: none; padding: 0.6rem; border-radius: 40px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 0.5rem; }
         .btn-outline { background: transparent; border: 1px solid #cbdde9; color: #1f2f3e; }
-        .modal, .order-modal, .admin-auth-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); backdrop-filter: blur(12px); z-index: 2000; justify-content: center; align-items: center; overflow-y: auto; }
-        .modal-content, .order-modal-content, .admin-auth-content { background: white; border-radius: 40px; max-width: 1300px; width: 92%; padding: 1.6rem; position: relative; margin: 20px auto; max-height: 90vh; overflow-y: auto; }
-        .order-modal-content, .admin-auth-content { max-width: 450px; text-align: center; }
+        .modal, .order-modal, .admin-auth-modal { 
+            display: none; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: rgba(0,0,0,0.85); 
+            backdrop-filter: blur(12px); 
+            z-index: 2000; 
+            justify-content: center; 
+            align-items: center; 
+            overflow-y: auto;
+        }
+        .modal-content, .order-modal-content, .admin-auth-content { 
+            background: white; 
+            border-radius: 40px; 
+            max-width: 1300px; 
+            width: 92%; 
+            padding: 1.6rem; 
+            position: relative; 
+            margin: 20px auto;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .order-modal-content, .admin-auth-content { max-width: 500px; text-align: center; }
         .close-modal { position: absolute; top: 1rem; right: 1.8rem; font-size: 2rem; cursor: pointer; color: #334155; }
         .gallery-horizontal { display: flex; gap: 2rem; flex-wrap: wrap; }
         .zoom-preview { flex: 3; min-width: 280px; background: #f5f9ff; border-radius: 32px; display: flex; justify-content: center; align-items: center; min-height: 480px; position: relative; overflow: hidden; }
         .zoom-image-main { max-width: 100%; max-height: 540px; object-fit: contain; cursor: crosshair; transition: transform 0.2s; }
-        .zoom-lens { position: absolute; width: 130px; height: 130px; background: rgba(255,255,240,0.25); border: 2px solid white; border-radius: 50%; pointer-events: none; display: none; }
+        .zoom-lens { position: absolute; width: 130px; height: 130px; background: rgba(255,255,240,0.25); border: 2px solid white; border-radius: 50%; pointer-events: none; display: none; z-index: 10; }
         .thumb-vertical { flex: 1; display: flex; flex-direction: column; gap: 1rem; min-width: 100px; }
         .thumb-angle { background: #f1f5f9; border-radius: 24px; padding: 0.6rem; cursor: pointer; border: 2px solid transparent; }
         .thumb-angle.active { border-color: #1e2f3f; background: white; }
         .thumb-angle img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 18px; }
         
         .size-selector { margin: 1rem 0; padding: 1rem; background: #f8fafd; border-radius: 20px; }
-        .size-label { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem; }
         .size-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
-        .size-btn { background: white; border: 1px solid #cbdde9; padding: 0.4rem 1rem; border-radius: 30px; font-size: 0.8rem; cursor: pointer; transition: 0.2s; }
+        .size-btn { background: white; border: 1px solid #cbdde9; padding: 0.4rem 1rem; border-radius: 30px; font-size: 0.8rem; cursor: pointer; }
         .size-btn.selected { background: #1e2f3f; color: white; border-color: #1e2f3f; }
         .size-chart { font-size: 0.7rem; color: #666; margin-top: 0.5rem; }
         
@@ -83,6 +110,8 @@
             .gallery-horizontal { flex-direction: column; }
             .thumb-vertical { flex-direction: row; flex-wrap: wrap; }
             .thumb-angle { width: 70px; }
+            .modal-content, .order-modal-content { padding: 1rem; }
+            .btn { padding: 0.8rem; font-size: 1rem; min-height: 44px; }
         }
     </style>
 </head>
@@ -101,7 +130,6 @@
 <div id="toast" class="toast"></div>
 
 <script>
-    // ========== НАСТРОЙКИ ==========
     const TELEGRAM_BOT_TOKEN = '8758635199:AAEG8B69jBqbW1fmwLZUbrso5w1VIrHonKg';
     const TELEGRAM_CHAT_ID = '5820655432';
     const ADMIN_PASSWORD = 'admin123';
@@ -110,7 +138,6 @@
     let clickCount = 0;
     let clickTimer = null;
     
-    // ========== ТОВАРЫ С РАЗМЕРАМИ ==========
     const defaultProducts = [
         { id: 1, name: "Кепка", price: 1500, desc: "Хлопок, козырёк", frontImg: "", sideImg: "", mannequinImg: "", emoji: "🧢", 
           sizes: ["S", "M", "L"], measures: ["54-56 см", "57-59 см", "60-62 см"] },
@@ -139,12 +166,12 @@
     }
     function showToast(m) { 
         const t = document.getElementById('toast'); 
+        if (!t) return;
         t.innerText = m; 
         t.classList.add('show'); 
-        setTimeout(() => t.classList.remove('show'), 2000); 
+        setTimeout(() => t.classList.remove('show'), 2500); 
     }
 
-    // ========== СЕКРЕТНАЯ АДМИНКА (5 кликов) ==========
     document.querySelector('.logo').addEventListener('click', function() {
         clickCount++;
         clearTimeout(clickTimer);
@@ -176,18 +203,15 @@
         }
     }
 
-    // ========== ВЫБОР РАЗМЕРА ==========
     let selectedSizes = JSON.parse(localStorage.getItem('selectedSizes') || '{}');
     
     function selectSize(productId, size, idx) {
         selectedSizes[productId] = size;
         localStorage.setItem('selectedSizes', JSON.stringify(selectedSizes));
-        
-        document.querySelectorAll(`.size-btn-${productId}`).forEach((btn, i) => {
+        document.querySelectorAll(`.size-btn-${productId}`).forEach(btn => {
             if (btn.innerText === size) btn.classList.add('selected');
             else btn.classList.remove('selected');
         });
-        
         const products = getProducts();
         const p = products.find(pr => pr.id === productId);
         if (p && p.measures) {
@@ -195,24 +219,18 @@
         }
     }
 
-    // ========== КОРЗИНА ==========
     function addToCart(id) {
         const products = getProducts();
         const p = products.find(pr => pr.id === id);
         const size = selectedSizes[id];
-        
         if (p && p.sizes && p.sizes.length > 0 && !size) {
             showToast('⚠️ Сначала выберите размер!');
             return;
         }
-        
         let cart = getCart();
         const existing = cart.find(i => i.id === id && i.size === size);
-        if (existing) {
-            existing.qty++;
-        } else {
-            cart.push({ id, qty: 1, size: size || 'OS' });
-        }
+        if (existing) existing.qty++;
+        else cart.push({ id, qty: 1, size: size || 'OS' });
         saveCart(cart);
         showToast('✓ В корзине');
     }
@@ -225,7 +243,6 @@
         showToast('✓ Товар удалён');
     }
 
-    // ========== ОТПРАВКА ЗАКАЗА В TELEGRAM ==========
     function sendOrderToTelegram(orderDetails, totalAmount, customerData) {
         const text = `🛍️ НОВЫЙ ЗАКАЗ PALO\n\n` +
                     `👤 Имя: ${customerData.name}\n` +
@@ -288,7 +305,6 @@
         closeOrderModal();
     }
 
-    // ========== ГАЛЕРЕЯ И ЛУПА ==========
     let currentProduct = null;
     let currentAngle = 'front';
 
@@ -312,16 +328,11 @@
         const products = getProducts();
         const p = products.find(pr => pr.id === productId);
         if (!p || !p.sizes || p.sizes.length === 0) return '';
-        
         const current = selectedSizes[productId] || '';
-        let html = `<div class="size-selector">
-            <div class="size-label">📏 Выберите размер:</div>
-            <div class="size-buttons">`;
-        
+        let html = `<div class="size-selector"><div class="size-label">📏 Выберите размер:</div><div class="size-buttons">`;
         p.sizes.forEach((size, idx) => {
             html += `<button class="size-btn size-btn-${productId} ${current === size ? 'selected' : ''}" onclick="selectSize(${productId}, '${size}', ${idx})">${size}</button>`;
         });
-        
         html += `</div><div class="size-chart" id="size-chart-${productId}">`;
         if (current && p.sizes.indexOf(current) >= 0) {
             html += p.measures[p.sizes.indexOf(current)];
@@ -351,14 +362,12 @@
                 <div class="zoom-preview" id="zoomArea">${activeImg ? `<img id="zoomImg" class="zoom-image-main" src="${activeImg}">` : '<div>Нет фото</div>'}<div id="zoomLens" class="zoom-lens"></div></div>
                 <div class="thumb-vertical">${thumbs || '<div>Загрузите фото в админке</div>'}</div>
             </div>
-            <div style="display:flex; justify-content:space-between; margin-top:1rem; flex-wrap:wrap;">
-                <div style="flex:1; min-width:200px;">
-                    <h2>${p.name}</h2>
-                    <div style="font-size:1.5rem; font-weight:600;">${p.price.toLocaleString()} ₽</div>
-                    <div style="color:#666; font-size:0.9rem;">${p.desc}</div>
-                    ${renderSizeSelectorForModal(p.id)}
-                    <button class="btn" style="width:auto; padding:0.6rem 1.8rem;" onclick="addToCart(${p.id}); closeModal();">🛒 Добавить в корзину</button>
-                </div>
+            <div style="flex:1; min-width:200px; margin-top:1rem;">
+                <h2>${p.name}</h2>
+                <div style="font-size:1.5rem; font-weight:600; margin:0.5rem 0;">${p.price.toLocaleString()} ₽</div>
+                <div style="color:#666; margin-bottom:0.5rem;">${p.desc}</div>
+                ${renderSizeSelectorForModal(p.id)}
+                <button class="btn" onclick="addToCart(${p.id}); closeModal();">🛒 Добавить в корзину</button>
             </div>
         `;
     }
@@ -388,16 +397,14 @@
         };
     }
 
-    // ========== СТРАНИЦЫ ==========
     function renderHome() {
         const products = getProducts();
         let html = '<h2 style="font-size:1.9rem;margin-bottom:1.8rem;">Коллекция</h2><div class="products-grid">';
         products.forEach(p => {
-            // БЕРЁМ ПЕРВОЕ ФОТО (frontImg) ДЛЯ ОТОБРАЖЕНИЯ В КАРТОЧКЕ
             const preview = p.frontImg || p.sideImg || p.mannequinImg || '';
             html += `<div class="product-card" onclick="openModal(${JSON.stringify(p).replace(/"/g, '&quot;')})">
                 <div class="product-image">
-                    ${preview ? `<img src="${preview}" alt="${p.name}">` : `<span style="font-size:3rem;">${p.emoji}</span>`}
+                    ${preview ? `<img src="${preview}" alt="${p.name}">` : `<span class="emoji">${p.emoji}</span>`}
                 </div>
                 <div class="product-info">
                     <div class="product-name">${p.name}</div>
@@ -441,7 +448,6 @@
         return html;
     }
 
-    // ========== АДМИН-ПАНЕЛЬ ==========
     let editingId = null;
     function renderAdmin() {
         if (!isAdminAuthenticated) { 
@@ -479,4 +485,30 @@
                     <input type="hidden" id="frontVal" value="${prod.frontImg || ''}">
                 </div>
                 <div class="photo-upload-card">
-                    <div class="preview-circle" id="side
+                    <div class="preview-circle" id="sidePrev">${prod.sideImg ? `<img src="${prod.sideImg}">` : '📸'}</div>
+                    <input type="text" id="sideUrl" class="url-input" placeholder="Ссылка на фото" value="${prod.sideImg || ''}">
+                    <button class="btn-outline" style="width:100%; margin-top:0.3rem;" onclick="setImageByUrl('side')">🔗 Сохранить по ссылке</button>
+                    <input type="hidden" id="sideVal" value="${prod.sideImg || ''}">
+                </div>
+                <div class="photo-upload-card">
+                    <div class="preview-circle" id="manPrev">${prod.mannequinImg ? `<img src="${prod.mannequinImg}">` : '🕴️'}</div>
+                    <input type="text" id="manUrl" class="url-input" placeholder="Ссылка на фото" value="${prod.mannequinImg || ''}">
+                    <button class="btn-outline" style="width:100%; margin-top:0.3rem;" onclick="setImageByUrl('mannequin')">🔗 Сохранить по ссылке</button>
+                    <input type="hidden" id="manVal" value="${prod.mannequinImg || ''}">
+                </div>
+            </div>
+            <button class="btn" style="width:auto;padding:0.6rem 2rem;" onclick="saveProduct()">💾 Сохранить</button>
+            <button class="btn-outline" style="margin-left:1rem;" onclick="navigate('admin')">Отмена</button>
+        `;
+        if (prod.frontImg) document.getElementById('frontUrl').value = prod.frontImg;
+        if (prod.sideImg) document.getElementById('sideUrl').value = prod.sideImg;
+        if (prod.mannequinImg) document.getElementById('manUrl').value = prod.mannequinImg;
+    }
+    
+    function setImageByUrl(type) {
+        let url = '';
+        if (type === 'front') url = document.getElementById('frontUrl').value.trim();
+        if (type === 'side') url = document.getElementById('sideUrl').value.trim();
+        if (type === 'mannequin') url = document.getElementById('manUrl').value.trim();
+        if (!url) { showToast('Введите ссылку на фото'); return; }
+        if (type ===
