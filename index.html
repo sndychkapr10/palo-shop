@@ -10,8 +10,8 @@
 .logo{font-size:26px;font-weight:700;cursor:pointer;color:#0f1722}.logo span{font-weight:300;color:#5b6e8c}
 .nav-links{display:flex;flex-direction:column;gap:1.2rem}.nav-links a{cursor:pointer;font-weight:500;color:#2c3e50;padding:.6rem 0;display:flex;align-items:center;gap:12px;font-size:16px}
 .cart-badge{background:#1e2f3f;color:#fff;border-radius:40px;padding:.2rem .65rem;font-size:.7rem;margin-left:auto}
-.admin-link-hidden{margin-top:auto;font-size:.85rem;opacity:0;cursor:pointer;transition:opacity .3s;text-align:center;padding:.5rem;border-radius:20px;background:rgba(0,0,0,.05)}
-.admin-link-hidden.visible{opacity:.7}
+.admin-link-visible{margin-top:auto;font-size:.85rem;cursor:pointer;text-align:center;padding:.5rem;border-radius:20px;background:rgba(0,0,0,.1)}
+.admin-link-visible:hover{background:rgba(0,0,0,.2)}
 .main-content{flex:1;padding:2rem}.section-title{font-size:28px;font-weight:600;margin-bottom:24px;color:#0f1722}
 .products-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px}
 .product-card{background:#fff;border-radius:24px;padding:20px;text-align:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.05);transition:.3s;border:1px solid rgba(255,255,255,.5)}
@@ -81,7 +81,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#1e2f3f}
 <a onclick="navigate('home')">🏠 <span>Магазин</span></a>
 <a onclick="navigate('cart')">🛒 <span>Корзина</span> <span class="cart-badge" id="cartCount">0</span></a>
 </div>
-<div id="adminSecretLink" class="admin-link-hidden" onclick="showAdminAuth()">🔒 <span>Админ</span></div>
+<div id="adminLink" class="admin-link-visible" onclick="renderAdmin()">⚙️ <span>Админ-панель</span></div>
 </aside>
 <main class="main-content" id="app"></main>
 </div>
@@ -90,7 +90,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#1e2f3f}
 <span class="close-zoom">&times;</span>
 <img id="zoomImage" src="">
 </div>
-<script>const products = [
+<script>
+const products = [
 {id:1,name:"Кепка",price:1500,desc:"Хлопок, козырёк",emoji:"🧢",sizes:["S","M","L"],measures:["54-56 см","57-59 см","60-62 см"],frontImg:"",sideImg:"",mannequinImg:""},
 {id:2,name:"Футболка",price:1900,desc:"Джерси, белый",emoji:"👕",sizes:["S","M","L","XL"],measures:["68/48 см","70/51 см","72/54 см","74/57 см"],frontImg:"",sideImg:"",mannequinImg:""},
 {id:3,name:"Брюки",price:5200,desc:"Костюмная ткань",emoji:"👖",sizes:["S","M","L","XL"],measures:["100/72 см","102/76 см","104/80 см","106/84 см"],frontImg:"",sideImg:"",mannequinImg:""},
@@ -98,10 +99,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#1e2f3f}
 ];
 let cart=JSON.parse(localStorage.getItem('cart')||'[]');
 let sizes=JSON.parse(localStorage.getItem('sizes')||'{}');
-let isAdmin=false;
 let editId=null;
-let clicks=0;
-let tmr=null;
 let gIdx=0;
 let gImgs=[];
 
@@ -126,7 +124,7 @@ function closeOrder(){closeM('orderModal');}
 function submitOrd(){let n=document.getElementById('orderName').value.trim();let p=document.getElementById('orderPhone').value.trim();let a=document.getElementById('orderAddress').value.trim();let d=document.getElementById('orderDelivery').value;if(!n||!p||!a){toast('Заполните все поля');return;}let lines='';let total=0;cart.forEach(i=>{let pr=products.find(x=>x.id===i.id);if(pr){let s=pr.price*i.qty;total+=s;lines+='• '+pr.name+' ('+(i.size||'OS')+') — '+i.qty+'шт × '+pr.price+'₽ = '+s+'₽\n';}});sendOrd(lines,total,{name:n,phone:p,address:a,delivery:d});closeOrder();}
 function renderHome(){let h='<div class="section-title">Коллекция</div><div class="products-grid">';products.forEach(p=>{let img=p.frontImg?'<img src="'+p.frontImg+'">':'<span class="no-image">'+p.emoji+'</span>';h+='<div class="product-card" onclick="openProd('+p.id+')"><div class="product-image">'+img+'</div><div class="product-name">'+p.name+'</div><div class="product-price">'+p.price+' ₽</div><div class="product-desc">'+p.desc+'</div><button class="btn" onclick="event.stopPropagation();openProd('+p.id+')">🔍 Выбрать размер</button></div>';});h+='</div>';document.getElementById('app').innerHTML=h;}
 function renderCart(){if(cart.length===0){document.getElementById('app').innerHTML='<div class="section-title">Корзина</div><div class="empty-cart"><span class="icon">🛒</span><h3>Корзина пуста</h3></div>';return;}let total=0;let h='<div class="section-title">Корзина</div>';cart.forEach(i=>{let p=products.find(pr=>pr.id===i.id);if(!p)return;let s=p.price*i.qty;total+=s;h+='<div class="cart-item"><div class="info"><div class="name">'+p.name+'</div><div class="size">'+(i.size||'OS')+'</div><div>'+i.qty+' шт × '+p.price+' ₽</div></div><div><strong>'+s+' ₽</strong></div><button class="btn-outline" style="width:auto;padding:6px 16px;margin:0;" onclick="remCart('+p.id+',\''+(i.size||'')+'\')">🗑</button></div>';});h+='<div class="total-block">Итого: '+total+' ₽</div><button class="btn" style="max-width:280px;margin-top:16px;" onclick="openOrder()">💳 Оформить заказ</button>';document.getElementById('app').innerHTML=h;}
-function renderAdmin(){if(!isAdmin){document.getElementById('app').innerHTML='<div style="text-align:center;padding:50px;"><h3>🔒 Доступ закрыт</h3><p>Нажмите 5 раз на логотип PALO → появится ссылка "Админ" → пароль admin123</p></div>';return;}let h='<div class="admin-panel"><h2>📷 Управление товарами</h2><div id="adminMsg"></div><div id="adminForm"></div><h3 style="margin:20px 0 10px;">Список товаров</h3>';products.forEach(p=>{h+='<div class="product-row"><span>'+(p.frontImg?'📷':'📸')+' <strong>'+p.name+'</strong> — '+p.price+'₽</span><button onclick="editProd('+p.id+')" class="btn-outline" style="padding:5px 15px;width:auto;">✏️</button></div>';});h+='</div>';document.getElementById('app').innerHTML=h;if(editId){let p=products.find(x=>x.id===editId);if(p)renderForm(p);}else renderForm(null);}
+function renderAdmin(){let h='<div class="admin-panel"><h2>📷 Управление товарами</h2><div id="adminMsg"></div><div id="adminForm"></div><h3 style="margin:20px 0 10px;">Список товаров</h3>';products.forEach(p=>{h+='<div class="product-row"><span>'+(p.frontImg?'📷':'📸')+' <strong>'+p.name+'</strong> — '+p.price+'₽</span><button onclick="editProd('+p.id+')" class="btn-outline" style="padding:5px 15px;width:auto;">✏️</button></div>';});h+='</div>';document.getElementById('app').innerHTML=h;if(editId){let p=products.find(x=>x.id===editId);if(p)renderForm(p);}else renderForm(null);}
 function editProd(id){editId=id;renderAdmin();}
 function cancelEdit(){editId=null;renderAdmin();}
 function handleImg(ev,fid,pid){let f=ev.target.files[0];if(!f)return;if(f.size>5*1024*1024){toast('⚠️ Файл >5 МБ');return;}let r=new FileReader();r.onload=function(e){document.getElementById(fid).value=e.target.result;document.getElementById(pid).innerHTML='<img src="'+e.target.result+'" style="width:100%;height:100%;object-fit:cover;">';toast('✅ Фото загружено! Нажмите "Сохранить"');};r.readAsDataURL(f);}
@@ -134,12 +132,10 @@ function setImageByUrl(type){let url='';if(type==='front')url=document.getElemen
 function saveProd(){let n=document.getElementById('prodName').value.trim();let p=parseInt(document.getElementById('prodPrice').value);let d=document.getElementById('prodDesc').value;let e=document.getElementById('prodEmoji').value;let f=document.getElementById('frontVal').value;let s=document.getElementById('sideVal').value;let m=document.getElementById('manVal').value;if(!n||isNaN(p)){toast('Заполните название и цену');return;}if(editId){let idx=products.findIndex(x=>x.id===editId);if(idx!==-1){products[idx].name=n;products[idx].price=p;products[idx].desc=d;products[idx].emoji=e;products[idx].frontImg=f;products[idx].sideImg=s;products[idx].mannequinImg=m;}}saveAll();let msg=document.getElementById('adminMsg');if(msg){msg.innerHTML='<div style="background:#e0f2e9;padding:10px;border-radius:12px;">✓ Сохранено</div>';setTimeout(()=>msg.innerHTML='',3000);}toast('✅ Товар сохранён');editId=null;renderAdmin();}
 function renderForm(prod){let f=document.getElementById('adminForm');if(!f)return;let p=prod||{id:null,name:'',price:'',desc:'',emoji:'👕',frontImg:'',sideImg:'',mannequinImg:''};f.innerHTML='<div style="margin-top:20px;border-top:2px solid #eee;padding-top:20px;"><h3>'+(p.id?'Редактировать':'Новый товар')+'</h3><div><input id="prodName" placeholder="Название" value="'+p.name+'" style="width:100%;padding:10px;border-radius:12px;border:1px solid #ddd;margin-bottom:10px;"></div><div><input id="prodPrice" type="number" placeholder="Цена" value="'+p.price+'" style="width:100%;padding:10px;border-radius:12px;border:1px solid #ddd;margin-bottom:10px;"></div><div><textarea id="prodDesc" rows="2" placeholder="Описание" style="width:100%;padding:10px;border-radius:12px;border:1px solid #ddd;margin-bottom:10px;">'+p.desc+'</textarea></div><div><input id="prodEmoji" placeholder="Эмодзи" value="'+p.emoji+'" style="width:100%;padding:10px;border-radius:12px;border:1px solid #ddd;margin-bottom:10px;"></div><div class="photo-upload-area"><div><strong>📷 Фото 1 (спереди)</strong></div><div class="photo-preview" id="frontPreview" onclick="document.getElementById(\'frontFile\').click()">'+(p.frontImg?'<img src="'+p.frontImg+'">':'<span class="empty">📸</span>')+'</div><input type="file" id="frontFile" style="display:none" accept="image/*" onchange="handleImg(event,\'frontVal\',\'frontPreview\')"><input class="photo-url-input" id="frontUrlInput" placeholder="Или вставьте ссылку на фото" value="'+(p.frontImg||'')+'"><button class="btn-outline" style="width:auto;padding:5px 15px;margin-top:4px;" onclick="setImageByUrl(\'front\')">🔗 Применить ссылку</button><input type="hidden" id="frontVal" value="'+(p.frontImg||'')+'"></div><div class="photo-upload-area"><div><strong>📷 Фото 2 (сбоку)</strong></div><div class="photo-preview" id="sidePreview" onclick="document.getElementById(\'sideFile\').click()">'+(p.sideImg?'<img src="'+p.sideImg+'">':'<span class="empty">📸</span>')+'</div><input type="file" id="sideFile" style="display:none" accept="image/*" onchange="handleImg(event,\'sideVal\',\'sidePreview\')"><input class="photo-url-input" id="sideUrlInput" placeholder="Или вставьте ссылку на фото" value="'+(p.sideImg||'')+'"><button class="btn-outline" style="width:auto;padding:5px 15px;margin-top:4px;" onclick="setImageByUrl(\'side\')">🔗 Применить ссылку</button><input type="hidden" id="sideVal" value="'+(p.sideImg||'')+'"></div><div class="photo-upload-area"><div><strong>📷 Фото 3 (на манекене)</strong></div><div class="photo-preview" id="manPreview" onclick="document.getElementById(\'manFile\').click()">'+(p.mannequinImg?'<img src="'+p.mannequinImg+'">':'<span class="empty">🕴️</span>')+'</div><input type="file" id="manFile" style="display:none" accept="image/*" onchange="handleImg(event,\'manVal\',\'manPreview\')"><input class="photo-url-input" id="manUrlInput" placeholder="Или вставьте ссылку на фото" value="'+(p.mannequinImg||'')+'"><button class="btn-outline" style="width:auto;padding:5px 15px;margin-top:4px;" onclick="setImageByUrl(\'mannequin\')">🔗 Применить ссылку</button><input type="hidden" id="manVal" value="'+(p.mannequinImg||'')+'"></div><button class="btn" onclick="saveProd()">💾 Сохранить</button><button class="btn-outline" style="margin-left:10px;" onclick="cancelEdit()">Отмена</button></div>';}
 function navigate(p){if(p==='home')renderHome();else if(p==='cart')renderCart();window.scrollTo(0,0);}
-document.querySelector('.logo').addEventListener('click',function(){clicks++;clearTimeout(tmr);tmr=setTimeout(()=>{clicks=0},1000);if(clicks>=5){clicks=0;localStorage.setItem('adminShown','true');document.getElementById('adminSecretLink').classList.add('visible');toast('🔓 Админ-панель активирована');}});
-function showAdminAuth(){if(isAdmin){renderAdmin();return;}openM('adminAuthModal');}
-function closeAdminAuth(){closeM('adminAuthModal');document.getElementById('adminPassword').value='';}
-function checkAdmin(){let p=document.getElementById('adminPassword').value;if(p==='admin123'){isAdmin=true;closeAdminAuth();toast('✅ Добро пожаловать в админку');renderAdmin();}else toast('❌ Неверный пароль');}
 loadSaved();saveCart();renderHome();
-</script><div id="productModal" class="modal"><div class="modal-content" id="productModalContent"></div></div>
+</script>
+
+<div id="productModal" class="modal"><div class="modal-content" id="productModalContent"></div></div>
 
 <div id="orderModal" class="modal">
 <div class="modal-content">
@@ -160,15 +156,6 @@ loadSaved();saveCart();renderHome();
 <small>После заказа переведите сумму</small>
 </div>
 <button class="btn" onclick="submitOrd()">✅ Отправить заказ</button>
-</div>
-</div>
-
-<div id="adminAuthModal" class="modal">
-<div class="modal-content">
-<span class="close-modal" onclick="closeAdminAuth()">&times;</span>
-<h2>🔐 Вход в админку</h2>
-<input type="password" id="adminPassword" placeholder="Пароль">
-<button class="btn" onclick="checkAdmin()">Войти</button>
 </div>
 </div>
 
