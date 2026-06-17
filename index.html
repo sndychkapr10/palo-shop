@@ -17,29 +17,91 @@
         .products { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
         .product { background: white; border-radius: 20px; padding: 20px; text-align: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: 0.3s; }
         .product:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
-        .product-emoji { font-size: 64px; }
+        .product-image { width: 100%; height: 200px; border-radius: 12px; overflow: hidden; margin-bottom: 10px; background: #f5f5f5; display: flex; align-items: center; justify-content: center; }
+        .product-image img { width: 100%; height: 100%; object-fit: cover; }
+        .product-image .emoji-big { font-size: 64px; }
         .product-name { font-weight: bold; font-size: 18px; margin: 10px 0; }
         .product-price { color: #e67e22; font-weight: bold; font-size: 20px; }
         .product-desc { font-size: 13px; color: #666; margin: 10px 0; }
         .btn { background: #1e2f3f; color: white; border: none; padding: 10px; border-radius: 30px; cursor: pointer; font-size: 14px; font-weight: 600; width: 100%; margin-top: 10px; }
         .btn-outline { background: transparent; border: 1px solid #cbdde9; color: #1e2f3e; }
         
-        /* ===== МОДАЛЬНОЕ ОКНО С ГАЛЕРЕЕЙ И ЛУПОЙ ===== */
+        /* ===== МОДАЛЬНОЕ ОКНО С УЛУЧШЕННОЙ ЛУПОЙ ===== */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; padding: 20px; overflow-y: auto; }
         .modal-content { background: white; border-radius: 30px; max-width: 700px; width: 100%; padding: 24px; position: relative; max-height: 95vh; overflow-y: auto; }
         .close { position: absolute; top: 15px; right: 20px; font-size: 28px; cursor: pointer; z-index: 10; background: rgba(255,255,255,0.9); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
         .close:hover { background: #f0f0f0; }
         
-        /* ===== ГАЛЕРЕЯ ===== */
         .gallery { display: flex; flex-direction: column; gap: 12px; }
-        .zoom-container { width: 100%; height: 350px; overflow: hidden; position: relative; background: #f5f7fa; border-radius: 20px; display: flex; justify-content: center; align-items: center; cursor: zoom-in; transition: 0.3s; }
-        .zoom-container img { width: 100%; height: 100%; object-fit: contain; transition: transform 0.3s ease; }
-        .zoom-container.zoomed { cursor: zoom-out; }
-        .zoom-container.zoomed img { transform: scale(2.2); }
-        .zoom-hint { position: absolute; bottom: 12px; right: 12px; background: rgba(0,0,0,0.6); color: white; padding: 4px 14px; border-radius: 20px; font-size: 11px; pointer-events: none; }
-        .empty-image { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 64px; color: #c0cbd8; }
-        .thumbnails { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
-        .thumb { width: 70px; height: 70px; border-radius: 14px; overflow: hidden; cursor: pointer; border: 2px solid transparent; transition: 0.2s; flex-shrink: 0; background: #f0f2f5; }
+        .zoom-wrapper {
+            width: 100%;
+            height: 350px;
+            overflow: hidden;
+            position: relative;
+            background: #f5f7fa;
+            border-radius: 20px;
+            cursor: crosshair;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .zoom-wrapper .zoom-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.1s ease-out;
+        }
+        .zoom-wrapper .zoom-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            pointer-events: none;
+            -webkit-user-drag: none;
+        }
+        .zoom-wrapper .zoom-lens {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            background: rgba(255,255,255,0.3);
+            border: 2px solid rgba(255,255,255,0.8);
+            border-radius: 50%;
+            pointer-events: none;
+            display: none;
+            z-index: 5;
+            box-shadow: 0 0 30px rgba(0,0,0,0.3);
+            transform: translate(-50%, -50%);
+        }
+        .zoom-wrapper .zoom-result {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            width: 150px;
+            height: 150px;
+            border-radius: 16px;
+            border: 2px solid rgba(255,255,255,0.5);
+            background: white;
+            overflow: hidden;
+            display: none;
+            z-index: 10;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            background-repeat: no-repeat;
+        }
+        .zoom-hint {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            pointer-events: none;
+            z-index: 2;
+        }
+        
+        .thumbnails { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 10px; }
+        .thumb { width: 65px; height: 65px; border-radius: 14px; overflow: hidden; cursor: pointer; border: 2px solid transparent; transition: 0.2s; background: #f0f2f5; flex-shrink: 0; }
         .thumb.active { border-color: #1e2f3f; }
         .thumb img { width: 100%; height: 100%; object-fit: cover; }
         .thumb .empty-thumb { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #b0bcca; }
@@ -63,18 +125,23 @@
         @media (max-width: 600px) {
             .products { gap: 10px; }
             .product { padding: 12px; }
-            .product-emoji { font-size: 48px; }
+            .product-image { height: 150px; }
             .product-name { font-size: 14px; }
             .product-price { font-size: 16px; }
             .nav a { margin-left: 10px; font-size: 14px; }
-            .zoom-container { height: 250px; }
-            .thumb { width: 55px; height: 55px; }
+            .zoom-wrapper { height: 250px; }
+            .zoom-wrapper .zoom-lens { width: 100px; height: 100px; }
+            .zoom-wrapper .zoom-result { width: 100px; height: 100px; }
+            .thumb { width: 50px; height: 50px; }
             .modal-content { padding: 16px; }
             .btn { padding: 12px; font-size: 16px; min-height: 44px; }
         }
         @media (max-width: 400px) {
-            .zoom-container { height: 200px; }
-            .thumb { width: 44px; height: 44px; }
+            .zoom-wrapper { height: 200px; }
+            .product-image { height: 120px; }
+            .zoom-wrapper .zoom-lens { width: 70px; height: 70px; }
+            .zoom-wrapper .zoom-result { width: 80px; height: 80px; }
+            .thumb { width: 40px; height: 40px; }
         }
     </style>
 </head>
@@ -156,6 +223,115 @@
             }).catch(() => showToast('❌ Ошибка соединения'));
         }
 
+        // ===== УЛУЧШЕННАЯ ЛУПА =====
+        function initZoom() {
+            const wrapper = document.getElementById('zoomWrapper');
+            const container = document.getElementById('zoomContainer');
+            const img = document.getElementById('zoomImg');
+            const lens = document.getElementById('zoomLens');
+            const result = document.getElementById('zoomResult');
+            
+            if (!wrapper || !img || !lens || !result) return;
+            
+            const resetZoom = () => {
+                lens.style.display = 'none';
+                result.style.display = 'none';
+                container.style.transform = 'scale(1)';
+            };
+            
+            wrapper.addEventListener('mouseenter', () => {
+                if (!img.src) return;
+                lens.style.display = 'block';
+                result.style.display = 'block';
+            });
+            
+            wrapper.addEventListener('mouseleave', resetZoom);
+            
+            wrapper.addEventListener('mousemove', (e) => {
+                if (!img.src || img.src === '') return;
+                
+                const rect = wrapper.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const relX = x / rect.width;
+                const relY = y / rect.height;
+                
+                const lensSize = Math.min(150, rect.width * 0.3, rect.height * 0.3);
+                const lensHalf = lensSize / 2;
+                
+                let lensX = x - lensHalf;
+                let lensY = y - lensHalf;
+                lensX = Math.max(0, Math.min(lensX, rect.width - lensSize));
+                lensY = Math.max(0, Math.min(lensY, rect.height - lensSize));
+                
+                lens.style.width = lensSize + 'px';
+                lens.style.height = lensSize + 'px';
+                lens.style.left = lensX + 'px';
+                lens.style.top = lensY + 'px';
+                
+                const zoomLevel = 2.5;
+                const imgRect = img.getBoundingClientRect();
+                const imgRelX = (e.clientX - imgRect.left) / imgRect.width;
+                const imgRelY = (e.clientY - imgRect.top) / imgRect.height;
+                
+                result.style.width = lensSize + 'px';
+                result.style.height = lensSize + 'px';
+                result.style.backgroundImage = `url(${img.src})`;
+                result.style.backgroundSize = `${imgRect.width * zoomLevel}px ${imgRect.height * zoomLevel}px`;
+                result.style.backgroundPosition = `-${imgRelX * imgRect.width * zoomLevel - lensSize/2}px -${imgRelY * imgRect.height * zoomLevel - lensSize/2}px`;
+                
+                container.style.transform = `scale(${zoomLevel})`;
+                container.style.transformOrigin = `${relX * 100}% ${relY * 100}%`;
+            });
+            
+            wrapper.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (!img.src) return;
+                lens.style.display = 'block';
+                result.style.display = 'block';
+            }, { passive: false });
+            
+            wrapper.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (!img.src || img.src === '') return;
+                const touch = e.touches[0];
+                const rect = wrapper.getBoundingClientRect();
+                const x = touch.clientX - rect.left;
+                const y = touch.clientY - rect.top;
+                const relX = x / rect.width;
+                const relY = y / rect.height;
+                const lensSize = Math.min(120, rect.width * 0.3);
+                const lensHalf = lensSize / 2;
+                let lensX = x - lensHalf;
+                let lensY = y - lensHalf;
+                lensX = Math.max(0, Math.min(lensX, rect.width - lensSize));
+                lensY = Math.max(0, Math.min(lensY, rect.height - lensSize));
+                lens.style.width = lensSize + 'px';
+                lens.style.height = lensSize + 'px';
+                lens.style.left = lensX + 'px';
+                lens.style.top = lensY + 'px';
+                const zoomLevel = 2.5;
+                const imgRect = img.getBoundingClientRect();
+                const imgRelX = (touch.clientX - imgRect.left) / imgRect.width;
+                const imgRelY = (touch.clientY - imgRect.top) / imgRect.height;
+                result.style.width = lensSize + 'px';
+                result.style.height = lensSize + 'px';
+                result.style.backgroundImage = `url(${img.src})`;
+                result.style.backgroundSize = `${imgRect.width * zoomLevel}px ${imgRect.height * zoomLevel}px`;
+                result.style.backgroundPosition = `-${imgRelX * imgRect.width * zoomLevel - lensSize/2}px -${imgRelY * imgRect.height * zoomLevel - lensSize/2}px`;
+                container.style.transform = `scale(${zoomLevel})`;
+                container.style.transformOrigin = `${relX * 100}% ${relY * 100}%`;
+            }, { passive: false });
+            
+            wrapper.addEventListener('touchend', () => {
+                lens.style.display = 'none';
+                result.style.display = 'none';
+                container.style.transform = 'scale(1)';
+            });
+        }
+
+        // ===== ОТКРЫТИЕ ТОВАРА =====
         function openProductModal(productId) {
             let p = products.find(pr => pr.id === productId);
             let currentSize = selectedSizes[productId] || '';
@@ -190,9 +366,13 @@
             document.getElementById('productModalContent').innerHTML = `
                 <span class="close" onclick="closeProductModal()">&times;</span>
                 <div class="gallery">
-                    <div class="zoom-container" id="zoomContainer" onclick="toggleZoom()">
-                        ${mainImg ? `<img id="mainImage" src="${mainImg}">` : `<div class="empty-image">${p.emoji}</div>`}
-                        <div class="zoom-hint">🔍 Нажмите для увеличения</div>
+                    <div class="zoom-wrapper" id="zoomWrapper">
+                        <div class="zoom-container" id="zoomContainer">
+                            ${mainImg ? `<img id="zoomImg" src="${mainImg}">` : `<div style="font-size:64px;color:#ccc;">${p.emoji}</div>`}
+                        </div>
+                        <div class="zoom-lens" id="zoomLens"></div>
+                        <div class="zoom-result" id="zoomResult"></div>
+                        <div class="zoom-hint">🔍 Наведите для увеличения</div>
                     </div>
                     ${thumbsHtml}
                     <div style="text-align:center;margin-top:12px;">
@@ -205,7 +385,7 @@
                 </div>
             `;
             document.getElementById('productModal').style.display = 'flex';
-            setTimeout(() => { const c = document.getElementById('zoomContainer'); if (c) c.classList.remove('zoomed'); }, 50);
+            setTimeout(initZoom, 100);
         }
 
         function closeProductModal() {
@@ -214,18 +394,16 @@
 
         function switchImage(index) {
             if (index >= currentImages.length) return;
-            const mainImg = document.getElementById('mainImage');
-            if (mainImg) mainImg.src = currentImages[index].src;
+            const img = document.getElementById('zoomImg');
+            if (img) img.src = currentImages[index].src;
             document.querySelectorAll('.thumb').forEach((el, i) => {
                 el.classList.toggle('active', i === index);
             });
-            const container = document.getElementById('zoomContainer');
-            if (container) container.classList.remove('zoomed');
-        }
-
-        function toggleZoom() {
-            const container = document.getElementById('zoomContainer');
-            if (container) container.classList.toggle('zoomed');
+            // Обновляем фон для лупы
+            const result = document.getElementById('zoomResult');
+            if (result && img) {
+                result.style.backgroundImage = `url(${img.src})`;
+            }
         }
 
         function openOrderModal() {
@@ -257,8 +435,11 @@
         function renderHome() {
             let html = '<h2>Коллекция</h2><div class="products">';
             products.forEach(p => {
+                const imgSrc = p.frontImg || p.sideImg || p.mannequinImg || '';
                 html += `<div class="product" onclick="openProductModal(${p.id})">
-                    <div class="product-emoji">${p.emoji}</div>
+                    <div class="product-image">
+                        ${imgSrc ? `<img src="${imgSrc}" alt="${p.name}">` : `<span class="emoji-big">${p.emoji}</span>`}
+                    </div>
                     <div class="product-name">${p.name}</div>
                     <div class="product-price">${p.price} ₽</div>
                     <div class="product-desc">${p.desc}</div>
@@ -293,6 +474,7 @@
             document.getElementById('app').innerHTML = html;
         }
 
+        // ===== АДМИНКА =====
         let clickCount = 0, clickTimer = null;
         document.querySelector('.logo').addEventListener('click', function() {
             clickCount++;
@@ -414,102 +596,4 @@
                     products[index].mannequinImg = mannequinImg;
                 }
             }
-            localStorage.setItem('palo_products', JSON.stringify(products));
-            let msg = document.getElementById('adminMsg');
-            if (msg) { msg.innerHTML = '<div style="background:#e0f2e9; padding:10px; border-radius:12px;">✓ Сохранено</div>';
-            setTimeout(() => { msg.innerHTML = ''; }, 3000); }
-            showToast('✅ Товар сохранён');
-            currentEditId = null;
-            renderAdmin();
-        }
-
-        function renderAdminForm(prod) {
-            let formDiv = document.getElementById('adminForm');
-            if (!formDiv) return;
-            let p = prod || { id: null, name: '', price: '', desc: '', emoji: '👕', frontImg: '', sideImg: '', mannequinImg: '' };
-            formDiv.innerHTML = `
-                <div><input id="prodName" placeholder="Название" value="${p.name}" style="width:100%; padding:10px; border-radius:12px; border:1px solid #ddd; margin-bottom:10px;"></div>
-                <div><input id="prodPrice" type="number" placeholder="Цена" value="${p.price}" style="width:100%; padding:10px; border-radius:12px; border:1px solid #ddd; margin-bottom:10px;"></div>
-                <div><textarea id="prodDesc" rows="2" placeholder="Описание" style="width:100%; padding:10px; border-radius:12px; border:1px solid #ddd; margin-bottom:10px;">${p.desc}</textarea></div>
-                <div><input id="prodEmoji" placeholder="Эмодзи" value="${p.emoji}" style="width:100%; padding:10px; border-radius:12px; border:1px solid #ddd; margin-bottom:10px;"></div>
-                <div style="background:#f5f5f5; padding:15px; border-radius:16px; margin:10px 0;">
-                    <div><strong>📷 Фото 1 (спереди)</strong></div>
-                    <div id="frontPreview" style="width:100px; height:100px; background:#ddd; border-radius:12px; margin:10px 0; display:flex; align-items:center; justify-content:center; overflow:hidden; cursor:pointer;" onclick="document.getElementById('frontFile').click()">
-                        ${p.frontImg ? `<img src="${p.frontImg}">` : '📸'}
-                    </div>
-                    <input type="file" id="frontFile" style="display:none" accept="image/*" onchange="handleImageUpload(event, 'frontVal', 'frontPreview')">
-                    <input type="hidden" id="frontVal" value="${p.frontImg || ''}">
-                    <button class="btn-outline" style="width:auto; padding:5px 15px;" onclick="document.getElementById('frontFile').click()">Выбрать фото</button>
-                </div>
-                <div style="background:#f5f5f5; padding:15px; border-radius:16px; margin:10px 0;">
-                    <div><strong>📷 Фото 2 (сбоку)</strong></div>
-                    <div id="sidePreview" style="width:100px; height:100px; background:#ddd; border-radius:12px; margin:10px 0; display:flex; align-items:center; justify-content:center; overflow:hidden; cursor:pointer;" onclick="document.getElementById('sideFile').click()">
-                        ${p.sideImg ? `<img src="${p.sideImg}">` : '📸'}
-                    </div>
-                    <input type="file" id="sideFile" style="display:none" accept="image/*" onchange="handleImageUpload(event, 'sideVal', 'sidePreview')">
-                    <input type="hidden" id="sideVal" value="${p.sideImg || ''}">
-                    <button class="btn-outline" style="width:auto; padding:5px 15px;" onclick="document.getElementById('sideFile').click()">Выбрать фото</button>
-                </div>
-                <div style="background:#f5f5f5; padding:15px; border-radius:16px; margin:10px 0;">
-                    <div><strong>📷 Фото 3 (на манекене)</strong></div>
-                    <div id="manPreview" style="width:100px; height:100px; background:#ddd; border-radius:12px; margin:10px 0; display:flex; align-items:center; justify-content:center; overflow:hidden; cursor:pointer;" onclick="document.getElementById('manFile').click()">
-                        ${p.mannequinImg ? `<img src="${p.mannequinImg}">` : '🕴️'}
-                    </div>
-                    <input type="file" id="manFile" style="display:none" accept="image/*" onchange="handleImageUpload(event, 'manVal', 'manPreview')">
-                    <input type="hidden" id="manVal" value="${p.mannequinImg || ''}">
-                    <button class="btn-outline" style="width:auto; padding:5px 15px;" onclick="document.getElementById('manFile').click()">Выбрать фото</button>
-                </div>
-                <button class="btn" onclick="saveProduct()">💾 Сохранить</button>
-                <button class="btn-outline" style="margin-left:10px;" onclick="cancelEdit()">Отмена</button>
-            `;
-        }
-
-        function navigate(page) {
-            if (page === 'home') renderHome();
-            else if (page === 'cart') renderCart();
-            window.scrollTo(0, 0);
-        }
-
-        let saved = localStorage.getItem('palo_products');
-        if (saved) {
-            try {
-                let parsed = JSON.parse(saved);
-                if (parsed && parsed.length) {
-                    for (let i = 0; i < parsed.length; i++) {
-                        if (products[i]) {
-                            products[i].frontImg = parsed[i].frontImg || '';
-                            products[i].sideImg = parsed[i].sideImg || '';
-                            products[i].mannequinImg = parsed[i].mannequinImg || '';
-                        }
-                    }
-                }
-            } catch(e) {}
-        }
-
-        saveCart();
-        navigate('home');
-    </script>
-
-    <!-- Модалка товара -->
-    <div id="productModal" class="modal">
-        <div class="modal-content" id="productModalContent"></div>
-    </div>
-
-    <!-- Модалка заказа -->
-    <div id="orderModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeOrderModal()">&times;</span>
-            <h2>🛍️ Оформление заказа</h2>
-            <input type="text" id="orderName" placeholder="Ваше имя">
-            <input type="tel" id="orderPhone" placeholder="Телефон">
-            <textarea id="orderAddress" rows="2" placeholder="Адрес доставки"></textarea>
-            <select id="orderDelivery">
-                <option>СДЭК</option>
-                <option>Почта России</option>
-                <option>Курьером</option>
-                <option>Самовывоз</option>
-            </select>
-            <div class="payment-card">
-                <strong>💳 Оплата переводом на карту</strong>
-                <div class="card-number">2200 7020 0430 8479</div>
-                <small
+            localStorage.setItem
