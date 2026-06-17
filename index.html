@@ -5,126 +5,511 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>PALO — магазин одежды</title>
     <style>
-        *{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:linear-gradient(135deg,#e3f2fd 0%,#bbdef5 100%);min-height:100vh}
-        .header{background:white;padding:15px 20px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 10px rgba(0,0,0,0.1)}
-        .logo{font-size:24px;font-weight:700;cursor:pointer;color:#1a2634}.logo span{color:#5b6e8c}
-        .nav a{margin-left:20px;cursor:pointer;color:#333;font-weight:500}
-        .cart-count{background:#1e2f3f;color:white;border-radius:50%;padding:2px 8px;font-size:12px;margin-left:5px}
-        .main{max-width:1200px;margin:0 auto;padding:20px}
-        h2{margin-bottom:20px}
-        .products{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
-        .product{background:white;border-radius:20px;padding:20px;text-align:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.1);transition:.3s}
-        .product:hover{transform:translateY(-5px);box-shadow:0 10px 25px rgba(0,0,0,0.15)}
-        .product-image{width:100%;height:200px;border-radius:12px;overflow:hidden;margin-bottom:10px;background:#f5f5f5;display:flex;align-items:center;justify-content:center}
-        .product-image img{width:100%;height:100%;object-fit:cover}
-        .product-image .emoji-big{font-size:64px}
-        .product-name{font-weight:700;font-size:18px;margin:10px 0}
-        .product-price{color:#e67e22;font-weight:700;font-size:20px}
-        .product-desc{font-size:13px;color:#666;margin:10px 0}
-        .btn{background:#1e2f3f;color:#fff;border:none;padding:10px;border-radius:30px;cursor:pointer;font-size:14px;font-weight:600;width:100%;margin-top:10px}
-        .btn-outline{background:transparent;border:1px solid #cbdde9;color:#1e2f3e}
-        .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:1000;justify-content:center;align-items:center;padding:20px;overflow-y:auto}
-        .modal-content{background:#fff;border-radius:30px;max-width:700px;width:100%;padding:24px;position:relative;max-height:95vh;overflow-y:auto}
-        .close{position:absolute;top:15px;right:20px;font-size:28px;cursor:pointer;z-index:10;background:rgba(255,255,255,0.9);width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center}
-        .close:hover{background:#f0f0f0}
-        .zoom-wrapper{width:100%;height:350px;overflow:hidden;position:relative;background:#f5f7fa;border-radius:20px;cursor:crosshair;user-select:none;-webkit-user-select:none}
-        .zoom-wrapper .zoom-container{width:100%;height:100%;display:flex;justify-content:center;align-items:center;transition:transform .1s ease-out}
-        .zoom-wrapper .zoom-container img{max-width:100%;max-height:100%;object-fit:contain;pointer-events:none;-webkit-user-drag:none}
-        .zoom-wrapper .zoom-lens{position:absolute;width:150px;height:150px;background:rgba(255,255,255,0.3);border:2px solid rgba(255,255,255,0.8);border-radius:50%;pointer-events:none;display:none;z-index:5;box-shadow:0 0 30px rgba(0,0,0,0.3);transform:translate(-50%,-50%)}
-        .zoom-wrapper .zoom-result{position:absolute;right:10px;top:10px;width:150px;height:150px;border-radius:16px;border:2px solid rgba(255,255,255,0.5);background:white;overflow:hidden;display:none;z-index:10;box-shadow:0 4px 20px rgba(0,0,0,0.3);background-repeat:no-repeat}
-        .zoom-hint{position:absolute;bottom:12px;right:12px;background:rgba(0,0,0,0.5);color:#fff;padding:4px 14px;border-radius:20px;font-size:11px;pointer-events:none;z-index:2}
-        .thumbnails{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:10px}
-        .thumb{width:65px;height:65px;border-radius:14px;overflow:hidden;cursor:pointer;border:2px solid transparent;transition:.2s;background:#f0f2f5;flex-shrink:0}
-        .thumb.active{border-color:#1e2f3f}
-        .thumb img{width:100%;height:100%;object-fit:cover}
-        .size-section{margin:15px 0;padding:10px;background:#f5f5f5;border-radius:16px}
-        .size-buttons{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
-        .size-btn{background:#fff;border:1px solid #ddd;padding:8px 20px;border-radius:30px;cursor:pointer}
-        .size-btn.selected{background:#1e2f3f;color:#fff;border-color:#1e2f3f}
-        .size-info{font-size:12px;color:#666;margin-top:8px}
-        .cart-item{background:#fff;padding:15px;border-radius:16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
-        .total{font-size:22px;font-weight:700;text-align:right;margin-top:20px}
-        .payment-card{background:#e8f5e9;padding:15px;border-radius:16px;text-align:center;margin:15px 0}
-        .card-number{font-size:18px;font-weight:700;letter-spacing:2px;margin:10px 0}
-        .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:30px;opacity:0;transition:.3s;z-index:2000}
-        .toast.show{opacity:1}
-        .admin-link{margin-top:30px;text-align:center;font-size:12px;opacity:0;cursor:pointer;padding:8px;background:#eee;border-radius:20px;transition:.3s}
-        .admin-link.visible{opacity:.7}
-        input,select,textarea{width:100%;padding:12px;margin:8px 0;border:1px solid #ddd;border-radius:12px;font-size:16px;font-family:inherit}
-        @media(max-width:600px){.products{gap:10px}.product{padding:12px}.product-image{height:150px}.product-name{font-size:14px}.product-price{font-size:16px}.nav a{margin-left:10px;font-size:14px}.zoom-wrapper{height:250px}.zoom-wrapper .zoom-lens{width:100px;height:100px}.zoom-wrapper .zoom-result{width:100px;height:100px}.thumb{width:50px;height:50px}.modal-content{padding:16px}.btn{padding:12px;font-size:16px;min-height:44px}}
-        @media(max-width:400px){.zoom-wrapper{height:200px}.product-image{height:120px}.zoom-wrapper .zoom-lens{width:70px;height:70px}.zoom-wrapper .zoom-result{width:80px;height:80px}.thumb{width:40px;height:40px}}
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #e3f2fd 0%, #bbdef5 100%); min-height: 100vh; }
+        .header { background: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .logo { font-size: 24px; font-weight: bold; cursor: pointer; color: #1a2634; }
+        .logo span { color: #5b6e8c; }
+        .nav a { margin-left: 20px; cursor: pointer; color: #333; font-weight: 500; }
+        .cart-count { background: #1e2f3f; color: white; border-radius: 50%; padding: 2px 8px; font-size: 12px; margin-left: 5px; }
+        .main { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        h2 { margin-bottom: 20px; }
+        .products { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .product { background: white; border-radius: 20px; padding: 20px; text-align: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: 0.3s; }
+        .product:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+        .product-emoji { font-size: 64px; }
+        .product-name { font-weight: bold; font-size: 18px; margin: 10px 0; }
+        .product-price { color: #e67e22; font-weight: bold; font-size: 20px; }
+        .product-desc { font-size: 13px; color: #666; margin: 10px 0; }
+        .btn { background: #1e2f3f; color: white; border: none; padding: 10px; border-radius: 30px; cursor: pointer; font-size: 14px; font-weight: 600; width: 100%; margin-top: 10px; }
+        .btn-outline { background: transparent; border: 1px solid #cbdde9; color: #1e2f3e; }
+        
+        /* ===== МОДАЛЬНОЕ ОКНО С ГАЛЕРЕЕЙ И ЛУПОЙ ===== */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; padding: 20px; overflow-y: auto; }
+        .modal-content { background: white; border-radius: 30px; max-width: 700px; width: 100%; padding: 24px; position: relative; max-height: 95vh; overflow-y: auto; }
+        .close { position: absolute; top: 15px; right: 20px; font-size: 28px; cursor: pointer; z-index: 10; background: rgba(255,255,255,0.9); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .close:hover { background: #f0f0f0; }
+        
+        /* ===== ГАЛЕРЕЯ ===== */
+        .gallery { display: flex; flex-direction: column; gap: 12px; }
+        .zoom-container { width: 100%; height: 350px; overflow: hidden; position: relative; background: #f5f7fa; border-radius: 20px; display: flex; justify-content: center; align-items: center; cursor: zoom-in; transition: 0.3s; }
+        .zoom-container img { width: 100%; height: 100%; object-fit: contain; transition: transform 0.3s ease; }
+        .zoom-container.zoomed { cursor: zoom-out; }
+        .zoom-container.zoomed img { transform: scale(2.2); }
+        .zoom-hint { position: absolute; bottom: 12px; right: 12px; background: rgba(0,0,0,0.6); color: white; padding: 4px 14px; border-radius: 20px; font-size: 11px; pointer-events: none; }
+        .empty-image { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 64px; color: #c0cbd8; }
+        .thumbnails { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+        .thumb { width: 70px; height: 70px; border-radius: 14px; overflow: hidden; cursor: pointer; border: 2px solid transparent; transition: 0.2s; flex-shrink: 0; background: #f0f2f5; }
+        .thumb.active { border-color: #1e2f3f; }
+        .thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .thumb .empty-thumb { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #b0bcca; }
+        
+        .size-section { margin: 15px 0; padding: 10px; background: #f5f5f5; border-radius: 16px; }
+        .size-buttons { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0; }
+        .size-btn { background: white; border: 1px solid #ddd; padding: 8px 20px; border-radius: 30px; cursor: pointer; }
+        .size-btn.selected { background: #1e2f3f; color: white; border-color: #1e2f3f; }
+        .size-info { font-size: 12px; color: #666; margin-top: 8px; }
+        
+        .cart-item { background: white; padding: 15px; border-radius: 16px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .total { font-size: 22px; font-weight: bold; text-align: right; margin-top: 20px; }
+        .payment-card { background: #e8f5e9; padding: 15px; border-radius: 16px; text-align: center; margin: 15px 0; }
+        .card-number { font-size: 18px; font-weight: bold; letter-spacing: 2px; margin: 10px 0; }
+        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 30px; opacity: 0; transition: 0.3s; z-index: 2000; }
+        .toast.show { opacity: 1; }
+        .admin-link { margin-top: 30px; text-align: center; font-size: 12px; opacity: 0; cursor: pointer; padding: 8px; background: #eee; border-radius: 20px; transition: 0.3s; }
+        .admin-link.visible { opacity: 0.7; }
+        input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 12px; font-size: 16px; }
+        
+        @media (max-width: 600px) {
+            .products { gap: 10px; }
+            .product { padding: 12px; }
+            .product-emoji { font-size: 48px; }
+            .product-name { font-size: 14px; }
+            .product-price { font-size: 16px; }
+            .nav a { margin-left: 10px; font-size: 14px; }
+            .zoom-container { height: 250px; }
+            .thumb { width: 55px; height: 55px; }
+            .modal-content { padding: 16px; }
+            .btn { padding: 12px; font-size: 16px; min-height: 44px; }
+        }
+        @media (max-width: 400px) {
+            .zoom-container { height: 200px; }
+            .thumb { width: 44px; height: 44px; }
+        }
     </style>
 </head>
 <body>
-<div class="header">
-    <div class="logo" onclick="navigate('home')">PALO<span>.</span></div>
-    <div class="nav">
-        <a onclick="navigate('home')">🏠 Магазин</a>
-        <a onclick="navigate('cart')">🛒 Корзина <span class="cart-count" id="cartCount">0</span></a>
+    <div class="header">
+        <div class="logo" onclick="navigate('home')">PALO<span>.</span></div>
+        <div class="nav">
+            <a onclick="navigate('home')">🏠 Магазин</a>
+            <a onclick="navigate('cart')">🛒 Корзина <span class="cart-count" id="cartCount">0</span></a>
+        </div>
     </div>
-</div>
-<div class="main" id="app"></div>
-<div id="toast" class="toast"></div>
+    <div class="main" id="app"></div>
+    <div id="toast" class="toast"></div>
 
-<script>
-const products = [
-    {id:1,name:"Кепка",price:1500,desc:"Хлопок, козырёк",emoji:"🧢",sizes:["S","M","L"],measures:["54-56 см","57-59 см","60-62 см"],frontImg:"",sideImg:"",mannequinImg:""},
-    {id:2,name:"Футболка",price:1900,desc:"Джерси, белый",emoji:"👕",sizes:["S","M","L","XL"],measures:["68/48 см","70/51 см","72/54 см","74/57 см"],frontImg:"",sideImg:"",mannequinImg:""},
-    {id:3,name:"Брюки",price:5200,desc:"Костюмная ткань",emoji:"👖",sizes:["S","M","L","XL"],measures:["100/72 см","102/76 см","104/80 см","106/84 см"],frontImg:"",sideImg:"",mannequinImg:""},
-    {id:4,name:"Лонгслив",price:2700,desc:"Трикотаж, чёрный",emoji:"🧥",sizes:["S","M","L","XL"],measures:["62/48 см","64/51 см","66/54 см","68/57 см"],frontImg:"",sideImg:"",mannequinImg:""}
-];
-let cart=JSON.parse(localStorage.getItem('cart')||'[]');
-let selectedSizes=JSON.parse(localStorage.getItem('selectedSizes')||'{}');
-let currentImages=[];
-let isAdminAuth=false,editId=null,clickC=0,tmr=null;
+    <script>
+        const products = [
+            { id: 1, name: "Кепка", price: 1500, desc: "Хлопок, козырёк", emoji: "🧢", sizes: ["S", "M", "L"], measures: ["54-56 см", "57-59 см", "60-62 см"], frontImg: "", sideImg: "", mannequinImg: "" },
+            { id: 2, name: "Футболка", price: 1900, desc: "Джерси, белый", emoji: "👕", sizes: ["S", "M", "L", "XL"], measures: ["68/48 см", "70/51 см", "72/54 см", "74/57 см"], frontImg: "", sideImg: "", mannequinImg: "" },
+            { id: 3, name: "Брюки", price: 5200, desc: "Костюмная ткань", emoji: "👖", sizes: ["S", "M", "L", "XL"], measures: ["100/72 см", "102/76 см", "104/80 см", "106/84 см"], frontImg: "", sideImg: "", mannequinImg: "" },
+            { id: 4, name: "Лонгслив", price: 2700, desc: "Трикотаж, чёрный", emoji: "🧥", sizes: ["S", "M", "L", "XL"], measures: ["62/48 см", "64/51 см", "66/54 см", "68/57 см"], frontImg: "", sideImg: "", mannequinImg: "" }
+        ];
 
-function saveCart(){localStorage.setItem('cart',JSON.stringify(cart));document.getElementById('cartCount').innerText=cart.reduce((s,i)=>s+i.qty,0);}
-function toast(m){let t=document.getElementById('toast');t.innerText=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
-function selSize(id,size,idx){selectedSizes[id]=size;localStorage.setItem('selectedSizes',JSON.stringify(selectedSizes));document.querySelectorAll(`.size-${id}`).forEach(b=>{b.innerText===size?b.classList.add('selected'):b.classList.remove('selected')});let p=products.find(x=>x.id===id);if(p)document.getElementById(`sizeInfo-${id}`).innerText=p.measures[idx];}
-function addCart(id){let p=products.find(x=>x.id===id),sz=selectedSizes[id];if(p.sizes&&!sz){toast('⚠️ Выберите размер!');return;}let it=cart.find(i=>i.id===id&&i.size===sz);it?it.qty++:cart.push({id,qty:1,size:sz||'OS'});saveCart();toast('✓ Добавлено');navigate('cart');}
-function remCart(id,sz){cart=cart.filter(i=>!(i.id===id&&i.size===sz));saveCart();navigate('cart');}
+        let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        let selectedSizes = JSON.parse(localStorage.getItem('selectedSizes') || '{}');
+        let currentImages = [];
 
-function sendOrd(d,t,c){let txt=`🛍️ НОВЫЙ ЗАКАЗ PALO\n\n👤 ${c.name}\n📞 ${c.phone}\n📍 ${c.address}\n🚚 ${c.delivery}\n\n📦 ${d}\n💰 ИТОГО: ${t} ₽\n💳 Карта: 2200 7020 0430 8479`;fetch(`https://api.telegram.org/bot8758635199:AAEG8B69jBqbW1fmwLZUbrso5w1VIrHonKg/sendMessage`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:'5820655432',text:txt})}).then(r=>r.json()).then(d=>{if(d.ok){toast('✅ Заказ отправлен!');cart=[];saveCart();closeModal('orderModal');navigate('home');}else toast('❌ Ошибка');}).catch(()=>toast('❌ Ошибка сети'));}
-function openModal(id){document.getElementById(id).style.display='flex';document.body.style.overflow='hidden';}
-function closeModal(id){document.getElementById(id).style.display='none';document.body.style.overflow='';}
+        function saveCart() {
+            localStorage.setItem('cart', JSON.stringify(cart));
+            document.getElementById('cartCount').innerText = cart.reduce((s,i) => s + i.qty, 0);
+        }
 
-function initZoom(){const w=document.getElementById('zoomWrapper'),c=document.getElementById('zoomContainer'),i=document.getElementById('zoomImg'),l=document.getElementById('zoomLens'),r=document.getElementById('zoomResult');if(!w||!i||!l||!r)return;const reset=()=>{l.style.display='none';r.style.display='none';c.style.transform='scale(1)'};w.onmouseenter=()=>{if(i.src){l.style.display='block';r.style.display='block'}};w.onmouseleave=reset;w.onmousemove=(e)=>{if(!i.src)return;const rect=w.getBoundingClientRect();const x=e.clientX-rect.left,y=e.clientY-rect.top;const relX=x/rect.width,relY=y/rect.height;const ls=Math.min(150,rect.width*.3,rect.height*.3),lh=ls/2;let lx=x-lh,ly=y-lh;lx=Math.max(0,Math.min(lx,rect.width-ls));ly=Math.max(0,Math.min(ly,rect.height-ls));l.style.width=ls+'px';l.style.height=ls+'px';l.style.left=lx+'px';l.style.top=ly+'px';const zl=2.5;const ir=i.getBoundingClientRect();const irX=(e.clientX-ir.left)/ir.width,irY=(e.clientY-ir.top)/ir.height;r.style.width=ls+'px';r.style.height=ls+'px';r.style.backgroundImage=`url(${i.src})`;r.style.backgroundSize=`${ir.width*zl}px ${ir.height*zl}px`;r.style.backgroundPosition=`-${irX*ir.width*zl-ls/2}px -${irY*ir.height*zl-ls/2}px`;c.style.transform=`scale(${zl})`;c.style.transformOrigin=`${relX*100}% ${relY*100}%`};}
+        function showToast(msg) {
+            let t = document.getElementById('toast');
+            t.innerText = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2000);
+        }
 
-function openProduct(id){let p=products.find(x=>x.id===id),sz=selectedSizes[id]||'',imgs=[];if(p.frontImg)imgs.push({src:p.frontImg,label:'Спереди'});if(p.sideImg)imgs.push({src:p.sideImg,label:'Сбоку'});if(p.mannequinImg)imgs.push({src:p.mannequinImg,label:'На манекене'});currentImages=imgs;let th='';if(imgs.length){th='<div class="thumbnails">';imgs.forEach((img,i)=>{th+=`<div class="thumb ${i===0?'active':''}" onclick="switchImg(${i})"><img src="${img.src}"></div>`});th+='</div>'}else{th='<div class="thumbnails"><div class="thumb" style="border-color:transparent;cursor:default;"><div class="empty-thumb">📸</div></div></div>'}let szH='';if(p.sizes){szH=`<div class="size-section"><div>📏 Размер:</div><div class="size-buttons">`;p.sizes.forEach((s,i)=>{szH+=`<button class="size-btn size-${p.id} ${sz===s?'selected':''}" onclick="selSize(${p.id},'${s}',${i})">${s}</button>`});szH+=`</div><div class="size-info" id="sizeInfo-${p.id}">${sz?p.measures[p.sizes.indexOf(sz)]:'Нажмите на размер'}</div></div>`}let main=imgs.length?imgs[0].src:'';document.getElementById('productModalContent').innerHTML=`<span class="close" onclick="closeModal('productModal')">&times;</span><div class="gallery"><div class="zoom-wrapper" id="zoomWrapper"><div class="zoom-container" id="zoomContainer">${main?`<img id="zoomImg" src="${main}">`:`<div style="font-size:64px;color:#ccc;">${p.emoji}</div>`}</div><div class="zoom-lens" id="zoomLens"></div><div class="zoom-result" id="zoomResult"></div><div class="zoom-hint">🔍 Наведите для увеличения</div></div>${th}<div style="text-align:center;margin-top:12px;"><h2>${p.name}</h2><div style="font-size:24px;font-weight:700;color:#e67e22;margin:6px 0;">${p.price} ₽</div><div style="color:#666;font-size:14px;">${p.desc}</div>${szH}<button class="btn" onclick="addCart(${p.id});closeModal('productModal');">🛒 Добавить</button></div></div>`;openModal('productModal');setTimeout(initZoom,100);}
+        function selectSize(productId, size, idx) {
+            selectedSizes[productId] = size;
+            localStorage.setItem('selectedSizes', JSON.stringify(selectedSizes));
+            document.querySelectorAll(`.size-${productId}`).forEach(btn => {
+                if (btn.innerText === size) btn.classList.add('selected');
+                else btn.classList.remove('selected');
+            });
+            let product = products.find(p => p.id === productId);
+            if (product) document.getElementById(`sizeInfo-${productId}`).innerText = product.measures[idx];
+        }
 
-function switchImg(i){if(i>=currentImages.length)return;const img=document.getElementById('zoomImg');if(img)img.src=currentImages[i].src;document.querySelectorAll('.thumb').forEach((e,idx)=>{e.classList.toggle('active',idx===i)});const r=document.getElementById('zoomResult');if(r&&img)r.style.backgroundImage=`url(${img.src})`;}
+        function addToCart(id) {
+            let product = products.find(p => p.id === id);
+            let size = selectedSizes[id];
+            if (product.sizes && !size) { showToast('⚠️ Сначала выберите размер!'); return; }
+            let item = cart.find(i => i.id === id && i.size === size);
+            if (item) item.qty++;
+            else cart.push({ id, qty: 1, size: size || 'OS' });
+            saveCart();
+            showToast('✓ Добавлено в корзину');
+            navigate('cart');
+        }
 
-function openOrder(){if(!cart.length){toast('Корзина пуста');return}openModal('orderModal')}
-function closeOrder(){closeModal('orderModal')}
-function submitOrd(){let n=document.getElementById('orderName').value.trim(),ph=document.getElementById('orderPhone').value.trim(),ad=document.getElementById('orderAddress').value.trim(),del=document.getElementById('orderDelivery').value;if(!n||!ph||!ad){toast('Заполните поля');return}let lines='',total=0;cart.forEach(i=>{let p=products.find(x=>x.id===i.id);if(p){let s=p.price*i.qty;total+=s;lines+=`• ${p.name} (${i.size||'OS'}) — ${i.qty}шт × ${p.price}₽ = ${s}₽\n`}});sendOrd(lines,total,{name:n,phone:ph,address:ad,delivery:del});closeOrder()}
+        function removeFromCart(id, size) {
+            cart = cart.filter(i => !(i.id === id && i.size === size));
+            saveCart();
+            navigate('cart');
+        }
 
-function renderHome(){let h='<h2>Коллекция</h2><div class="products">';products.forEach(p=>{const img=p.frontImg||p.sideImg||p.mannequinImg||'';h+=`<div class="product" onclick="openProduct(${p.id})"><div class="product-image">${img?`<img src="${img}">`:`<span class="emoji-big">${p.emoji}</span>`}</div><div class="product-name">${p.name}</div><div class="product-price">${p.price} ₽</div><div class="product-desc">${p.desc}</div><button class="btn" onclick="event.stopPropagation();openProduct(${p.id})">🔍 Размер</button></div>`});h+=`</div><div id="adminLink" class="admin-link" onclick="showAdm()">🔒 Админ</div>`;document.getElementById('app').innerHTML=h;if(localStorage.getItem('adminShown')==='true')document.getElementById('adminLink').classList.add('visible')}
-function renderCart(){if(!cart.length){document.getElementById('app').innerHTML='<h2>Корзина</h2><div style="text-align:center;padding:50px;">🛒 Корзина пуста</div>';return}let total=0,h='<h2>Корзина</h2>';cart.forEach(i=>{let p=products.find(x=>x.id===i.id);if(!p)return;let s=p.price*i.qty;total+=s;h+=`<div class="cart-item"><div><strong>${p.name}</strong> ${i.size?`(${i.size})`:''}<br>${i.qty}шт × ${p.price}₽</div><div><strong>${s} ₽</strong></div><button class="btn-outline" style="width:auto;padding:8px 15px;" onclick="remCart(${p.id},'${i.size||''}')">🗑</button></div>`});h+=`<div class="total">Итого: ${total} ₽</div><button class="btn" onclick="openOrder()">💳 Оформить</button>`;document.getElementById('app').innerHTML=h}
+        function sendOrderToTelegram(orderDetails, total, customer) {
+            const TOKEN = '8758635199:AAEG8B69jBqbW1fmwLZUbrso5w1VIrHonKg';
+            const CHAT_ID = '5820655432';
+            let text = `🛍️ НОВЫЙ ЗАКАЗ PALO\n\n👤 Имя: ${customer.name}\n📞 Телефон: ${customer.phone}\n📍 Адрес: ${customer.address}\n🚚 Доставка: ${customer.delivery}\n\n📦 Состав:\n${orderDetails}\n\n💰 ИТОГО: ${total} ₽\n💳 Оплата: 2200 7020 0430 8479`;
+            fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: CHAT_ID, text: text })
+            }).then(r => r.json()).then(data => {
+                if (data.ok) { showToast('✅ Заказ отправлен!'); cart = []; saveCart(); closeOrderModal(); navigate('home'); }
+                else showToast('❌ Ошибка');
+            }).catch(() => showToast('❌ Ошибка соединения'));
+        }
 
-function navigate(page){if(page==='home')renderHome();else if(page==='cart')renderCart();window.scrollTo(0,0)}
+        function openProductModal(productId) {
+            let p = products.find(pr => pr.id === productId);
+            let currentSize = selectedSizes[productId] || '';
+            const images = [];
+            if (p.frontImg) images.push({ src: p.frontImg, label: 'Спереди' });
+            if (p.sideImg) images.push({ src: p.sideImg, label: 'Сбоку' });
+            if (p.mannequinImg) images.push({ src: p.mannequinImg, label: 'На манекене' });
+            currentImages = images;
 
-document.querySelector('.logo').addEventListener('click',function(){clickC++;clearTimeout(tmr);tmr=setTimeout(()=>{clickC=0},1000);if(clickC>=5){clickC=0;localStorage.setItem('adminShown','true');let l=document.getElementById('adminLink');if(l)l.classList.add('visible');toast('🔓 Админ активирована')}})function showAdm(){if(isAdminAuth){renderAdm();return}openModal('adminAuthModal')}
-function closeAdm(){closeModal('adminAuthModal');document.getElementById('adminPassword').value=''}
-function checkAdm(){let p=document.getElementById('adminPassword').value;if(p==='admin123'){isAdminAuth=true;closeAdm();toast('✅ Добро пожаловать');renderAdm()}else toast('❌ Неверный пароль')}
+            let thumbsHtml = '';
+            if (images.length > 0) {
+                thumbsHtml = `<div class="thumbnails">`;
+                images.forEach((img, idx) => {
+                    thumbsHtml += `<div class="thumb ${idx === 0 ? 'active' : ''}" onclick="switchImage(${idx})"><img src="${img.src}"></div>`;
+                });
+                thumbsHtml += `</div>`;
+            } else {
+                thumbsHtml = `<div class="thumbnails"><div class="thumb" style="border-color:transparent;cursor:default;"><div class="empty-thumb">📸</div></div></div>`;
+            }
 
-function renderAdm(){if(!isAdminAuth){showAdm();return}let h=`<div style="background:white;border-radius:24px;padding:20px;"><h2>📷 Управление</h2><div id="adminMsg"></div><div id="adminForm"></div><h3 style="margin:20px 0 10px;">Список</h3><ul style="list-style:none;">`;products.forEach(p=>{h+=`<li style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #eee;"><span style="font-size:28px;">${p.emoji}</span><span style="flex:1;margin-left:10px;"><strong>${p.name}</strong> — ${p.price}₽</span><button onclick="editProd(${p.id})" class="btn-outline" style="padding:5px 15px;width:auto;">✏️</button></li>`});h+=`</ul></div>`;document.getElementById('app').innerHTML=h;if(editId){let pr=products.find(x=>x.id===editId);if(pr)renderForm(pr)}else renderForm(null)}
-function editProd(id){editId=id;renderAdm()}
-function cancelEdit(){editId=null;renderAdm()}
+            let sizeHtml = '';
+            if (p.sizes) {
+                sizeHtml = `<div class="size-section"><div>📏 Выберите размер:</div><div class="size-buttons">`;
+                p.sizes.forEach((size, idx) => {
+                    sizeHtml += `<button class="size-btn size-${p.id} ${currentSize === size ? 'selected' : ''}" onclick="selectSize(${p.id}, '${size}', ${idx})">${size}</button>`;
+                });
+                sizeHtml += `</div><div class="size-info" id="sizeInfo-${p.id}">${currentSize ? p.measures[p.sizes.indexOf(currentSize)] : 'Нажмите на размер'}</div></div>`;
+            }
 
-function handleImg(ev,fid,pid){let file=ev.target.files[0];if(!file)return;if(file.size>1024*1024){toast('⚠️ Файл >1 МБ');return}let r=new FileReader();r.onload=function(e){document.getElementById(fid).value=e.target.result;document.getElementById(pid).innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;">`;toast('✅ Фото загружено');saveSilent()};r.readAsDataURL(file)}
-function saveSilent(){let n=document.getElementById('prodName').value.trim(),pr=parseInt(document.getElementById('prodPrice').value);if(!n||isNaN(pr))return;let d=document.getElementById('prodDesc').value,e=document.getElementById('prodEmoji').value,f=document.getElementById('frontVal').value,s=document.getElementById('sideVal').value,m=document.getElementById('manVal').value;if(editId){let idx=products.findIndex(x=>x.id===editId);if(idx!==-1){products[idx].name=n;products[idx].price=pr;products[idx].desc=d;products[idx].emoji=e;products[idx].frontImg=f;products[idx].sideImg=s;products[idx].mannequinImg=m}}localStorage.setItem('palo_products',JSON.stringify(products));let msg=document.getElementById('adminMsg');if(msg){msg.innerHTML='<div style="background:#e0f2e9;padding:10px;border-radius:12px;">✓ Сохранено</div>';setTimeout(()=>{msg.innerHTML=''},3000)}}
-function saveProd(){let n=document.getElementById('prodName').value.trim(),pr=parseInt(document.getElementById('prodPrice').value),d=document.getElementById('prodDesc').value,e=document.getElementById('prodEmoji').value,f=document.getElementById('frontVal').value,s=document.getElementById('sideVal').value,m=document.getElementById('manVal').value;if(!n||isNaN(pr)){toast('Заполните название и цену');return}if(editId){let idx=products.findIndex(x=>x.id===editId);if(idx!==-1){products[idx].name=n;products[idx].price=pr;products[idx].desc=d;products[idx].emoji=e;products[idx].frontImg=f;products[idx].sideImg=s;products[idx].mannequinImg=m}}localStorage.setItem('palo_products',JSON.stringify(products));let msg=document.getElementById('adminMsg');if(msg){msg.innerHTML='<div style="background:#e0f2e9;padding:10px;border-radius:12px;">✓ Сохранено</div>';setTimeout(()=>{msg.innerHTML=''},3000)}toast('✅ Сохранено');editId=null;renderAdm()}
+            const mainImg = images.length > 0 ? images[0].src : '';
 
-function renderForm(pr){let f=document.getElementById('adminForm');if(!f)return;let prod=pr||{id:null,name:'',price:'',desc:'',emoji:'👕',frontImg:'',sideImg:'',mannequinImg:''};f.innerHTML=`<div><input id="prodName" placeholder="Название" value="${prod.name}" style="width:100%;padding:10px;border-radius:12px;border:1px solid #ddd;margin-bottom:10px;"></div><div><input id="prodPrice" type="number" placeholder="Цена" value="${prod.price}" style="width:100%;padding:10px;border-radius:12px;border:1px solid #ddd;margin-bottom:10px;"></div><div><textarea id="prodDesc" rows="2" placeholder="Описание" style="width:100%;padding:10px;border-radius:12px;border:1px solid #ddd;margin-bottom:10px;">${prod.desc}</textarea></div><div><input id="prodEmoji" placeholder="Эмодзи" value="${prod.emoji}" style="width:100%;padding:10px;border-radius:12px;border:1px solid #ddd;margin-bottom:10px;"></div><div style="background:#f5f5f5;padding:15px;border-radius:16px;margin:10px 0;"><div><strong>📷 Фото 1</strong></div><div id="frontPreview" style="width:100px;height:100px;background:#ddd;border-radius:12px;margin:10px 0;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;" onclick="document.getElementById('frontFile').click()">${prod.frontImg?`<img src="${prod.frontImg}">`:'📸'}</div><input type="file" id="frontFile" style="display:none" accept="image/*" onchange="handleImg(event,'frontVal','frontPreview')"><input type="hidden" id="frontVal" value="${prod.frontImg||''}"><button class="btn-outline" style="width:auto;padding:5px 15px;" onclick="document.getElementById('frontFile').click()">Выбрать фото</button></div><div style="background:#f5f5f5;padding:15px;border-radius:16px;margin:10px 0;"><div><strong>📷 Фото 2</strong></div><div id="sidePreview" style="width:100px;height:100px;background:#ddd;border-radius:12px;margin:10px 0;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;" onclick="document.getElementById('sideFile').click()">${prod.sideImg?`<img src="${prod.sideImg}">`:'📸'}</div><input type="file" id="sideFile" style="display:none" accept="image/*" onchange="handleImg(event,'sideVal','sidePreview')"><input type="hidden" id="sideVal" value="${prod.sideImg||''}"><button class="btn-outline" style="width:auto;padding:5px 15px;" onclick="document.getElementById('sideFile').click()">Выбрать фото</button></div><div style="background:#f5f5f5;padding:15px;border-radius:16px;margin:10px 0;"><div><strong>📷 Фото 3</strong></div><div id="manPreview" style="width:100px;height:100px;background:#ddd;border-radius:12px;margin:10px 0;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;" onclick="document.getElementById('manFile').click()">${prod.mannequinImg?`<img src="${prod.mannequinImg}">`:'🕴️'}</div><input type="file" id="manFile" style="display:none" accept="image/*" onchange="handleImg(event,'manVal','manPreview')"><input type="hidden" id="manVal" value="${prod.mannequinImg||''}"><button class="btn-outline" style="width:auto;padding:5px 15px;" onclick="document.getElementById('manFile').click()">Выбрать фото</button></div><button class="btn" onclick="saveProd()">💾 Сохранить</button><button class="btn-outline" style="margin-left:10px;" onclick="cancelEdit()">Отмена</button>`}
+            document.getElementById('productModalContent').innerHTML = `
+                <span class="close" onclick="closeProductModal()">&times;</span>
+                <div class="gallery">
+                    <div class="zoom-container" id="zoomContainer" onclick="toggleZoom()">
+                        ${mainImg ? `<img id="mainImage" src="${mainImg}">` : `<div class="empty-image">${p.emoji}</div>`}
+                        <div class="zoom-hint">🔍 Нажмите для увеличения</div>
+                    </div>
+                    ${thumbsHtml}
+                    <div style="text-align:center;margin-top:12px;">
+                        <h2>${p.name}</h2>
+                        <div style="font-size:24px;font-weight:700;color:#e67e22;margin:6px 0;">${p.price} ₽</div>
+                        <div style="color:#666;font-size:14px;">${p.desc}</div>
+                        ${sizeHtml}
+                        <button class="btn" onclick="addToCart(${p.id}); closeProductModal();">🛒 Добавить в корзину</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('productModal').style.display = 'flex';
+            setTimeout(() => { const c = document.getElementById('zoomContainer'); if (c) c.classList.remove('zoomed'); }, 50);
+        }
 
-let saved=localStorage.getItem('palo_products');if(saved){try{let parsed=JSON.parse(saved);if(parsed&&parsed.length){for(let i=0;i<parsed.length;i++){if(products[i]){products[i].frontImg=parsed[i].frontImg||'';products[i].sideImg=parsed[i].sideImg||'';products[i].mannequinImg=parsed[i].mannequinImg||''}}}}catch(e){}}
-saveCart();navigate('home');
-</script>
+        function closeProductModal() {
+            document.getElementById('productModal').style.display = 'none';
+        }
 
-<div id="productModal" class="modal"><div class="modal-content" id="productModalContent"></div></div>
+        function switchImage(index) {
+            if (index >= currentImages.length) return;
+            const mainImg = document.getElementById('mainImage');
+            if (mainImg) mainImg.src = currentImages[index].src;
+            document.querySelectorAll('.thumb').forEach((el, i) => {
+                el.classList.toggle('active', i === index);
+            });
+            const container = document.getElementById('zoomContainer');
+            if (container) container.classList.remove('zoomed');
+        }
 
-<div id="orderModal" class="modal"><div class="modal-content"><span class="close" onclick="closeOrder()">&times;</span><h2>🛍️ Оформление заказа</h2><input type="text" id="orderName" placeholder="Имя"><input type="tel" id="orderPhone" placeholder="Телефон"><textarea id="orderAddress" rows="2" placeholder="Адрес"></textarea><select id="orderDelivery"><option>СДЭК</option><option>Почта России</option><option>Курьером</option><option>Самовывоз</option></select><div class="payment-card"><strong>💳 Перевод на карту</strong><div class="card-number">2200 7020 0430 8479</div><small>После заказа переведите сумму</small></div><button class="btn" onclick="submitOrd()">✅ Отправить</button></div></div>
+        function toggleZoom() {
+            const container = document.getElementById('zoomContainer');
+            if (container) container.classList.toggle('zoomed');
+        }
 
-<div id="adminAuthModal" class="modal"><div class="modal-content"><span class="close" onclick="closeAdm()">&times;</span><h2>🔐 Вход</h2><input type="password" id="adminPassword" placeholder="Пароль"><button class="btn" onclick="checkAdm()">Войти</button></div></div>
-</body>
-</html>
+        function openOrderModal() {
+            if (cart.length === 0) { showToast('Корзина пуста'); return; }
+            document.getElementById('orderModal').style.display = 'flex';
+        }
+
+        function closeOrderModal() {
+            document.getElementById('orderModal').style.display = 'none';
+        }
+
+        function submitOrder() {
+            let name = document.getElementById('orderName').value.trim();
+            let phone = document.getElementById('orderPhone').value.trim();
+            let address = document.getElementById('orderAddress').value.trim();
+            let delivery = document.getElementById('orderDelivery').value;
+            if (!name || !phone || !address) { showToast('Заполните все поля'); return; }
+            let lines = '', total = 0;
+            cart.forEach(item => {
+                let p = products.find(pr => pr.id === item.id);
+                let sum = p.price * item.qty;
+                total += sum;
+                lines += `• ${p.name} (${item.size || 'OS'}) — ${item.qty}шт × ${p.price}₽ = ${sum}₽\n`;
+            });
+            sendOrderToTelegram(lines, total, { name, phone, address, delivery });
+            closeOrderModal();
+        }
+
+        function renderHome() {
+            let html = '<h2>Коллекция</h2><div class="products">';
+            products.forEach(p => {
+                html += `<div class="product" onclick="openProductModal(${p.id})">
+                    <div class="product-emoji">${p.emoji}</div>
+                    <div class="product-name">${p.name}</div>
+                    <div class="product-price">${p.price} ₽</div>
+                    <div class="product-desc">${p.desc}</div>
+                    <button class="btn" onclick="event.stopPropagation(); openProductModal(${p.id})">🔍 Выбрать размер</button>
+                </div>`;
+            });
+            html += `</div><div id="adminLink" class="admin-link" onclick="showAdminAuth()">🔒 Админ-панель</div>`;
+            document.getElementById('app').innerHTML = html;
+            if (localStorage.getItem('adminShown') === 'true') {
+                document.getElementById('adminLink').classList.add('visible');
+            }
+        }
+
+        function renderCart() {
+            if (cart.length === 0) {
+                document.getElementById('app').innerHTML = '<h2>Корзина</h2><div style="text-align:center;padding:50px;">🛒 Корзина пуста</div>';
+                return;
+            }
+            let total = 0, html = '<h2>Корзина</h2>';
+            cart.forEach(item => {
+                let p = products.find(pr => pr.id === item.id);
+                let sum = p.price * item.qty;
+                total += sum;
+                html += `<div class="cart-item">
+                    <div><strong>${p.name}</strong> ${item.size ? `(${item.size})` : ''}<br>${item.qty} шт × ${p.price} ₽</div>
+                    <div><strong>${sum} ₽</strong></div>
+                    <button class="btn-outline" style="width:auto; padding:8px 15px;" onclick="removeFromCart(${p.id}, '${item.size || ''}')">🗑 Удалить</button>
+                </div>`;
+            });
+            html += `<div class="total">Итого: ${total} ₽</div>`;
+            html += `<button class="btn" onclick="openOrderModal()">💳 Оформить заказ</button>`;
+            document.getElementById('app').innerHTML = html;
+        }
+
+        let clickCount = 0, clickTimer = null;
+        document.querySelector('.logo').addEventListener('click', function() {
+            clickCount++;
+            clearTimeout(clickTimer);
+            clickTimer = setTimeout(() => { clickCount = 0; }, 1000);
+            if (clickCount >= 5) {
+                clickCount = 0;
+                localStorage.setItem('adminShown', 'true');
+                let adminLink = document.getElementById('adminLink');
+                if (adminLink) adminLink.classList.add('visible');
+                showToast('🔓 Админ-панель активирована');
+            }
+        });
+
+        let isAdminAuthenticated = false, currentEditId = null;
+
+        function showAdminAuth() {
+            if (isAdminAuthenticated) { renderAdmin(); return; }
+            document.getElementById('adminAuthModal').style.display = 'flex';
+        }
+
+        function closeAdminAuth() {
+            document.getElementById('adminAuthModal').style.display = 'none';
+            document.getElementById('adminPassword').value = '';
+        }
+
+        function checkAdminPassword() {
+            let pwd = document.getElementById('adminPassword').value;
+            if (pwd === 'admin123') {
+                isAdminAuthenticated = true;
+                closeAdminAuth();
+                showToast('✅ Добро пожаловать в админку');
+                renderAdmin();
+            } else showToast('❌ Неверный пароль');
+        }
+
+        function renderAdmin() {
+            if (!isAdminAuthenticated) { showAdminAuth(); return; }
+            let html = `<div style="background:white; border-radius:24px; padding:20px;">
+                <h2>📷 Управление товарами</h2><div id="adminMsg"></div><div id="adminForm"></div>
+                <h3 style="margin:20px 0 10px;">Список</h3><ul style="list-style:none;">`;
+            products.forEach(p => {
+                html += `<li style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #eee;">
+                    <span style="font-size:28px;">${p.emoji}</span>
+                    <span style="flex:1; margin-left:10px;"><strong>${p.name}</strong> — ${p.price}₽</span>
+                    <button onclick="editProduct(${p.id})" class="btn-outline" style="padding:5px 15px; width:auto;">✏️</button>
+                </li>`;
+            });
+            html += `</ul></div>`;
+            document.getElementById('app').innerHTML = html;
+            if (currentEditId) {
+                let prod = products.find(p => p.id === currentEditId);
+                if (prod) renderAdminForm(prod);
+            } else renderAdminForm(null);
+        }
+
+        function editProduct(id) { currentEditId = id; renderAdmin(); }
+        function cancelEdit() { currentEditId = null; renderAdmin(); }
+
+        function handleImageUpload(event, fieldId, previewId) {
+            let file = event.target.files[0];
+            if (!file) return;
+            if (file.size > 1024 * 1024) { showToast('⚠️ Файл больше 1 МБ'); return; }
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById(fieldId).value = e.target.result;
+                document.getElementById(previewId).innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;">`;
+                showToast('✅ Фото загружено');
+                saveProductSilent();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function saveProductSilent() {
+            let name = document.getElementById('prodName').value.trim();
+            let price = parseInt(document.getElementById('prodPrice').value);
+            if (!name || isNaN(price)) return;
+            let desc = document.getElementById('prodDesc').value;
+            let emoji = document.getElementById('prodEmoji').value;
+            let frontImg = document.getElementById('frontVal').value;
+            let sideImg = document.getElementById('sideVal').value;
+            let mannequinImg = document.getElementById('manVal').value;
+            if (currentEditId) {
+                let index = products.findIndex(p => p.id === currentEditId);
+                if (index !== -1) {
+                    products[index].name = name;
+                    products[index].price = price;
+                    products[index].desc = desc;
+                    products[index].emoji = emoji;
+                    products[index].frontImg = frontImg;
+                    products[index].sideImg = sideImg;
+                    products[index].mannequinImg = mannequinImg;
+                }
+            }
+            localStorage.setItem('palo_products', JSON.stringify(products));
+            let msg = document.getElementById('adminMsg');
+            if (msg) { msg.innerHTML = '<div style="background:#e0f2e9; padding:10px; border-radius:12px;">✓ Сохранено</div>';
+            setTimeout(() => { msg.innerHTML = ''; }, 3000); }
+        }
+
+        function saveProduct() {
+            let name = document.getElementById('prodName').value.trim();
+            let price = parseInt(document.getElementById('prodPrice').value);
+            let desc = document.getElementById('prodDesc').value;
+            let emoji = document.getElementById('prodEmoji').value;
+            let frontImg = document.getElementById('frontVal').value;
+            let sideImg = document.getElementById('sideVal').value;
+            let mannequinImg = document.getElementById('manVal').value;
+            if (!name || isNaN(price)) { showToast('Заполните название и цену'); return; }
+            if (currentEditId) {
+                let index = products.findIndex(p => p.id === currentEditId);
+                if (index !== -1) {
+                    products[index].name = name;
+                    products[index].price = price;
+                    products[index].desc = desc;
+                    products[index].emoji = emoji;
+                    products[index].frontImg = frontImg;
+                    products[index].sideImg = sideImg;
+                    products[index].mannequinImg = mannequinImg;
+                }
+            }
+            localStorage.setItem('palo_products', JSON.stringify(products));
+            let msg = document.getElementById('adminMsg');
+            if (msg) { msg.innerHTML = '<div style="background:#e0f2e9; padding:10px; border-radius:12px;">✓ Сохранено</div>';
+            setTimeout(() => { msg.innerHTML = ''; }, 3000); }
+            showToast('✅ Товар сохранён');
+            currentEditId = null;
+            renderAdmin();
+        }
+
+        function renderAdminForm(prod) {
+            let formDiv = document.getElementById('adminForm');
+            if (!formDiv) return;
+            let p = prod || { id: null, name: '', price: '', desc: '', emoji: '👕', frontImg: '', sideImg: '', mannequinImg: '' };
+            formDiv.innerHTML = `
+                <div><input id="prodName" placeholder="Название" value="${p.name}" style="width:100%; padding:10px; border-radius:12px; border:1px solid #ddd; margin-bottom:10px;"></div>
+                <div><input id="prodPrice" type="number" placeholder="Цена" value="${p.price}" style="width:100%; padding:10px; border-radius:12px; border:1px solid #ddd; margin-bottom:10px;"></div>
+                <div><textarea id="prodDesc" rows="2" placeholder="Описание" style="width:100%; padding:10px; border-radius:12px; border:1px solid #ddd; margin-bottom:10px;">${p.desc}</textarea></div>
+                <div><input id="prodEmoji" placeholder="Эмодзи" value="${p.emoji}" style="width:100%; padding:10px; border-radius:12px; border:1px solid #ddd; margin-bottom:10px;"></div>
+                <div style="background:#f5f5f5; padding:15px; border-radius:16px; margin:10px 0;">
+                    <div><strong>📷 Фото 1 (спереди)</strong></div>
+                    <div id="frontPreview" style="width:100px; height:100px; background:#ddd; border-radius:12px; margin:10px 0; display:flex; align-items:center; justify-content:center; overflow:hidden; cursor:pointer;" onclick="document.getElementById('frontFile').click()">
+                        ${p.frontImg ? `<img src="${p.frontImg}">` : '📸'}
+                    </div>
+                    <input type="file" id="frontFile" style="display:none" accept="image/*" onchange="handleImageUpload(event, 'frontVal', 'frontPreview')">
+                    <input type="hidden" id="frontVal" value="${p.frontImg || ''}">
+                    <button class="btn-outline" style="width:auto; padding:5px 15px;" onclick="document.getElementById('frontFile').click()">Выбрать фото</button>
+                </div>
+                <div style="background:#f5f5f5; padding:15px; border-radius:16px; margin:10px 0;">
+                    <div><strong>📷 Фото 2 (сбоку)</strong></div>
+                    <div id="sidePreview" style="width:100px; height:100px; background:#ddd; border-radius:12px; margin:10px 0; display:flex; align-items:center; justify-content:center; overflow:hidden; cursor:pointer;" onclick="document.getElementById('sideFile').click()">
+                        ${p.sideImg ? `<img src="${p.sideImg}">` : '📸'}
+                    </div>
+                    <input type="file" id="sideFile" style="display:none" accept="image/*" onchange="handleImageUpload(event, 'sideVal', 'sidePreview')">
+                    <input type="hidden" id="sideVal" value="${p.sideImg || ''}">
+                    <button class="btn-outline" style="width:auto; padding:5px 15px;" onclick="document.getElementById('sideFile').click()">Выбрать фото</button>
+                </div>
+                <div style="background:#f5f5f5; padding:15px; border-radius:16px; margin:10px 0;">
+                    <div><strong>📷 Фото 3 (на манекене)</strong></div>
+                    <div id="manPreview" style="width:100px; height:100px; background:#ddd; border-radius:12px; margin:10px 0; display:flex; align-items:center; justify-content:center; overflow:hidden; cursor:pointer;" onclick="document.getElementById('manFile').click()">
+                        ${p.mannequinImg ? `<img src="${p.mannequinImg}">` : '🕴️'}
+                    </div>
+                    <input type="file" id="manFile" style="display:none" accept="image/*" onchange="handleImageUpload(event, 'manVal', 'manPreview')">
+                    <input type="hidden" id="manVal" value="${p.mannequinImg || ''}">
+                    <button class="btn-outline" style="width:auto; padding:5px 15px;" onclick="document.getElementById('manFile').click()">Выбрать фото</button>
+                </div>
+                <button class="btn" onclick="saveProduct()">💾 Сохранить</button>
+                <button class="btn-outline" style="margin-left:10px;" onclick="cancelEdit()">Отмена</button>
+            `;
+        }
+
+        function navigate(page) {
+            if (page === 'home') renderHome();
+            else if (page === 'cart') renderCart();
+            window.scrollTo(0, 0);
+        }
+
+        let saved = localStorage.getItem('palo_products');
+        if (saved) {
+            try {
+                let parsed = JSON.parse(saved);
+                if (parsed && parsed.length) {
+                    for (let i = 0; i < parsed.length; i++) {
+                        if (products[i]) {
+                            products[i].frontImg = parsed[i].frontImg || '';
+                            products[i].sideImg = parsed[i].sideImg || '';
+                            products[i].mannequinImg = parsed[i].mannequinImg || '';
+                        }
+                    }
+                }
+            } catch(e) {}
+        }
+
+        saveCart();
+        navigate('home');
+    </script>
+
+    <!-- Модалка товара -->
+    <div id="productModal" class="modal">
+        <div class="modal-content" id="productModalContent"></div>
+    </div>
+
+    <!-- Модалка заказа -->
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeOrderModal()">&times;</span>
+            <h2>🛍️ Оформление заказа</h2>
+            <input type="text" id="orderName" placeholder="Ваше имя">
+            <input type="tel" id="orderPhone" placeholder="Телефон">
+            <textarea id="orderAddress" rows="2" placeholder="Адрес доставки"></textarea>
+            <select id="orderDelivery">
+                <option>СДЭК</option>
+                <option>Почта России</option>
+                <option>Курьером</option>
+                <option>Самовывоз</option>
+            </select>
+            <div class="payment-card">
+                <strong>💳 Оплата переводом на карту</strong>
+                <div class="card-number">2200 7020 0430 8479</div>
+                <small
