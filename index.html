@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=yes"><title>PALO — магазин одежды</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=yes">
+<title>PALO — магазин одежды</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:linear-gradient(135deg,#e3f2fd 0%,#bbdef5 100%);min-height:100vh}
 .app{display:flex;min-height:100vh}.sidebar{width:280px;background:rgba(255,255,255,.96);border-right:1px solid #e2e8f0;padding:2rem 1.5rem;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:2rem;flex-shrink:0}
@@ -88,9 +90,21 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#1e2f3f}
 <span class="close-zoom">&times;</span>
 <img id="zoomImage" src="">
 </div>
-<script>
-const products=[{id:1,name:"Кепка",price:1500,desc:"Хлопок, козырёк",emoji:"🧢",sizes:["S","M","L"],measures:["54-56 см","57-59 см","60-62 см"],frontImg:"",sideImg:"",mannequinImg:""},{id:2,name:"Футболка",price:1900,desc:"Джерси, белый",emoji:"👕",sizes:["S","M","L","XL"],measures:["68/48 см","70/51 см","72/54 см","74/57 см"],frontImg:"",sideImg:"",mannequinImg:""},{id:3,name:"Брюки",price:5200,desc:"Костюмная ткань",emoji:"👖",sizes:["S","M","L","XL"],measures:["100/72 см","102/76 см","104/80 см","106/84 см"],frontImg:"",sideImg:"",mannequinImg:""},{id:4,name:"Лонгслив",price:2700,desc:"Трикотаж, чёрный",emoji:"🧥",sizes:["S","M","L","XL"],measures:["62/48 см","64/51 см","66/54 см","68/57 см"],frontImg:"",sideImg:"",mannequinImg:""}];
-let cart=JSON.parse(localStorage.getItem('cart')||'[]');let sizes=JSON.parse(localStorage.getItem('sizes')||'{}');let isAdmin=false;let editId=null;let clicks=0;let tmr=null;let gIdx=0;let gImgs=[];
+<script>const products = [
+{id:1,name:"Кепка",price:1500,desc:"Хлопок, козырёк",emoji:"🧢",sizes:["S","M","L"],measures:["54-56 см","57-59 см","60-62 см"],frontImg:"",sideImg:"",mannequinImg:""},
+{id:2,name:"Футболка",price:1900,desc:"Джерси, белый",emoji:"👕",sizes:["S","M","L","XL"],measures:["68/48 см","70/51 см","72/54 см","74/57 см"],frontImg:"",sideImg:"",mannequinImg:""},
+{id:3,name:"Брюки",price:5200,desc:"Костюмная ткань",emoji:"👖",sizes:["S","M","L","XL"],measures:["100/72 см","102/76 см","104/80 см","106/84 см"],frontImg:"",sideImg:"",mannequinImg:""},
+{id:4,name:"Лонгслив",price:2700,desc:"Трикотаж, чёрный",emoji:"🧥",sizes:["S","M","L","XL"],measures:["62/48 см","64/51 см","66/54 см","68/57 см"],frontImg:"",sideImg:"",mannequinImg:""}
+];
+let cart=JSON.parse(localStorage.getItem('cart')||'[]');
+let sizes=JSON.parse(localStorage.getItem('sizes')||'{}');
+let isAdmin=false;
+let editId=null;
+let clicks=0;
+let tmr=null;
+let gIdx=0;
+let gImgs=[];
+
 function saveCart(){localStorage.setItem('cart',JSON.stringify(cart));document.getElementById('cartCount').innerText=cart.reduce((a,b)=>a+b.qty,0);}
 function toast(m){let t=document.getElementById('toast');t.innerText=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 function loadSaved(){let s=localStorage.getItem('palo_products');if(s){try{let p=JSON.parse(s);if(p&&p.length){for(let i=0;i<p.length;i++){if(products[i]){products[i].frontImg=p[i].frontImg||'';products[i].sideImg=p[i].sideImg||'';products[i].mannequinImg=p[i].mannequinImg||'';}}}}catch(e){}}}
@@ -125,6 +139,38 @@ function showAdminAuth(){if(isAdmin){renderAdmin();return;}openM('adminAuthModal
 function closeAdminAuth(){closeM('adminAuthModal');document.getElementById('adminPassword').value='';}
 function checkAdmin(){let p=document.getElementById('adminPassword').value;if(p==='admin123'){isAdmin=true;closeAdminAuth();toast('✅ Добро пожаловать в админку');renderAdmin();}else toast('❌ Неверный пароль');}
 loadSaved();saveCart();renderHome();
-</script>
-<div id="productModal" class="modal"><div class="modal-content" id="productModalContent"></div></div>
-<div id="orderModal" class="modal"><div class="modal-content"><span class="close-modal" onclick="closeOrder()">&times;</span><h2>🛍️ Оформление заказа</h2><input type="text" id="orderName" placeholder="Ваше имя"><input type="tel" id="orderPhone" placeholder="Телефон"><textarea id="orderAddress" rows="2" placeholder="Адрес доставки"></textarea><select id="orderDelivery"><option>СДЭК</option><
+</script><div id="productModal" class="modal"><div class="modal-content" id="productModalContent"></div></div>
+
+<div id="orderModal" class="modal">
+<div class="modal-content">
+<span class="close-modal" onclick="closeOrder()">&times;</span>
+<h2>🛍️ Оформление заказа</h2>
+<input type="text" id="orderName" placeholder="Ваше имя">
+<input type="tel" id="orderPhone" placeholder="Телефон">
+<textarea id="orderAddress" rows="2" placeholder="Адрес доставки"></textarea>
+<select id="orderDelivery">
+<option>СДЭК</option>
+<option>Почта России</option>
+<option>Курьером</option>
+<option>Самовывоз</option>
+</select>
+<div class="payment-card">
+<strong>💳 Оплата переводом на карту</strong>
+<div class="card-number">2200 7020 0430 8479</div>
+<small>После заказа переведите сумму</small>
+</div>
+<button class="btn" onclick="submitOrd()">✅ Отправить заказ</button>
+</div>
+</div>
+
+<div id="adminAuthModal" class="modal">
+<div class="modal-content">
+<span class="close-modal" onclick="closeAdminAuth()">&times;</span>
+<h2>🔐 Вход в админку</h2>
+<input type="password" id="adminPassword" placeholder="Пароль">
+<button class="btn" onclick="checkAdmin()">Войти</button>
+</div>
+</div>
+
+</body>
+</html>
