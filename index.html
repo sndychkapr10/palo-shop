@@ -7,87 +7,413 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #e3f2fd 0%, #bbdef5 100%); min-height: 100vh; }
-        .header { background: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .logo { font-size: 24px; font-weight: bold; cursor: pointer; color: #1a2634; }
-        .logo span { color: #5b6e8c; }
-        .nav a { margin-left: 20px; cursor: pointer; color: #333; font-weight: 500; }
-        .cart-count { background: #1e2f3f; color: white; border-radius: 50%; padding: 2px 8px; font-size: 12px; margin-left: 5px; }
-        .main { max-width: 1200px; margin: 0 auto; padding: 20px; }
-        h2 { margin-bottom: 20px; }
-        .products { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
-        .product { background: white; border-radius: 20px; padding: 20px; text-align: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: 0.3s; }
-        .product:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
-        .product-image { width: 100%; height: 200px; border-radius: 12px; overflow: hidden; margin-bottom: 10px; background: #f0f2f5; display: flex; align-items: center; justify-content: center; }
-        .product-image img { width: 100%; height: 100%; object-fit: cover; }
-        .product-image .no-image { font-size: 64px; }
-        .product-name { font-weight: bold; font-size: 18px; margin: 10px 0; }
-        .product-price { color: #e67e22; font-weight: bold; font-size: 20px; }
-        .product-desc { font-size: 13px; color: #666; margin: 10px 0; }
-        .btn { background: #1e2f3f; color: white; border: none; padding: 10px; border-radius: 30px; cursor: pointer; font-size: 14px; font-weight: 600; width: 100%; margin-top: 10px; }
-        .btn-outline { background: transparent; border: 1px solid #cbdde9; color: #1e2f3e; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; padding: 20px; overflow-y: auto; }
-        .modal-content { background: white; border-radius: 30px; max-width: 500px; width: 100%; padding: 20px; position: relative; max-height: 90vh; overflow-y: auto; }
-        .close { position: absolute; top: 15px; right: 20px; font-size: 28px; cursor: pointer; z-index: 10; }
         
-        /* ===== ПРОСТАЯ ГАЛЕРЕЯ ===== */
-        .gallery-simple { position: relative; width: 100%; overflow: hidden; border-radius: 16px; background: #f0f2f5; touch-action: pan-y; }
+        /* ===== ВЕРТИКАЛЬНОЕ МЕНЮ (САЙДБАР) ===== */
+        .app { display: flex; min-height: 100vh; }
+        .sidebar {
+            width: 280px;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(12px);
+            border-right: 1px solid #e2e8f0;
+            padding: 2rem 1.5rem;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            flex-shrink: 0;
+        }
+        .logo { font-size: 26px; font-weight: 700; cursor: pointer; color: #0f1722; letter-spacing: -0.5px; }
+        .logo span { font-weight: 300; color: #5b6e8c; }
+        .nav-links { display: flex; flex-direction: column; gap: 1.2rem; }
+        .nav-links a {
+            cursor: pointer;
+            font-weight: 500;
+            color: #2c3e50;
+            padding: 0.6rem 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 16px;
+            transition: 0.2s;
+            text-decoration: none;
+        }
+        .nav-links a:hover { color: #000; transform: translateX(4px); }
+        .cart-badge { background: #1e2f3f; color: white; border-radius: 40px; padding: 0.2rem 0.65rem; font-size: 0.7rem; margin-left: auto; }
+        .admin-link-hidden {
+            margin-top: auto;
+            font-size: 0.85rem;
+            opacity: 0;
+            cursor: pointer;
+            transition: opacity 0.3s;
+            text-align: center;
+            padding: 0.5rem;
+            border-radius: 20px;
+            background: rgba(0,0,0,0.05);
+        }
+        .admin-link-hidden.visible { opacity: 0.7; }
+        .admin-link-hidden.visible:hover { opacity: 1; background: rgba(0,0,0,0.1); }
+        
+        .main-content { flex: 1; padding: 2rem; overflow-x: hidden; }
+        .section-title { font-size: 28px; font-weight: 600; margin-bottom: 24px; color: #0f1722; }
+        
+        /* ===== СЕТКА ТОВАРОВ (2 В РЯД) ===== */
+        .products-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+        .product-card {
+            background: white;
+            border-radius: 24px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+            transition: 0.3s;
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+        .product-card:hover { transform: translateY(-6px); box-shadow: 0 12px 32px rgba(0,0,0,0.1); }
+        
+        /* ===== ФОТО В ПОЛНЫЙ РАЗМЕР (4:3) ===== */
+        .product-image {
+            width: 100%;
+            aspect-ratio: 4/3;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 12px;
+            background: #f0f2f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .product-image .no-image { font-size: 56px; }
+        
+        .product-name { font-weight: 700; font-size: 18px; margin: 8px 0; }
+        .product-price { color: #e67e22; font-weight: 700; font-size: 20px; margin: 4px 0; }
+        .product-desc { font-size: 13px; color: #6b7f94; margin: 8px 0; }
+        
+        .btn {
+            background: #1e2f3f;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 10px;
+            transition: 0.2s;
+        }
+        .btn:hover { background: #2c4054; }
+        .btn-outline { background: transparent; border: 2px solid #e2e8f0; color: #1e2f3f; }
+        .btn-outline:hover { background: #f5f7fa; }
+        
+        /* ===== МОДАЛЬНОЕ ОКНО ===== */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 32px;
+            max-width: 500px;
+            width: 100%;
+            padding: 24px;
+            position: relative;
+            max-height: 95vh;
+            overflow-y: auto;
+        }
+        .close-modal {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            font-size: 28px;
+            cursor: pointer;
+            z-index: 10;
+            background: rgba(255,255,255,0.9);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+            transition: 0.2s;
+        }
+        .close-modal:hover { background: #f0f0f0; }
+        
+        /* ===== ГАЛЕРЕЯ С ЛУПОЙ ===== */
+        .gallery-simple {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+            border-radius: 16px;
+            background: #f0f2f5;
+            touch-action: pan-y;
+        }
         .gallery-simple .slides { display: flex; transition: transform 0.3s ease; }
-        .gallery-simple .slide { min-width: 100%; display: flex; justify-content: center; align-items: center; height: 300px; }
-        .gallery-simple .slide img { width: 100%; height: 100%; object-fit: contain; }
+        .gallery-simple .slide {
+            min-width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 300px;
+            position: relative;
+            cursor: zoom-in;
+        }
+        .gallery-simple .slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
         .gallery-simple .slide .empty { font-size: 64px; color: #999; }
-        .gallery-simple .arrow { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); color: white; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 18px; z-index: 5; display: flex; align-items: center; justify-content: center; }
+        .gallery-simple .arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.5);
+            color: white;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
         .gallery-simple .arrow:hover { background: rgba(0,0,0,0.8); }
         .gallery-simple .prev { left: 8px; }
         .gallery-simple .next { right: 8px; }
-        .gallery-simple .dots { display: flex; justify-content: center; gap: 8px; margin-top: 8px; }
-        .gallery-simple .dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; cursor: pointer; border: none; padding: 0; }
+        .gallery-simple .dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .gallery-simple .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ccc;
+            cursor: pointer;
+            border: none;
+            padding: 0;
+        }
         .gallery-simple .dot.active { background: #1e2f3f; }
+        .zoom-hint {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(0,0,0,0.5);
+            color: #fff;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            z-index: 3;
+            pointer-events: none;
+        }
         
-        .size-section { margin: 15px 0; padding: 10px; background: #f5f5f5; border-radius: 16px; }
-        .size-buttons { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0; }
-        .size-btn { background: white; border: 1px solid #ddd; padding: 8px 20px; border-radius: 30px; cursor: pointer; }
-        .size-btn.selected { background: #1e2f3f; color: white; }
-        .size-info { font-size: 12px; color: #666; margin-top: 8px; }
-        input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 12px; font-size: 16px; }
-        .payment-card { background: #e8f5e9; padding: 15px; border-radius: 16px; text-align: center; margin: 15px 0; }
-        .card-number { font-size: 18px; font-weight: bold; letter-spacing: 2px; margin: 10px 0; }
-        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 30px; opacity: 0; transition: 0.3s; z-index: 2000; }
-        .toast.show { opacity: 1; }
-        .admin-link { margin-top: 30px; text-align: center; font-size: 14px; font-weight: 600; cursor: pointer; padding: 12px; background: #1e2f3f; color: white; border-radius: 30px; transition: 0.3s; }
-        .admin-link:hover { background: #2c4054; }
-        .admin-link.hidden { display: none; }
-        .admin-link.visible { display: block; }
-        .cart-item { background: white; padding: 15px; border-radius: 16px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-        .total { font-size: 22px; font-weight: bold; text-align: right; margin-top: 20px; }
-        .admin-panel { background: white; border-radius: 24px; padding: 20px; }
-        .photo-upload-area { background: #f5f5f5; padding: 15px; border-radius: 16px; margin: 10px 0; }
-        .photo-preview { width: 100px; height: 100px; background: #ddd; border-radius: 12px; margin: 10px 0; display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; }
+        /* ===== ЛУПА (ОВЕРЛЕЙ) ===== */
+        .zoom-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            cursor: zoom-out;
+            padding: 20px;
+        }
+        .zoom-overlay.active { display: flex; }
+        .zoom-overlay img {
+            max-width: 95%;
+            max-height: 95%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+        .zoom-overlay .close-zoom {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 40px;
+            color: white;
+            cursor: pointer;
+            z-index: 2001;
+        }
+        
+        /* ===== РАЗМЕРЫ ===== */
+        .size-section {
+            margin: 15px 0;
+            padding: 12px;
+            background: #f5f7fa;
+            border-radius: 16px;
+        }
+        .size-section .label { font-weight: 600; font-size: 14px; display: block; margin-bottom: 8px; }
+        .size-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+        .size-btn {
+            background: white;
+            border: 2px solid #e2e8f0;
+            padding: 8px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+        .size-btn:hover { border-color: #1e2f3f; }
+        .size-btn.selected { background: #1e2f3f; color: white; border-color: #1e2f3f; }
+        .size-info { font-size: 13px; color: #6b7f94; margin-top: 10px; }
+        
+        /* ===== КОРЗИНА ===== */
+        .cart-item {
+            background: white;
+            padding: 16px 20px;
+            border-radius: 18px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .cart-item .info { flex: 1; min-width: 120px; }
+        .cart-item .name { font-weight: 600; }
+        .cart-item .size { font-size: 13px; color: #6b7f94; }
+        .cart-item .qty { font-size: 14px; color: #2c3e50; }
+        .cart-item .sum { font-weight: 700; font-size: 17px; color: #1e2f3f; }
+        .total-block { font-size: 24px; font-weight: 700; text-align: right; margin-top: 20px; padding-top: 16px; border-top: 2px solid #e2e8f0; }
+        .empty-cart { text-align: center; padding: 60px 20px; color: #6b7f94; }
+        .empty-cart .icon { font-size: 64px; display: block; margin-bottom: 16px; }
+        
+        /* ===== ФОРМА ЗАКАЗА ===== */
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; font-weight: 500; font-size: 14px; margin-bottom: 4px; color: #2c3e50; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            font-size: 16px;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #1e2f3f;
+        }
+        .payment-card {
+            background: #e8f5e9;
+            border-radius: 18px;
+            padding: 16px;
+            text-align: center;
+            margin: 16px 0;
+        }
+        .payment-card .card-number { font-size: 20px; font-weight: 700; letter-spacing: 2px; margin: 8px 0; color: #1a2332; }
+        
+        /* ===== АДМИНКА ===== */
+        .admin-panel { background: white; border-radius: 24px; padding: 24px; box-shadow: 0 4px 16px rgba(0,0,0,0.05); }
+        .admin-panel .product-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eef2f6;
+        }
+        .photo-upload-area { background: #f5f7fa; padding: 15px; border-radius: 16px; margin: 10px 0; }
+        .photo-preview { width: 100px; height: 100px; background: #e8ecf1; border-radius: 14px; margin: 10px 0; display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; }
         .photo-preview img { width: 100%; height: 100%; object-fit: cover; }
         .photo-preview .empty { font-size: 32px; color: #999; }
-        @media (max-width: 600px) {
-            .products { gap: 10px; }
-            .product { padding: 12px; }
-            .product-image { height: 150px; }
-            .product-name { font-size: 14px; }
-            .product-price { font-size: 16px; }
-            .nav a { margin-left: 10px; font-size: 14px; }
+        
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a2332;
+            color: white;
+            padding: 12px 28px;
+            border-radius: 40px;
+            font-size: 15px;
+            font-weight: 500;
+            opacity: 0;
+            transition: 0.4s;
+            z-index: 3000;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            pointer-events: none;
+        }
+        .toast.show { opacity: 1; }
+        
+        /* ===== АДАПТИВ ===== */
+        @media (max-width: 768px) {
+            .sidebar { width: 80px; padding: 1rem 0.5rem; }
+            .sidebar .logo { font-size: 18px; text-align: center; }
+            .nav-links a span:not(.cart-badge) { display: none; }
+            .nav-links a { justify-content: center; font-size: 20px; }
+            .main-content { padding: 1rem; }
+            .products-grid { gap: 12px; }
+            .product-card { padding: 14px; border-radius: 18px; }
+            .product-image { aspect-ratio: 4/3; }
             .gallery-simple .slide { height: 250px; }
+            .modal-content { padding: 16px; border-radius: 24px; }
+            .btn { padding: 14px; font-size: 16px; min-height: 48px; }
+        }
+        @media (max-width: 400px) {
+            .sidebar { width: 60px; padding: 0.8rem 0.3rem; }
+            .sidebar .logo { font-size: 14px; }
+            .nav-links a { font-size: 16px; padding: 0.4rem 0; }
+            .products-grid { gap: 8px; }
+            .product-card { padding: 10px; }
+            .product-image { aspect-ratio: 4/3; }
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="logo" onclick="navigate('home')">PALO<span>.</span></div>
-        <div class="nav">
-            <a onclick="navigate('home')">🏠 Магазин</a>
-            <a onclick="navigate('cart')">🛒 Корзина <span class="cart-count" id="cartCount">0</span></a>
-        </div>
+    <div class="app">
+        <!-- ===== ВЕРТИКАЛЬНОЕ МЕНЮ ===== -->
+        <aside class="sidebar">
+            <div class="logo" onclick="navigate('home')">PALO<span>.</span></div>
+            <div class="nav-links">
+                <a onclick="navigate('home')">🏠 <span>Магазин</span></a>
+                <a onclick="navigate('cart')">🛒 <span>Корзина</span> <span class="cart-badge" id="cartCount">0</span></a>
+            </div>
+            <div id="adminSecretLink" class="admin-link-hidden" onclick="showAdminAuth()">🔒 <span>Админ</span></div>
+        </aside>
+        
+        <!-- ===== ОСНОВНОЙ КОНТЕНТ ===== -->
+        <main class="main-content" id="app"></main>
     </div>
-    <div class="main" id="app"></div>
+    
     <div id="toast" class="toast"></div>
+    
+    <!-- ===== ОВЕРЛЕЙ ДЛЯ ЛУПЫ ===== -->
+    <div class="zoom-overlay" id="zoomOverlay" onclick="closeZoom()">
+        <span class="close-zoom">&times;</span>
+        <img id="zoomImage" src="">
+    </div>
 
     <script>
-        // ===== ТОВАРЫ =====
+        // ============================================================
+        // ТОВАРЫ
+        // ============================================================
         const products = [
             { id: 1, name: "Кепка", price: 1500, desc: "Хлопок, козырёк", emoji: "🧢", sizes: ["S", "M", "L"], measures: ["54-56 см", "57-59 см", "60-62 см"], frontImg: "", sideImg: "", mannequinImg: "" },
             { id: 2, name: "Футболка", price: 1900, desc: "Джерси, белый", emoji: "👕", sizes: ["S", "M", "L", "XL"], measures: ["68/48 см", "70/51 см", "72/54 см", "74/57 см"], frontImg: "", sideImg: "", mannequinImg: "" },
@@ -95,13 +421,21 @@
             { id: 4, name: "Лонгслив", price: 2700, desc: "Трикотаж, чёрный", emoji: "🧥", sizes: ["S", "M", "L", "XL"], measures: ["62/48 см", "64/51 см", "66/54 см", "68/57 см"], frontImg: "", sideImg: "", mannequinImg: "" }
         ];
 
+        // ============================================================
+        // ДАННЫЕ
+        // ============================================================
         let cart = JSON.parse(localStorage.getItem('cart') || '[]');
         let selectedSizes = JSON.parse(localStorage.getItem('selectedSizes') || '{}');
         let isAdminAuthenticated = false;
         let currentEditId = null;
         let clickCount = 0;
         let clickTimer = null;
+        let galleryIndex = 0;
+        let galleryImages = [];
 
+        // ============================================================
+        // ВСПОМОГАТЕЛЬНЫЕ
+        // ============================================================
         function saveCart() {
             localStorage.setItem('cart', JSON.stringify(cart));
             document.getElementById('cartCount').innerText = cart.reduce((s,i) => s + i.qty, 0);
@@ -111,7 +445,8 @@
             let t = document.getElementById('toast');
             t.innerText = msg;
             t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 2000);
+            clearTimeout(t._timer);
+            t._timer = setTimeout(() => t.classList.remove('show'), 2500);
         }
 
         function loadProducts() {
@@ -125,58 +460,19 @@
                                 products[i].frontImg = parsed[i].frontImg || '';
                                 products[i].sideImg = parsed[i].sideImg || '';
                                 products[i].mannequinImg = parsed[i].mannequinImg || '';
+                                if (parsed[i].name) products[i].name = parsed[i].name;
+                                if (parsed[i].price) products[i].price = parsed[i].price;
+                                if (parsed[i].desc) products[i].desc = parsed[i].desc;
+                                if (parsed[i].emoji) products[i].emoji = parsed[i].emoji;
                             }
                         }
                     }
-                } catch(e) {}
+                } catch(e) { console.log('Ошибка загрузки:', e); }
             }
         }
 
         function saveProducts() {
             localStorage.setItem('palo_products', JSON.stringify(products));
-        }
-
-        function selectSize(productId, size, idx) {
-            selectedSizes[productId] = size;
-            localStorage.setItem('selectedSizes', JSON.stringify(selectedSizes));
-            document.querySelectorAll(`.size-${productId}`).forEach(btn => {
-                if (btn.innerText === size) btn.classList.add('selected');
-                else btn.classList.remove('selected');
-            });
-            let product = products.find(p => p.id === productId);
-            if (product) document.getElementById(`sizeInfo-${productId}`).innerText = product.measures[idx];
-        }
-
-        function addToCart(id) {
-            let product = products.find(p => p.id === id);
-            let size = selectedSizes[id];
-            if (product.sizes && !size) { showToast('⚠️ Сначала выберите размер!'); return; }
-            let item = cart.find(i => i.id === id && i.size === size);
-            if (item) item.qty++;
-            else cart.push({ id, qty: 1, size: size || 'OS' });
-            saveCart();
-            showToast('✓ Добавлено');
-            navigate('cart');
-        }
-
-        function removeFromCart(id, size) {
-            cart = cart.filter(i => !(i.id === id && i.size === size));
-            saveCart();
-            navigate('cart');
-        }
-
-        function sendOrderToTelegram(orderDetails, total, customer) {
-            const TOKEN = '8758635199:AAEG8B69jBqbW1fmwLZUbrso5w1VIrHonKg';
-            const CHAT_ID = '5820655432';
-            let text = `🛍️ НОВЫЙ ЗАКАЗ PALO\n\n👤 ${customer.name}\n📞 ${customer.phone}\n📍 ${customer.address}\n🚚 ${customer.delivery}\n\n📦 ${orderDetails}\n💰 ИТОГО: ${total} ₽\n💳 Карта: 2200 7020 0430 8479`;
-            fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: CHAT_ID, text: text })
-            }).then(r => r.json()).then(data => {
-                if (data.ok) { showToast('✅ Заказ отправлен!'); cart = []; saveCart(); closeOrderModal(); navigate('home'); }
-                else showToast('❌ Ошибка');
-            }).catch(() => showToast('❌ Ошибка соединения'));
         }
 
         function openModal(id) {
@@ -189,14 +485,81 @@
             document.body.style.overflow = '';
         }
 
-        // ===== ГАЛЕРЕЯ С ПРОЛИСТЫВАНИЕМ (ПРОСТАЯ ВЕРСИЯ) =====
+        // ============================================================
+        // ЛУПА
+        // ============================================================
+        function openZoom(src) {
+            if (!src) return;
+            document.getElementById('zoomImage').src = src;
+            document.getElementById('zoomOverlay').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeZoom() {
+            document.getElementById('zoomOverlay').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeZoom(); });
+
+        // ============================================================
+        // РАЗМЕРЫ
+        // ============================================================
+        function selectSize(productId, size, idx) {
+            selectedSizes[productId] = size;
+            localStorage.setItem('selectedSizes', JSON.stringify(selectedSizes));
+            document.querySelectorAll(`.size-${productId}`).forEach(btn => {
+                btn.classList.toggle('selected', btn.innerText === size);
+            });
+            let product = products.find(p => p.id === productId);
+            if (product) document.getElementById(`sizeInfo-${productId}`).innerText = product.measures[idx];
+        }
+
+        // ============================================================
+        // КОРЗИНА
+        // ============================================================
+        function addToCart(id) {
+            let product = products.find(p => p.id === id);
+            let size = selectedSizes[id];
+            if (product.sizes && !size) { showToast('⚠️ Сначала выберите размер!'); return; }
+            let item = cart.find(i => i.id === id && i.size === size);
+            if (item) item.qty++;
+            else cart.push({ id, qty: 1, size: size || 'OS' });
+            saveCart();
+            showToast('✓ Добавлено в корзину');
+            navigate('cart');
+        }
+
+        function removeFromCart(id, size) {
+            cart = cart.filter(i => !(i.id === id && i.size === size));
+            saveCart();
+            navigate('cart');
+        }
+
+        // ============================================================
+        // TELEGRAM
+        // ============================================================
+        function sendOrderToTelegram(orderDetails, total, customer) {
+            const TOKEN = '8758635199:AAEG8B69jBqbW1fmwLZUbrso5w1VIrHonKg';
+            const CHAT_ID = '5820655432';
+            let text = `🛍️ НОВЫЙ ЗАКАЗ PALO\n\n👤 Имя: ${customer.name}\n📞 Телефон: ${customer.phone}\n📍 Адрес: ${customer.address}\n🚚 Доставка: ${customer.delivery}\n\n📦 Состав:\n${orderDetails}\n\n💰 ИТОГО: ${total} ₽\n💳 Оплата: 2200 7020 0430 8479`;
+            fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: CHAT_ID, text: text })
+            }).then(r => r.json()).then(data => {
+                if (data.ok) { showToast('✅ Заказ отправлен!'); cart = []; saveCart(); closeOrderModal(); navigate('home'); }
+                else showToast('❌ Ошибка');
+            }).catch(() => showToast('❌ Ошибка соединения'));
+        }
+
+        // ============================================================
+        // ГАЛЕРЕЯ
+        // ============================================================
         function createGallery(images) {
-            // Если нет фото, показываем эмодзи
             let slidesHtml = '';
             images.forEach(img => {
-                slidesHtml += `<div class="slide">${img ? `<img src="${img}">` : `<span class="empty">📸</span>`}</div>`;
+                slidesHtml += `<div class="slide" onclick="openZoom('${img || ''}')">${img ? `<img src="${img}">` : `<span class="empty">📸</span>`}</div>`;
             });
-            
             return `
                 <div class="gallery-simple" id="galleryContainer">
                     <div class="slides" id="gallerySlides">${slidesHtml}</div>
@@ -205,12 +568,10 @@
                         <button class="arrow next" onclick="slideGallery(1)">›</button>
                         <div class="dots" id="galleryDots"></div>
                     ` : ''}
+                    <div class="zoom-hint">🔍 Нажмите для увеличения</div>
                 </div>
             `;
         }
-
-        let galleryIndex = 0;
-        let galleryImages = [];
 
         function slideGallery(direction) {
             const slides = document.getElementById('gallerySlides');
@@ -228,11 +589,13 @@
             });
         }
 
+        // ============================================================
+        // ОТКРЫТИЕ ТОВАРА
+        // ============================================================
         function openProductModal(productId) {
             let p = products.find(pr => pr.id === productId);
             let currentSize = selectedSizes[productId] || '';
             
-            // Собираем фото
             const images = [];
             if (p.frontImg) images.push(p.frontImg);
             if (p.sideImg) images.push(p.sideImg);
@@ -243,28 +606,31 @@
             
             let sizeHtml = '';
             if (p.sizes) {
-                sizeHtml = `<div class="size-section"><div>📏 Выберите размер:</div><div class="size-buttons">`;
+                sizeHtml = `<div class="size-section">
+                    <span class="label">📏 Выберите размер:</span>
+                    <div class="size-buttons">`;
                 p.sizes.forEach((size, idx) => {
                     sizeHtml += `<button class="size-btn size-${p.id} ${currentSize === size ? 'selected' : ''}" onclick="selectSize(${p.id}, '${size}', ${idx})">${size}</button>`;
                 });
-                sizeHtml += `</div><div class="size-info" id="sizeInfo-${p.id}">${currentSize ? p.measures[p.sizes.indexOf(currentSize)] : 'Нажмите на размер'}</div></div>`;
+                sizeHtml += `</div>
+                    <div class="size-info" id="sizeInfo-${p.id}">${currentSize ? p.measures[p.sizes.indexOf(currentSize)] : 'Нажмите на размер для замеров'}</div>
+                </div>`;
             }
             
             document.getElementById('productModalContent').innerHTML = `
-                <span class="close" onclick="closeModal('productModal')">&times;</span>
-                <div style="text-align:center;">
-                    ${createGallery(images)}
-                    <h2 style="margin:10px 0;">${p.name}</h2>
-                    <div class="product-price" style="margin:10px 0;">${p.price} ₽</div>
-                    <div style="color:#666;">${p.desc}</div>
+                <span class="close-modal" onclick="closeModal('productModal')">&times;</span>
+                ${createGallery(images)}
+                <div style="text-align:center;margin-top:12px;">
+                    <h2 style="font-size:22px;">${p.name}</h2>
+                    <div style="font-size:24px;font-weight:700;color:#e67e22;margin:6px 0;">${p.price} ₽</div>
+                    <div style="color:#6b7f94;font-size:14px;">${p.desc}</div>
                     ${sizeHtml}
-                    <button class="btn" onclick="addToCart(${p.id}); closeModal('productModal');">🛒 Добавить</button>
+                    <button class="btn" onclick="addToCart(${p.id}); closeModal('productModal');">🛒 Добавить в корзину</button>
                 </div>
             `;
             
             openModal('productModal');
             
-            // Инициализируем точки после отрисовки
             setTimeout(() => {
                 const dotsContainer = document.getElementById('galleryDots');
                 if (dotsContainer && images.length > 1) {
@@ -281,12 +647,14 @@
                         dotsContainer.appendChild(dot);
                     });
                 }
-                // Сброс позиции слайдера
                 const slides = document.getElementById('gallerySlides');
                 if (slides) slides.style.transform = 'translateX(0%)';
             }, 50);
         }
 
+        // ============================================================
+        // ЗАКАЗ
+        // ============================================================
         function openOrderModal() {
             if (cart.length === 0) { showToast('Корзина пуста'); return; }
             openModal('orderModal');
@@ -301,7 +669,7 @@
             let phone = document.getElementById('orderPhone').value.trim();
             let address = document.getElementById('orderAddress').value.trim();
             let delivery = document.getElementById('orderDelivery').value;
-            if (!name || !phone || !address) { showToast('Заполните все поля'); return; }
+            if (!name || !phone || !address) { showToast('⚠️ Заполните все поля'); return; }
             let lines = '', total = 0;
             cart.forEach(item => {
                 let p = products.find(pr => pr.id === item.id);
@@ -313,7 +681,9 @@
             closeOrderModal();
         }
 
-        // ===== АДМИНКА =====
+        // ============================================================
+        // АДМИНКА
+        // ============================================================
         document.querySelector('.logo').addEventListener('click', function() {
             clickCount++;
             clearTimeout(clickTimer);
@@ -321,6 +691,7 @@
             if (clickCount >= 5) {
                 clickCount = 0;
                 localStorage.setItem('adminShown', 'true');
+                document.getElementById('adminSecretLink').classList.add('visible');
                 showToast('🔓 Админ-панель активирована');
                 renderHome();
             }
@@ -346,6 +717,9 @@
             } else showToast('❌ Неверный пароль');
         }
 
+        // ============================================================
+        // ЗАГРУЗКА ФОТО
+        // ============================================================
         function handleImageUpload(event, fieldId, previewId) {
             let file = event.target.files[0];
             if (!file) return;
@@ -386,176 +760,4 @@
             let msg = document.getElementById('adminMsg');
             if (msg) {
                 msg.innerHTML = '<div style="background:#e0f2e9; padding:10px; border-radius:12px;">✓ Товар сохранён</div>';
-                setTimeout(() => { msg.innerHTML = ''; }, 3000);
-            }
-            showToast('✅ Товар сохранён');
-            currentEditId = null;
-            renderAdmin();
-        }
-
-        // ===== СТРАНИЦЫ =====
-        function renderHome() {
-            let html = '<h2>Коллекция</h2><div class="products">';
-            products.forEach(p => {
-                let imgHtml = p.frontImg ? `<img src="${p.frontImg}">` : `<span class="no-image">${p.emoji}</span>`;
-                html += `<div class="product" onclick="openProductModal(${p.id})">
-                    <div class="product-image">${imgHtml}</div>
-                    <div class="product-name">${p.name}</div>
-                    <div class="product-price">${p.price} ₽</div>
-                    <div class="product-desc">${p.desc}</div>
-                    <button class="btn" onclick="event.stopPropagation(); openProductModal(${p.id})">🔍 Выбрать размер</button>
-                </div>`;
-            });
-            let adminShown = localStorage.getItem('adminShown') === 'true';
-            html += `</div>
-                <div id="adminLink" class="admin-link ${adminShown ? 'visible' : 'hidden'}" onclick="showAdminAuth()">
-                    ⚙️ Админ-панель
-                </div>
-            `;
-            document.getElementById('app').innerHTML = html;
-        }
-
-        function renderCart() {
-            if (cart.length === 0) {
-                document.getElementById('app').innerHTML = '<h2>Корзина</h2><div style="text-align:center;padding:50px;">🛒 Корзина пуста</div>';
-                return;
-            }
-            let total = 0, html = '<h2>Корзина</h2>';
-            cart.forEach(item => {
-                let p = products.find(pr => pr.id === item.id);
-                let sum = p.price * item.qty;
-                total += sum;
-                html += `<div class="cart-item">
-                    <div><strong>${p.name}</strong> ${item.size ? `(${item.size})` : ''}<br>${item.qty} шт × ${p.price} ₽</div>
-                    <div><strong>${sum} ₽</strong></div>
-                    <button class="btn-outline" style="width:auto; padding:8px 15px;" onclick="removeFromCart(${p.id}, '${item.size || ''}')">🗑</button>
-                </div>`;
-            });
-            html += `<div class="total">Итого: ${total} ₽</div>`;
-            html += `<button class="btn" onclick="openOrderModal()">💳 Оформить</button>`;
-            document.getElementById('app').innerHTML = html;
-        }
-
-        function renderAdmin() {
-            if (!isAdminAuthenticated) {
-                document.getElementById('app').innerHTML = `
-                    <div style="text-align:center;padding:50px;">
-                        <h3>🔒 Доступ закрыт</h3>
-                        <p>Нажмите 5 раз на логотип PALO, затем нажмите "Админ-панель" внизу</p>
-                        <button class="btn" style="max-width:200px;margin:20px auto;" onclick="showAdminAuth()">Войти</button>
-                    </div>
-                `;
-                return;
-            }
-            let html = `<div class="admin-panel">
-                <h2>📷 Управление товарами</h2>
-                <div id="adminMsg"></div>
-                <div id="adminForm"></div>
-                <h3 style="margin:20px 0 10px;">Список</h3>`;
-            products.forEach(p => {
-                html += `<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee;">
-                    <span>${p.frontImg ? '📷' : '📸'} <strong>${p.name}</strong> — ${p.price}₽</span>
-                    <button onclick="editProduct(${p.id})" class="btn-outline" style="padding:5px 15px;">✏️</button>
-                </div>`;
-            });
-            html += `</div>`;
-            document.getElementById('app').innerHTML = html;
-            if (currentEditId) {
-                let prod = products.find(p => p.id === currentEditId);
-                if (prod) renderAdminForm(prod);
-            } else renderAdminForm(null);
-        }
-
-        function editProduct(id) { currentEditId = id; renderAdmin(); }
-        function cancelEdit() { currentEditId = null; renderAdmin(); }
-
-        function renderAdminForm(prod) {
-            let formDiv = document.getElementById('adminForm');
-            if (!formDiv) return;
-            let p = prod || { id: null, name: '', price: '', desc: '', emoji: '👕', frontImg: '', sideImg: '', mannequinImg: '' };
-            formDiv.innerHTML = `
-                <div style="margin-top:20px;border-top:2px solid #eee;padding-top:20px;">
-                    <h3>${p.id ? 'Редактировать' : 'Новый товар'}</h3>
-                    <div><input id="prodName" placeholder="Название" value="${p.name}" style="width:100%;padding:10px;border-radius:12px;border:1px solid #ddd;margin-bottom:10px;"></div>
-                    <div><input id="prodPrice" type="number" placeholder="Цена" value="${p.price}" style="width:100%;padding:10px;border-radius:12px;border:1px solid #ddd;margin-bottom:10px;"></div>
-                    <div><textarea id="prodDesc" rows="2" placeholder="Описание" style="width:100%;padding:10px;border-radius:12px;border:1px solid #ddd;margin-bottom:10px;">${p.desc}</textarea></div>
-                    <div><input id="prodEmoji" placeholder="Эмодзи" value="${p.emoji}" style="width:100%;padding:10px;border-radius:12px;border:1px solid #ddd;margin-bottom:10px;"></div>
-                    <div class="photo-upload-area">
-                        <div><strong>📷 Фото 1 (спереди)</strong></div>
-                        <div class="photo-preview" id="frontPreview" onclick="document.getElementById('frontFile').click()">
-                            ${p.frontImg ? `<img src="${p.frontImg}">` : '<span class="empty">📸</span>'}
-                        </div>
-                        <input type="file" id="frontFile" style="display:none" accept="image/*" onchange="handleImageUpload(event, 'frontVal', 'frontPreview')">
-                        <input type="hidden" id="frontVal" value="${p.frontImg || ''}">
-                        <button class="btn-outline" style="width:auto;padding:5px 15px;" onclick="document.getElementById('frontFile').click()">Выбрать фото</button>
-                    </div>
-                    <div class="photo-upload-area">
-                        <div><strong>📷 Фото 2 (сбоку)</strong></div>
-                        <div class="photo-preview" id="sidePreview" onclick="document.getElementById('sideFile').click()">
-                            ${p.sideImg ? `<img src="${p.sideImg}">` : '<span class="empty">📸</span>'}
-                        </div>
-                        <input type="file" id="sideFile" style="display:none" accept="image/*" onchange="handleImageUpload(event, 'sideVal', 'sidePreview')">
-                        <input type="hidden" id="sideVal" value="${p.sideImg || ''}">
-                        <button class="btn-outline" style="width:auto;padding:5px 15px;" onclick="document.getElementById('sideFile').click()">Выбрать фото</button>
-                    </div>
-                    <div class="photo-upload-area">
-                        <div><strong>📷 Фото 3 (на манекене)</strong></div>
-                        <div class="photo-preview" id="manPreview" onclick="document.getElementById('manFile').click()">
-                            ${p.mannequinImg ? `<img src="${p.mannequinImg}">` : '<span class="empty">🕴️</span>'}
-                        </div>
-                        <input type="file" id="manFile" style="display:none" accept="image/*" onchange="handleImageUpload(event, 'manVal', 'manPreview')">
-                        <input type="hidden" id="manVal" value="${p.mannequinImg || ''}">
-                        <button class="btn-outline" style="width:auto;padding:5px 15px;" onclick="document.getElementById('manFile').click()">Выбрать фото</button>
-                    </div>
-                    <button class="btn" onclick="saveProduct()">💾 Сохранить</button>
-                    <button class="btn-outline" style="margin-left:10px;" onclick="cancelEdit()">Отмена</button>
-                </div>
-            `;
-        }
-
-        function navigate(page) {
-            if (page === 'home') renderHome();
-            else if (page === 'cart') renderCart();
-            window.scrollTo(0, 0);
-        }
-
-        loadProducts();
-        saveCart();
-        navigate('home');
-
-        window.selectSize = selectSize;
-        window.addToCart = addToCart;
-        window.removeFromCart = removeFromCart;
-        window.openProductModal = openProductModal;
-        window.openOrderModal = openOrderModal;
-        window.closeOrderModal = closeOrderModal;
-        window.submitOrder = submitOrder;
-        window.navigate = navigate;
-        window.showAdminAuth = showAdminAuth;
-        window.closeAdminAuth = closeAdminAuth;
-        window.checkAdminPassword = checkAdminPassword;
-        window.editProduct = editProduct;
-        window.cancelEdit = cancelEdit;
-        window.saveProduct = saveProduct;
-        window.handleImageUpload = handleImageUpload;
-        window.renderAdmin = renderAdmin;
-        window.openModal = openModal;
-        window.closeModal = closeModal;
-        window.slideGallery = slideGallery;
-    </script>
-
-    <!-- Модалка товара -->
-    <div id="productModal" class="modal">
-        <div class="modal-content" id="productModalContent"></div>
-    </div>
-
-    <!-- Модалка заказа -->
-    <div id="orderModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeOrderModal()">&times;</span>
-            <h2>🛍️ Оформление заказа</h2>
-            <input type="text" id="orderName" placeholder="Ваше имя">
-            <input type="tel" id="orderPhone" placeholder="Телефон">
-            <textarea id="orderAddress" rows="2" placeholder="Адрес доставки"></textarea>
-            <select id="orderDelivery">
-                <option
+                setTimeout(() => { msg.innerHTML
