@@ -17,7 +17,9 @@
         .products { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
         .product { background: white; border-radius: 20px; padding: 20px; text-align: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: 0.3s; }
         .product:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
-        .product-emoji { font-size: 64px; }
+        .product-image { width: 100%; height: 200px; border-radius: 12px; overflow: hidden; margin-bottom: 10px; background: #f0f2f5; display: flex; align-items: center; justify-content: center; }
+        .product-image img { width: 100%; height: 100%; object-fit: cover; }
+        .product-image .no-image { font-size: 64px; }
         .product-name { font-weight: bold; font-size: 18px; margin: 10px 0; }
         .product-price { color: #e67e22; font-weight: bold; font-size: 20px; }
         .product-desc { font-size: 13px; color: #666; margin: 10px 0; }
@@ -38,13 +40,11 @@
         .toast.show { opacity: 1; }
         .admin-link { margin-top: 30px; text-align: center; font-size: 14px; font-weight: 600; cursor: pointer; padding: 12px; background: #1e2f3f; color: white; border-radius: 30px; transition: 0.3s; }
         .admin-link:hover { background: #2c4054; }
-        .admin-link.visible { display: block; }
         .admin-link.hidden { display: none; }
+        .admin-link.visible { display: block; }
         .cart-item { background: white; padding: 15px; border-radius: 16px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         .total { font-size: 22px; font-weight: bold; text-align: right; margin-top: 20px; }
         .admin-panel { background: white; border-radius: 24px; padding: 20px; }
-        .admin-panel .product-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
-        .admin-panel .product-emoji-sm { font-size: 28px; margin-right: 10px; }
         .photo-upload-area { background: #f5f5f5; padding: 15px; border-radius: 16px; margin: 10px 0; }
         .photo-preview { width: 100px; height: 100px; background: #ddd; border-radius: 12px; margin: 10px 0; display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; }
         .photo-preview img { width: 100%; height: 100%; object-fit: cover; }
@@ -52,7 +52,7 @@
         @media (max-width: 600px) {
             .products { gap: 10px; }
             .product { padding: 12px; }
-            .product-emoji { font-size: 48px; }
+            .product-image { height: 150px; }
             .product-name { font-size: 14px; }
             .product-price { font-size: 16px; }
             .nav a { margin-left: 10px; font-size: 14px; }
@@ -71,7 +71,7 @@
     <div id="toast" class="toast"></div>
 
     <script>
-        // ===== ТОВАРЫ =====
+        // ===== ТОВАРЫ С ПОЛЯМИ ДЛЯ ФОТО =====
         const products = [
             { id: 1, name: "Кепка", price: 1500, desc: "Хлопок, козырёк", emoji: "🧢", sizes: ["S", "M", "L"], measures: ["54-56 см", "57-59 см", "60-62 см"], frontImg: "", sideImg: "", mannequinImg: "" },
             { id: 2, name: "Футболка", price: 1900, desc: "Джерси, белый", emoji: "👕", sizes: ["S", "M", "L", "XL"], measures: ["68/48 см", "70/51 см", "72/54 см", "74/57 см"], frontImg: "", sideImg: "", mannequinImg: "" },
@@ -118,7 +118,7 @@
                             }
                         }
                     }
-                } catch(e) {}
+                } catch(e) { console.log('Ошибка загрузки товаров:', e); }
             }
         }
 
@@ -187,6 +187,15 @@
         function openProductModal(productId) {
             let p = products.find(pr => pr.id === productId);
             let currentSize = selectedSizes[productId] || '';
+            
+            // Показываем фото в модалке
+            let imgHtml = '';
+            if (p.frontImg) {
+                imgHtml = `<img src="${p.frontImg}" style="width:100%;max-height:300px;object-fit:contain;border-radius:16px;">`;
+            } else {
+                imgHtml = `<div style="font-size:64px;">${p.emoji}</div>`;
+            }
+            
             let sizeHtml = '';
             if (p.sizes) {
                 sizeHtml = `<div class="size-section"><div>📏 Выберите размер:</div><div class="size-buttons">`;
@@ -195,11 +204,12 @@
                 });
                 sizeHtml += `</div><div class="size-info" id="sizeInfo-${p.id}">${currentSize ? p.measures[p.sizes.indexOf(currentSize)] : 'Нажмите на размер'}</div></div>`;
             }
+            
             document.getElementById('productModalContent').innerHTML = `
                 <span class="close" onclick="closeModal('productModal')">&times;</span>
                 <div style="text-align:center;">
-                    <div style="font-size:64px;">${p.emoji}</div>
-                    <h2>${p.name}</h2>
+                    ${imgHtml}
+                    <h2 style="margin:10px 0;">${p.name}</h2>
                     <div class="product-price" style="margin:10px 0;">${p.price} ₽</div>
                     <div style="color:#666;">${p.desc}</div>
                     ${sizeHtml}
@@ -236,7 +246,7 @@
             closeOrderModal();
         }
 
-        // ===== АДМИНКА (ПРОСТОЙ ВХОД) =====
+        // ===== АДМИНКА =====
         document.querySelector('.logo').addEventListener('click', function() {
             clickCount++;
             clearTimeout(clickTimer);
@@ -288,7 +298,7 @@
                     if (preview) {
                         preview.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;">`;
                     }
-                    showToast('✅ Фото загружено! Сохраните товар.');
+                    showToast('✅ Фото загружено! Нажмите "Сохранить"');
                 } catch(err) {
                     showToast('❌ Ошибка загрузки фото');
                 }
@@ -297,36 +307,6 @@
                 showToast('❌ Ошибка чтения файла');
             };
             reader.readAsDataURL(file);
-        }
-
-        function saveProductSilent() {
-            let name = document.getElementById('prodName').value.trim();
-            let price = parseInt(document.getElementById('prodPrice').value);
-            if (!name || isNaN(price)) return;
-            let desc = document.getElementById('prodDesc').value;
-            let emoji = document.getElementById('prodEmoji').value;
-            let frontImg = document.getElementById('frontVal').value;
-            let sideImg = document.getElementById('sideVal').value;
-            let mannequinImg = document.getElementById('manVal').value;
-            
-            if (currentEditId) {
-                let index = products.findIndex(p => p.id === currentEditId);
-                if (index !== -1) {
-                    products[index].name = name;
-                    products[index].price = price;
-                    products[index].desc = desc;
-                    products[index].emoji = emoji;
-                    products[index].frontImg = frontImg;
-                    products[index].sideImg = sideImg;
-                    products[index].mannequinImg = mannequinImg;
-                }
-            }
-            saveProducts();
-            let msg = document.getElementById('adminMsg');
-            if (msg) {
-                msg.innerHTML = '<div style="background:#e0f2e9; padding:10px; border-radius:12px;">✓ Сохранено</div>';
-                setTimeout(() => { msg.innerHTML = ''; }, 3000);
-            }
         }
 
         function saveProduct() {
@@ -366,12 +346,18 @@
             renderAdmin();
         }
 
-        // ===== ОТОБРАЖЕНИЕ СТРАНИЦ =====
+        // ===== ОТОБРАЖЕНИЕ =====
         function renderHome() {
             let html = '<h2>Коллекция</h2><div class="products">';
             products.forEach(p => {
+                let imgHtml = '';
+                if (p.frontImg) {
+                    imgHtml = `<img src="${p.frontImg}" alt="${p.name}">`;
+                } else {
+                    imgHtml = `<span class="no-image">${p.emoji}</span>`;
+                }
                 html += `<div class="product" onclick="openProductModal(${p.id})">
-                    <div class="product-emoji">${p.emoji}</div>
+                    <div class="product-image">${imgHtml}</div>
                     <div class="product-name">${p.name}</div>
                     <div class="product-price">${p.price} ₽</div>
                     <div class="product-desc">${p.desc}</div>
@@ -428,8 +414,9 @@
                 <h3 style="margin:20px 0 10px;">Список товаров</h3>`;
             
             products.forEach(p => {
-                html += `<div class="product-item">
-                    <span><span class="product-emoji-sm">${p.emoji}</span> <strong>${p.name}</strong> — ${p.price}₽</span>
+                let hasPhoto = p.frontImg ? '📷' : '📸';
+                html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #eee;">
+                    <span>${hasPhoto} <strong>${p.name}</strong> — ${p.price}₽</span>
                     <button onclick="editProduct(${p.id})" class="btn-outline" style="width:auto;padding:5px 15px;">✏️</button>
                 </div>`;
             });
