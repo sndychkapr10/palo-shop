@@ -27,7 +27,23 @@
         .btn-outline { background: transparent; border: 1px solid #cbdde9; color: #1e2f3e; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; padding: 20px; overflow-y: auto; }
         .modal-content { background: white; border-radius: 30px; max-width: 500px; width: 100%; padding: 20px; position: relative; max-height: 90vh; overflow-y: auto; }
-        .close { position: absolute; top: 15px; right: 20px; font-size: 28px; cursor: pointer; }
+        .close { position: absolute; top: 15px; right: 20px; font-size: 28px; cursor: pointer; z-index: 10; }
+        
+        /* ===== ГАЛЕРЕЯ С ПРОЛИСТЫВАНИЕМ ===== */
+        .gallery-container { position: relative; width: 100%; overflow: hidden; border-radius: 16px; background: #f0f2f5; }
+        .gallery-track { display: flex; transition: transform 0.4s ease; touch-action: pan-y; }
+        .gallery-slide { min-width: 100%; display: flex; justify-content: center; align-items: center; height: 300px; }
+        .gallery-slide img { width: 100%; height: 100%; object-fit: contain; }
+        .gallery-slide .no-photo { font-size: 64px; color: #999; }
+        .gallery-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); color: white; border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 18px; z-index: 5; display: flex; align-items: center; justify-content: center; }
+        .gallery-nav:hover { background: rgba(0,0,0,0.8); }
+        .gallery-nav.prev { left: 8px; }
+        .gallery-nav.next { right: 8px; }
+        .gallery-dots { display: flex; justify-content: center; gap: 8px; margin-top: 10px; }
+        .gallery-dot { width: 10px; height: 10px; border-radius: 50%; background: #ccc; cursor: pointer; transition: 0.3s; border: none; padding: 0; }
+        .gallery-dot.active { background: #1e2f3f; }
+        .gallery-counter { position: absolute; bottom: 12px; right: 12px; background: rgba(0,0,0,0.6); color: white; padding: 2px 12px; border-radius: 20px; font-size: 12px; z-index: 5; }
+        
         .size-section { margin: 15px 0; padding: 10px; background: #f5f5f5; border-radius: 16px; }
         .size-buttons { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0; }
         .size-btn { background: white; border: 1px solid #ddd; padding: 8px 20px; border-radius: 30px; cursor: pointer; }
@@ -56,6 +72,7 @@
             .product-name { font-size: 14px; }
             .product-price { font-size: 16px; }
             .nav a { margin-left: 10px; font-size: 14px; }
+            .gallery-slide { height: 250px; }
         }
     </style>
 </head>
@@ -71,7 +88,7 @@
     <div id="toast" class="toast"></div>
 
     <script>
-        // ===== ТОВАРЫ С ПОЛЯМИ ДЛЯ ФОТО =====
+        // ===== ТОВАРЫ =====
         const products = [
             { id: 1, name: "Кепка", price: 1500, desc: "Хлопок, козырёк", emoji: "🧢", sizes: ["S", "M", "L"], measures: ["54-56 см", "57-59 см", "60-62 см"], frontImg: "", sideImg: "", mannequinImg: "" },
             { id: 2, name: "Футболка", price: 1900, desc: "Джерси, белый", emoji: "👕", sizes: ["S", "M", "L", "XL"], measures: ["68/48 см", "70/51 см", "72/54 см", "74/57 см"], frontImg: "", sideImg: "", mannequinImg: "" },
@@ -79,13 +96,13 @@
             { id: 4, name: "Лонгслив", price: 2700, desc: "Трикотаж, чёрный", emoji: "🧥", sizes: ["S", "M", "L", "XL"], measures: ["62/48 см", "64/51 см", "66/54 см", "68/57 см"], frontImg: "", sideImg: "", mannequinImg: "" }
         ];
 
-        // ===== ДАННЫЕ =====
         let cart = JSON.parse(localStorage.getItem('cart') || '[]');
         let selectedSizes = JSON.parse(localStorage.getItem('selectedSizes') || '{}');
         let isAdminAuthenticated = false;
         let currentEditId = null;
         let clickCount = 0;
         let clickTimer = null;
+        let currentGalleryIndex = 0;
 
         // ===== СОХРАНЕНИЕ =====
         function saveCart() {
@@ -183,17 +200,88 @@
             document.body.style.overflow = '';
         }
 
+        // ===== ГАЛЕРЕЯ =====
+        function initGallery(images, startIndex) {
+            currentGalleryIndex = startIndex || 0;
+            const container = document.getElementById('galleryTrack');
+            const dots = document.getElementById('galleryDots');
+            const counter = document.getElementById('galleryCounter');
+            
+            if (!container) return;
+            
+            // Рендерим слайды
+            let slidesHtml = '';
+            images.forEach((img, idx) => {
+                slidesHtml += `<div class="gallery-slide">
+                    ${img ? `<img src="${img}" alt="Фото ${idx+1}">` : `<div class="no-photo">📸</div>`}
+                </div>`;
+            });
+            container.innerHTML = slidesHtml;
+            
+            // Обновляем позицию
+            updateGallery(images.length);
+            
+            // Точки
+            if (dots) {
+                dots.innerHTML = '';
+                images.forEach((_, idx) => {
+                    let dot = document.createElement('button');
+                    dot.className = 'gallery-dot' + (idx === currentGalleryIndex ? ' active' : '');
+                    dot.onclick = () => goToSlide(idx, images.length);
+                    dots.appendChild(dot);
+                });
+            }
+            
+            // Счётчик
+            if (counter && images.length > 0) {
+                counter.textContent = `${currentGalleryIndex + 1} / ${images.length}`;
+            }
+        }
+
+        function updateGallery(totalSlides) {
+            const container = document.getElementById('galleryTrack');
+            if (!container) return;
+            container.style.transform = `translateX(-${currentGalleryIndex * 100}%)`;
+            
+            // Обновляем точки
+            document.querySelectorAll('.gallery-dot').forEach((dot, idx) => {
+                dot.classList.toggle('active', idx === currentGalleryIndex);
+            });
+            
+            // Обновляем счётчик
+            const counter = document.getElementById('galleryCounter');
+            if (counter && totalSlides > 0) {
+                counter.textContent = `${currentGalleryIndex + 1} / ${totalSlides}`;
+            }
+            
+            // Показываем/скрываем стрелки
+            const prevBtn = document.getElementById('galleryPrev');
+            const nextBtn = document.getElementById('galleryNext');
+            if (prevBtn) prevBtn.style.display = currentGalleryIndex > 0 ? 'flex' : 'none';
+            if (nextBtn) nextBtn.style.display = currentGalleryIndex < totalSlides - 1 ? 'flex' : 'none';
+        }
+
+        function goToSlide(index, totalSlides) {
+            if (index < 0) index = 0;
+            if (index >= totalSlides) index = totalSlides - 1;
+            currentGalleryIndex = index;
+            updateGallery(totalSlides);
+        }
+
         // ===== ОТКРЫТИЕ ТОВАРА =====
         function openProductModal(productId) {
             let p = products.find(pr => pr.id === productId);
             let currentSize = selectedSizes[productId] || '';
             
-            // Показываем фото в модалке
-            let imgHtml = '';
-            if (p.frontImg) {
-                imgHtml = `<img src="${p.frontImg}" style="width:100%;max-height:300px;object-fit:contain;border-radius:16px;">`;
-            } else {
-                imgHtml = `<div style="font-size:64px;">${p.emoji}</div>`;
+            // Собираем все фото для галереи
+            const galleryImages = [];
+            if (p.frontImg) galleryImages.push(p.frontImg);
+            if (p.sideImg) galleryImages.push(p.sideImg);
+            if (p.mannequinImg) galleryImages.push(p.mannequinImg);
+            
+            // Если нет фото, показываем эмодзи
+            if (galleryImages.length === 0) {
+                galleryImages.push(null);
             }
             
             let sizeHtml = '';
@@ -208,7 +296,14 @@
             document.getElementById('productModalContent').innerHTML = `
                 <span class="close" onclick="closeModal('productModal')">&times;</span>
                 <div style="text-align:center;">
-                    ${imgHtml}
+                    <div class="gallery-container">
+                        <div class="gallery-track" id="galleryTrack"></div>
+                        <button class="gallery-nav prev" id="galleryPrev" onclick="goToSlide(currentGalleryIndex-1, ${galleryImages.length})">‹</button>
+                        <button class="gallery-nav next" id="galleryNext" onclick="goToSlide(currentGalleryIndex+1, ${galleryImages.length})">›</button>
+                        <div class="gallery-counter" id="galleryCounter"></div>
+                    </div>
+                    <div class="gallery-dots" id="galleryDots"></div>
+                    
                     <h2 style="margin:10px 0;">${p.name}</h2>
                     <div class="product-price" style="margin:10px 0;">${p.price} ₽</div>
                     <div style="color:#666;">${p.desc}</div>
@@ -216,7 +311,13 @@
                     <button class="btn" onclick="addToCart(${p.id}); closeModal('productModal');">🛒 Добавить в корзину</button>
                 </div>
             `;
+            
             openModal('productModal');
+            
+            // Инициализируем галерею после отрисовки
+            setTimeout(() => {
+                initGallery(galleryImages, 0);
+            }, 50);
         }
 
         // ===== ЗАКАЗ =====
@@ -474,90 +575,4 @@
                         <button class="btn-outline" style="width:auto;padding:5px 15px;" onclick="document.getElementById('sideFile').click()">Выбрать фото</button>
                     </div>
                     
-                    <div class="photo-upload-area">
-                        <div><strong>📷 Фото 3 (на манекене)</strong></div>
-                        <div class="photo-preview" id="manPreview" onclick="document.getElementById('manFile').click()">
-                            ${p.mannequinImg ? `<img src="${p.mannequinImg}">` : '<span class="empty">🕴️</span>'}
-                        </div>
-                        <input type="file" id="manFile" style="display:none" accept="image/*" onchange="handleImageUpload(event, 'manVal', 'manPreview')">
-                        <input type="hidden" id="manVal" value="${p.mannequinImg || ''}">
-                        <button class="btn-outline" style="width:auto;padding:5px 15px;" onclick="document.getElementById('manFile').click()">Выбрать фото</button>
-                    </div>
-                    
-                    <button class="btn" onclick="saveProduct()">💾 Сохранить</button>
-                    <button class="btn-outline" style="margin-left:10px;" onclick="cancelEdit()">Отмена</button>
-                </div>
-            `;
-        }
-
-        function navigate(page) {
-            if (page === 'home') renderHome();
-            else if (page === 'cart') renderCart();
-            window.scrollTo(0, 0);
-        }
-
-        // ===== ЗАГРУЗКА ДАННЫХ =====
-        loadProducts();
-        saveCart();
-        navigate('home');
-        
-        // ===== ГЛОБАЛЬНЫЕ ФУНКЦИИ =====
-        window.selectSize = selectSize;
-        window.addToCart = addToCart;
-        window.removeFromCart = removeFromCart;
-        window.openProductModal = openProductModal;
-        window.openOrderModal = openOrderModal;
-        window.closeOrderModal = closeOrderModal;
-        window.submitOrder = submitOrder;
-        window.navigate = navigate;
-        window.showAdminAuth = showAdminAuth;
-        window.closeAdminAuth = closeAdminAuth;
-        window.checkAdminPassword = checkAdminPassword;
-        window.editProduct = editProduct;
-        window.cancelEdit = cancelEdit;
-        window.saveProduct = saveProduct;
-        window.handleImageUpload = handleImageUpload;
-        window.renderAdmin = renderAdmin;
-        window.openModal = openModal;
-        window.closeModal = closeModal;
-    </script>
-
-    <!-- Модалка товара -->
-    <div id="productModal" class="modal">
-        <div class="modal-content" id="productModalContent"></div>
-    </div>
-
-    <!-- Модалка заказа -->
-    <div id="orderModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeOrderModal()">&times;</span>
-            <h2>🛍️ Оформление заказа</h2>
-            <input type="text" id="orderName" placeholder="Ваше имя">
-            <input type="tel" id="orderPhone" placeholder="Телефон">
-            <textarea id="orderAddress" rows="2" placeholder="Адрес доставки"></textarea>
-            <select id="orderDelivery">
-                <option>СДЭК</option>
-                <option>Почта России</option>
-                <option>Курьером</option>
-                <option>Самовывоз</option>
-            </select>
-            <div class="payment-card">
-                <strong>💳 Оплата переводом на карту</strong>
-                <div class="card-number">2200 7020 0430 8479</div>
-                <small>После заказа переведите сумму</small>
-            </div>
-            <button class="btn" onclick="submitOrder()">✅ Отправить заказ</button>
-        </div>
-    </div>
-
-    <!-- Модалка админки -->
-    <div id="adminAuthModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeAdminAuth()">&times;</span>
-            <h2>🔐 Вход в админку</h2>
-            <input type="password" id="adminPassword" placeholder="Пароль">
-            <button class="btn" onclick="checkAdminPassword()">Войти</button>
-        </div>
-    </div>
-</body>
-</html>
+                    <div class="photo-upload-area
