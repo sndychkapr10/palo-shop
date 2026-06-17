@@ -32,57 +32,18 @@
         
         /* ===== ГАЛЕРЕЯ ===== */
         .gallery { display: flex; flex-direction: column; gap: 12px; }
-        .zoom-container { 
-            width: 100%; 
-            height: 350px; 
-            overflow: hidden; 
-            position: relative; 
-            background: #f5f7fa;
-            border-radius: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: zoom-in;
-            transition: 0.3s;
-        }
-        .zoom-container img { 
-            width: 100%; 
-            height: 100%; 
-            object-fit: contain;
-            transition: transform 0.3s ease;
-        }
+        .zoom-container { width: 100%; height: 350px; overflow: hidden; position: relative; background: #f5f7fa; border-radius: 20px; display: flex; justify-content: center; align-items: center; cursor: zoom-in; transition: 0.3s; }
+        .zoom-container img { width: 100%; height: 100%; object-fit: contain; transition: transform 0.3s ease; }
         .zoom-container.zoomed { cursor: zoom-out; }
         .zoom-container.zoomed img { transform: scale(2.2); }
-        .zoom-hint {
-            position: absolute;
-            bottom: 12px;
-            right: 12px;
-            background: rgba(0,0,0,0.6);
-            color: white;
-            padding: 4px 14px;
-            border-radius: 20px;
-            font-size: 11px;
-            pointer-events: none;
-        }
+        .zoom-hint { position: absolute; bottom: 12px; right: 12px; background: rgba(0,0,0,0.6); color: white; padding: 4px 14px; border-radius: 20px; font-size: 11px; pointer-events: none; }
         .empty-image { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 64px; color: #c0cbd8; }
-        
         .thumbnails { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
-        .thumb { 
-            width: 70px; 
-            height: 70px; 
-            border-radius: 14px; 
-            overflow: hidden; 
-            cursor: pointer; 
-            border: 2px solid transparent; 
-            transition: 0.2s; 
-            flex-shrink: 0; 
-            background: #f0f2f5;
-        }
+        .thumb { width: 70px; height: 70px; border-radius: 14px; overflow: hidden; cursor: pointer; border: 2px solid transparent; transition: 0.2s; flex-shrink: 0; background: #f0f2f5; }
         .thumb.active { border-color: #1e2f3f; }
         .thumb img { width: 100%; height: 100%; object-fit: cover; }
         .thumb .empty-thumb { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #b0bcca; }
         
-        /* ===== РАЗМЕРЫ ===== */
         .size-section { margin: 15px 0; padding: 10px; background: #f5f5f5; border-radius: 16px; }
         .size-buttons { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0; }
         .size-btn { background: white; border: 1px solid #ddd; padding: 8px 20px; border-radius: 30px; cursor: pointer; }
@@ -130,18 +91,10 @@
 
     <script>
         const products = [
-            { id: 1, name: "Кепка", price: 1500, desc: "Хлопок, козырёк", emoji: "🧢", 
-              sizes: ["S", "M", "L"], measures: ["54-56 см", "57-59 см", "60-62 см"],
-              frontImg: "", sideImg: "", mannequinImg: "" },
-            { id: 2, name: "Футболка", price: 1900, desc: "Джерси, белый", emoji: "👕", 
-              sizes: ["S", "M", "L", "XL"], measures: ["68/48 см", "70/51 см", "72/54 см", "74/57 см"],
-              frontImg: "", sideImg: "", mannequinImg: "" },
-            { id: 3, name: "Брюки", price: 5200, desc: "Костюмная ткань", emoji: "👖", 
-              sizes: ["S", "M", "L", "XL"], measures: ["100/72 см", "102/76 см", "104/80 см", "106/84 см"],
-              frontImg: "", sideImg: "", mannequinImg: "" },
-            { id: 4, name: "Лонгслив", price: 2700, desc: "Трикотаж, чёрный", emoji: "🧥", 
-              sizes: ["S", "M", "L", "XL"], measures: ["62/48 см", "64/51 см", "66/54 см", "68/57 см"],
-              frontImg: "", sideImg: "", mannequinImg: "" }
+            { id: 1, name: "Кепка", price: 1500, desc: "Хлопок, козырёк", emoji: "🧢", sizes: ["S", "M", "L"], measures: ["54-56 см", "57-59 см", "60-62 см"], frontImg: "", sideImg: "", mannequinImg: "" },
+            { id: 2, name: "Футболка", price: 1900, desc: "Джерси, белый", emoji: "👕", sizes: ["S", "M", "L", "XL"], measures: ["68/48 см", "70/51 см", "72/54 см", "74/57 см"], frontImg: "", sideImg: "", mannequinImg: "" },
+            { id: 3, name: "Брюки", price: 5200, desc: "Костюмная ткань", emoji: "👖", sizes: ["S", "M", "L", "XL"], measures: ["100/72 см", "102/76 см", "104/80 см", "106/84 см"], frontImg: "", sideImg: "", mannequinImg: "" },
+            { id: 4, name: "Лонгслив", price: 2700, desc: "Трикотаж, чёрный", emoji: "🧥", sizes: ["S", "M", "L", "XL"], measures: ["62/48 см", "64/51 см", "66/54 см", "68/57 см"], frontImg: "", sideImg: "", mannequinImg: "" }
         ];
 
         let cart = JSON.parse(localStorage.getItem('cart') || '[]');
@@ -203,44 +156,33 @@
             }).catch(() => showToast('❌ Ошибка соединения'));
         }
 
-        // ===== ГАЛЕРЕЯ С ЛУПОЙ =====
         function openProductModal(productId) {
             let p = products.find(pr => pr.id === productId);
             let currentSize = selectedSizes[productId] || '';
-
-            // Собираем изображения
             const images = [];
             if (p.frontImg) images.push({ src: p.frontImg, label: 'Спереди' });
             if (p.sideImg) images.push({ src: p.sideImg, label: 'Сбоку' });
             if (p.mannequinImg) images.push({ src: p.mannequinImg, label: 'На манекене' });
             currentImages = images;
 
-            // Миниатюры
             let thumbsHtml = '';
             if (images.length > 0) {
                 thumbsHtml = `<div class="thumbnails">`;
                 images.forEach((img, idx) => {
-                    thumbsHtml += `<div class="thumb ${idx === 0 ? 'active' : ''}" onclick="switchImage(${idx})">
-                        <img src="${img.src}" alt="${img.label}">
-                    </div>`;
+                    thumbsHtml += `<div class="thumb ${idx === 0 ? 'active' : ''}" onclick="switchImage(${idx})"><img src="${img.src}"></div>`;
                 });
                 thumbsHtml += `</div>`;
             } else {
                 thumbsHtml = `<div class="thumbnails"><div class="thumb" style="border-color:transparent;cursor:default;"><div class="empty-thumb">📸</div></div></div>`;
             }
 
-            // Размеры
             let sizeHtml = '';
             if (p.sizes) {
-                sizeHtml = `<div class="size-section">
-                    <div>📏 Выберите размер:</div>
-                    <div class="size-buttons">`;
+                sizeHtml = `<div class="size-section"><div>📏 Выберите размер:</div><div class="size-buttons">`;
                 p.sizes.forEach((size, idx) => {
                     sizeHtml += `<button class="size-btn size-${p.id} ${currentSize === size ? 'selected' : ''}" onclick="selectSize(${p.id}, '${size}', ${idx})">${size}</button>`;
                 });
-                sizeHtml += `</div>
-                    <div class="size-info" id="sizeInfo-${p.id}">${currentSize ? p.measures[p.sizes.indexOf(currentSize)] : 'Нажмите на размер'}</div>
-                </div>`;
+                sizeHtml += `</div><div class="size-info" id="sizeInfo-${p.id}">${currentSize ? p.measures[p.sizes.indexOf(currentSize)] : 'Нажмите на размер'}</div></div>`;
             }
 
             const mainImg = images.length > 0 ? images[0].src : '';
@@ -249,7 +191,7 @@
                 <span class="close" onclick="closeProductModal()">&times;</span>
                 <div class="gallery">
                     <div class="zoom-container" id="zoomContainer" onclick="toggleZoom()">
-                        ${mainImg ? `<img id="mainImage" src="${mainImg}" alt="${p.name}">` : `<div class="empty-image">${p.emoji}</div>`}
+                        ${mainImg ? `<img id="mainImage" src="${mainImg}">` : `<div class="empty-image">${p.emoji}</div>`}
                         <div class="zoom-hint">🔍 Нажмите для увеличения</div>
                     </div>
                     ${thumbsHtml}
@@ -262,20 +204,14 @@
                     </div>
                 </div>
             `;
-
             document.getElementById('productModal').style.display = 'flex';
-            // Сбрасываем зум при открытии
-            setTimeout(() => {
-                const container = document.getElementById('zoomContainer');
-                if (container) container.classList.remove('zoomed');
-            }, 50);
+            setTimeout(() => { const c = document.getElementById('zoomContainer'); if (c) c.classList.remove('zoomed'); }, 50);
         }
 
         function closeProductModal() {
             document.getElementById('productModal').style.display = 'none';
         }
 
-        // Переключение изображений
         function switchImage(index) {
             if (index >= currentImages.length) return;
             const mainImg = document.getElementById('mainImage');
@@ -283,18 +219,15 @@
             document.querySelectorAll('.thumb').forEach((el, i) => {
                 el.classList.toggle('active', i === index);
             });
-            // Сбрасываем зум при смене фото
             const container = document.getElementById('zoomContainer');
             if (container) container.classList.remove('zoomed');
         }
 
-        // Лупа (увеличение)
         function toggleZoom() {
             const container = document.getElementById('zoomContainer');
             if (container) container.classList.toggle('zoomed');
         }
 
-        // ===== ЗАКАЗ =====
         function openOrderModal() {
             if (cart.length === 0) { showToast('Корзина пуста'); return; }
             document.getElementById('orderModal').style.display = 'flex';
@@ -321,7 +254,6 @@
             closeOrderModal();
         }
 
-        // ===== СТРАНИЦЫ =====
         function renderHome() {
             let html = '<h2>Коллекция</h2><div class="products">';
             products.forEach(p => {
@@ -361,7 +293,6 @@
             document.getElementById('app').innerHTML = html;
         }
 
-        // ===== АДМИНКА =====
         let clickCount = 0, clickTimer = null;
         document.querySelector('.logo').addEventListener('click', function() {
             clickCount++;
@@ -401,9 +332,7 @@
         function renderAdmin() {
             if (!isAdminAuthenticated) { showAdminAuth(); return; }
             let html = `<div style="background:white; border-radius:24px; padding:20px;">
-                <h2>📷 Управление товарами</h2>
-                <div id="adminMsg"></div>
-                <div id="adminForm"></div>
+                <h2>📷 Управление товарами</h2><div id="adminMsg"></div><div id="adminForm"></div>
                 <h3 style="margin:20px 0 10px;">Список</h3><ul style="list-style:none;">`;
             products.forEach(p => {
                 html += `<li style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #eee;">
@@ -541,7 +470,6 @@
             window.scrollTo(0, 0);
         }
 
-        // Загрузка сохранённых фото
         let saved = localStorage.getItem('palo_products');
         if (saved) {
             try {
@@ -567,4 +495,21 @@
         <div class="modal-content" id="productModalContent"></div>
     </div>
 
-    <!--
+    <!-- Модалка заказа -->
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeOrderModal()">&times;</span>
+            <h2>🛍️ Оформление заказа</h2>
+            <input type="text" id="orderName" placeholder="Ваше имя">
+            <input type="tel" id="orderPhone" placeholder="Телефон">
+            <textarea id="orderAddress" rows="2" placeholder="Адрес доставки"></textarea>
+            <select id="orderDelivery">
+                <option>СДЭК</option>
+                <option>Почта России</option>
+                <option>Курьером</option>
+                <option>Самовывоз</option>
+            </select>
+            <div class="payment-card">
+                <strong>💳 Оплата переводом на карту</strong>
+                <div class="card-number">2200 7020 0430 8479</div>
+                <small
