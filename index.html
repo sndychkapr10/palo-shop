@@ -29,20 +29,19 @@
         .modal-content { background: white; border-radius: 30px; max-width: 500px; width: 100%; padding: 20px; position: relative; max-height: 90vh; overflow-y: auto; }
         .close { position: absolute; top: 15px; right: 20px; font-size: 28px; cursor: pointer; z-index: 10; }
         
-        /* ===== ГАЛЕРЕЯ С ПРОЛИСТЫВАНИЕМ ===== */
-        .gallery-container { position: relative; width: 100%; overflow: hidden; border-radius: 16px; background: #f0f2f5; }
-        .gallery-track { display: flex; transition: transform 0.4s ease; touch-action: pan-y; }
-        .gallery-slide { min-width: 100%; display: flex; justify-content: center; align-items: center; height: 300px; }
-        .gallery-slide img { width: 100%; height: 100%; object-fit: contain; }
-        .gallery-slide .no-photo { font-size: 64px; color: #999; }
-        .gallery-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); color: white; border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 18px; z-index: 5; display: flex; align-items: center; justify-content: center; }
-        .gallery-nav:hover { background: rgba(0,0,0,0.8); }
-        .gallery-nav.prev { left: 8px; }
-        .gallery-nav.next { right: 8px; }
-        .gallery-dots { display: flex; justify-content: center; gap: 8px; margin-top: 10px; }
-        .gallery-dot { width: 10px; height: 10px; border-radius: 50%; background: #ccc; cursor: pointer; transition: 0.3s; border: none; padding: 0; }
-        .gallery-dot.active { background: #1e2f3f; }
-        .gallery-counter { position: absolute; bottom: 12px; right: 12px; background: rgba(0,0,0,0.6); color: white; padding: 2px 12px; border-radius: 20px; font-size: 12px; z-index: 5; }
+        /* ===== ПРОСТАЯ ГАЛЕРЕЯ ===== */
+        .gallery-simple { position: relative; width: 100%; overflow: hidden; border-radius: 16px; background: #f0f2f5; touch-action: pan-y; }
+        .gallery-simple .slides { display: flex; transition: transform 0.3s ease; }
+        .gallery-simple .slide { min-width: 100%; display: flex; justify-content: center; align-items: center; height: 300px; }
+        .gallery-simple .slide img { width: 100%; height: 100%; object-fit: contain; }
+        .gallery-simple .slide .empty { font-size: 64px; color: #999; }
+        .gallery-simple .arrow { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); color: white; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 18px; z-index: 5; display: flex; align-items: center; justify-content: center; }
+        .gallery-simple .arrow:hover { background: rgba(0,0,0,0.8); }
+        .gallery-simple .prev { left: 8px; }
+        .gallery-simple .next { right: 8px; }
+        .gallery-simple .dots { display: flex; justify-content: center; gap: 8px; margin-top: 8px; }
+        .gallery-simple .dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; cursor: pointer; border: none; padding: 0; }
+        .gallery-simple .dot.active { background: #1e2f3f; }
         
         .size-section { margin: 15px 0; padding: 10px; background: #f5f5f5; border-radius: 16px; }
         .size-buttons { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0; }
@@ -72,7 +71,7 @@
             .product-name { font-size: 14px; }
             .product-price { font-size: 16px; }
             .nav a { margin-left: 10px; font-size: 14px; }
-            .gallery-slide { height: 250px; }
+            .gallery-simple .slide { height: 250px; }
         }
     </style>
 </head>
@@ -102,9 +101,7 @@
         let currentEditId = null;
         let clickCount = 0;
         let clickTimer = null;
-        let currentGalleryIndex = 0;
 
-        // ===== СОХРАНЕНИЕ =====
         function saveCart() {
             localStorage.setItem('cart', JSON.stringify(cart));
             document.getElementById('cartCount').innerText = cart.reduce((s,i) => s + i.qty, 0);
@@ -128,14 +125,10 @@
                                 products[i].frontImg = parsed[i].frontImg || '';
                                 products[i].sideImg = parsed[i].sideImg || '';
                                 products[i].mannequinImg = parsed[i].mannequinImg || '';
-                                if (parsed[i].name) products[i].name = parsed[i].name;
-                                if (parsed[i].price) products[i].price = parsed[i].price;
-                                if (parsed[i].desc) products[i].desc = parsed[i].desc;
-                                if (parsed[i].emoji) products[i].emoji = parsed[i].emoji;
                             }
                         }
                     }
-                } catch(e) { console.log('Ошибка загрузки товаров:', e); }
+                } catch(e) {}
             }
         }
 
@@ -143,7 +136,6 @@
             localStorage.setItem('palo_products', JSON.stringify(products));
         }
 
-        // ===== РАЗМЕРЫ =====
         function selectSize(productId, size, idx) {
             selectedSizes[productId] = size;
             localStorage.setItem('selectedSizes', JSON.stringify(selectedSizes));
@@ -155,7 +147,6 @@
             if (product) document.getElementById(`sizeInfo-${productId}`).innerText = product.measures[idx];
         }
 
-        // ===== КОРЗИНА =====
         function addToCart(id) {
             let product = products.find(p => p.id === id);
             let size = selectedSizes[id];
@@ -164,7 +155,7 @@
             if (item) item.qty++;
             else cart.push({ id, qty: 1, size: size || 'OS' });
             saveCart();
-            showToast('✓ Добавлено в корзину');
+            showToast('✓ Добавлено');
             navigate('cart');
         }
 
@@ -174,11 +165,10 @@
             navigate('cart');
         }
 
-        // ===== TELEGRAM =====
         function sendOrderToTelegram(orderDetails, total, customer) {
             const TOKEN = '8758635199:AAEG8B69jBqbW1fmwLZUbrso5w1VIrHonKg';
             const CHAT_ID = '5820655432';
-            let text = `🛍️ НОВЫЙ ЗАКАЗ PALO\n\n👤 Имя: ${customer.name}\n📞 Телефон: ${customer.phone}\n📍 Адрес: ${customer.address}\n🚚 Доставка: ${customer.delivery}\n\n📦 Состав:\n${orderDetails}\n\n💰 ИТОГО: ${total} ₽\n💳 Оплата: 2200 7020 0430 8479`;
+            let text = `🛍️ НОВЫЙ ЗАКАЗ PALO\n\n👤 ${customer.name}\n📞 ${customer.phone}\n📍 ${customer.address}\n🚚 ${customer.delivery}\n\n📦 ${orderDetails}\n💰 ИТОГО: ${total} ₽\n💳 Карта: 2200 7020 0430 8479`;
             fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -189,7 +179,6 @@
             }).catch(() => showToast('❌ Ошибка соединения'));
         }
 
-        // ===== МОДАЛЬНЫЕ ОКНА =====
         function openModal(id) {
             document.getElementById(id).style.display = 'flex';
             document.body.style.overflow = 'hidden';
@@ -200,89 +189,57 @@
             document.body.style.overflow = '';
         }
 
-        // ===== ГАЛЕРЕЯ =====
-        function initGallery(images, startIndex) {
-            currentGalleryIndex = startIndex || 0;
-            const container = document.getElementById('galleryTrack');
-            const dots = document.getElementById('galleryDots');
-            const counter = document.getElementById('galleryCounter');
-            
-            if (!container) return;
-            
-            // Рендерим слайды
+        // ===== ГАЛЕРЕЯ С ПРОЛИСТЫВАНИЕМ (ПРОСТАЯ ВЕРСИЯ) =====
+        function createGallery(images) {
+            // Если нет фото, показываем эмодзи
             let slidesHtml = '';
-            images.forEach((img, idx) => {
-                slidesHtml += `<div class="gallery-slide">
-                    ${img ? `<img src="${img}" alt="Фото ${idx+1}">` : `<div class="no-photo">📸</div>`}
-                </div>`;
-            });
-            container.innerHTML = slidesHtml;
-            
-            // Обновляем позицию
-            updateGallery(images.length);
-            
-            // Точки
-            if (dots) {
-                dots.innerHTML = '';
-                images.forEach((_, idx) => {
-                    let dot = document.createElement('button');
-                    dot.className = 'gallery-dot' + (idx === currentGalleryIndex ? ' active' : '');
-                    dot.onclick = () => goToSlide(idx, images.length);
-                    dots.appendChild(dot);
-                });
-            }
-            
-            // Счётчик
-            if (counter && images.length > 0) {
-                counter.textContent = `${currentGalleryIndex + 1} / ${images.length}`;
-            }
-        }
-
-        function updateGallery(totalSlides) {
-            const container = document.getElementById('galleryTrack');
-            if (!container) return;
-            container.style.transform = `translateX(-${currentGalleryIndex * 100}%)`;
-            
-            // Обновляем точки
-            document.querySelectorAll('.gallery-dot').forEach((dot, idx) => {
-                dot.classList.toggle('active', idx === currentGalleryIndex);
+            images.forEach(img => {
+                slidesHtml += `<div class="slide">${img ? `<img src="${img}">` : `<span class="empty">📸</span>`}</div>`;
             });
             
-            // Обновляем счётчик
-            const counter = document.getElementById('galleryCounter');
-            if (counter && totalSlides > 0) {
-                counter.textContent = `${currentGalleryIndex + 1} / ${totalSlides}`;
-            }
-            
-            // Показываем/скрываем стрелки
-            const prevBtn = document.getElementById('galleryPrev');
-            const nextBtn = document.getElementById('galleryNext');
-            if (prevBtn) prevBtn.style.display = currentGalleryIndex > 0 ? 'flex' : 'none';
-            if (nextBtn) nextBtn.style.display = currentGalleryIndex < totalSlides - 1 ? 'flex' : 'none';
+            return `
+                <div class="gallery-simple" id="galleryContainer">
+                    <div class="slides" id="gallerySlides">${slidesHtml}</div>
+                    ${images.length > 1 ? `
+                        <button class="arrow prev" onclick="slideGallery(-1)">‹</button>
+                        <button class="arrow next" onclick="slideGallery(1)">›</button>
+                        <div class="dots" id="galleryDots"></div>
+                    ` : ''}
+                </div>
+            `;
         }
 
-        function goToSlide(index, totalSlides) {
-            if (index < 0) index = 0;
-            if (index >= totalSlides) index = totalSlides - 1;
-            currentGalleryIndex = index;
-            updateGallery(totalSlides);
+        let galleryIndex = 0;
+        let galleryImages = [];
+
+        function slideGallery(direction) {
+            const slides = document.getElementById('gallerySlides');
+            if (!slides) return;
+            const total = galleryImages.length;
+            if (total <= 1) return;
+            galleryIndex = (galleryIndex + direction + total) % total;
+            slides.style.transform = `translateX(-${galleryIndex * 100}%)`;
+            updateDots();
         }
 
-        // ===== ОТКРЫТИЕ ТОВАРА =====
+        function updateDots() {
+            document.querySelectorAll('#galleryDots .dot').forEach((dot, i) => {
+                dot.classList.toggle('active', i === galleryIndex);
+            });
+        }
+
         function openProductModal(productId) {
             let p = products.find(pr => pr.id === productId);
             let currentSize = selectedSizes[productId] || '';
             
-            // Собираем все фото для галереи
-            const galleryImages = [];
-            if (p.frontImg) galleryImages.push(p.frontImg);
-            if (p.sideImg) galleryImages.push(p.sideImg);
-            if (p.mannequinImg) galleryImages.push(p.mannequinImg);
-            
-            // Если нет фото, показываем эмодзи
-            if (galleryImages.length === 0) {
-                galleryImages.push(null);
-            }
+            // Собираем фото
+            const images = [];
+            if (p.frontImg) images.push(p.frontImg);
+            if (p.sideImg) images.push(p.sideImg);
+            if (p.mannequinImg) images.push(p.mannequinImg);
+            if (images.length === 0) images.push(null);
+            galleryImages = images;
+            galleryIndex = 0;
             
             let sizeHtml = '';
             if (p.sizes) {
@@ -296,31 +253,40 @@
             document.getElementById('productModalContent').innerHTML = `
                 <span class="close" onclick="closeModal('productModal')">&times;</span>
                 <div style="text-align:center;">
-                    <div class="gallery-container">
-                        <div class="gallery-track" id="galleryTrack"></div>
-                        <button class="gallery-nav prev" id="galleryPrev" onclick="goToSlide(currentGalleryIndex-1, ${galleryImages.length})">‹</button>
-                        <button class="gallery-nav next" id="galleryNext" onclick="goToSlide(currentGalleryIndex+1, ${galleryImages.length})">›</button>
-                        <div class="gallery-counter" id="galleryCounter"></div>
-                    </div>
-                    <div class="gallery-dots" id="galleryDots"></div>
-                    
+                    ${createGallery(images)}
                     <h2 style="margin:10px 0;">${p.name}</h2>
                     <div class="product-price" style="margin:10px 0;">${p.price} ₽</div>
                     <div style="color:#666;">${p.desc}</div>
                     ${sizeHtml}
-                    <button class="btn" onclick="addToCart(${p.id}); closeModal('productModal');">🛒 Добавить в корзину</button>
+                    <button class="btn" onclick="addToCart(${p.id}); closeModal('productModal');">🛒 Добавить</button>
                 </div>
             `;
             
             openModal('productModal');
             
-            // Инициализируем галерею после отрисовки
+            // Инициализируем точки после отрисовки
             setTimeout(() => {
-                initGallery(galleryImages, 0);
+                const dotsContainer = document.getElementById('galleryDots');
+                if (dotsContainer && images.length > 1) {
+                    dotsContainer.innerHTML = '';
+                    images.forEach((_, i) => {
+                        let dot = document.createElement('button');
+                        dot.className = 'dot' + (i === 0 ? ' active' : '');
+                        dot.onclick = () => {
+                            galleryIndex = i;
+                            const slides = document.getElementById('gallerySlides');
+                            if (slides) slides.style.transform = `translateX(-${i * 100}%)`;
+                            updateDots();
+                        };
+                        dotsContainer.appendChild(dot);
+                    });
+                }
+                // Сброс позиции слайдера
+                const slides = document.getElementById('gallerySlides');
+                if (slides) slides.style.transform = 'translateX(0%)';
             }, 50);
         }
 
-        // ===== ЗАКАЗ =====
         function openOrderModal() {
             if (cart.length === 0) { showToast('Корзина пуста'); return; }
             openModal('orderModal');
@@ -355,7 +321,7 @@
             if (clickCount >= 5) {
                 clickCount = 0;
                 localStorage.setItem('adminShown', 'true');
-                showToast('🔓 Админ-панель активирована! Нажмите кнопку внизу');
+                showToast('🔓 Админ-панель активирована');
                 renderHome();
             }
         });
@@ -380,32 +346,15 @@
             } else showToast('❌ Неверный пароль');
         }
 
-        // ===== ЗАГРУЗКА ФОТО =====
         function handleImageUpload(event, fieldId, previewId) {
             let file = event.target.files[0];
-            if (!file) {
-                showToast('❌ Файл не выбран');
-                return;
-            }
-            if (file.size > 5 * 1024 * 1024) {
-                showToast('⚠️ Файл больше 5 МБ');
-                return;
-            }
+            if (!file) return;
+            if (file.size > 5 * 1024 * 1024) { showToast('⚠️ Файл >5 МБ'); return; }
             let reader = new FileReader();
             reader.onload = function(e) {
-                try {
-                    document.getElementById(fieldId).value = e.target.result;
-                    let preview = document.getElementById(previewId);
-                    if (preview) {
-                        preview.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;">`;
-                    }
-                    showToast('✅ Фото загружено! Нажмите "Сохранить"');
-                } catch(err) {
-                    showToast('❌ Ошибка загрузки фото');
-                }
-            };
-            reader.onerror = function() {
-                showToast('❌ Ошибка чтения файла');
+                document.getElementById(fieldId).value = e.target.result;
+                document.getElementById(previewId).innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;">`;
+                showToast('✅ Фото загружено! Нажмите "Сохранить"');
             };
             reader.readAsDataURL(file);
         }
@@ -419,10 +368,7 @@
             let sideImg = document.getElementById('sideVal').value;
             let mannequinImg = document.getElementById('manVal').value;
             
-            if (!name || isNaN(price)) {
-                showToast('Заполните название и цену');
-                return;
-            }
+            if (!name || isNaN(price)) { showToast('Заполните название и цену'); return; }
             
             if (currentEditId) {
                 let index = products.findIndex(p => p.id === currentEditId);
@@ -447,16 +393,11 @@
             renderAdmin();
         }
 
-        // ===== ОТОБРАЖЕНИЕ =====
+        // ===== СТРАНИЦЫ =====
         function renderHome() {
             let html = '<h2>Коллекция</h2><div class="products">';
             products.forEach(p => {
-                let imgHtml = '';
-                if (p.frontImg) {
-                    imgHtml = `<img src="${p.frontImg}" alt="${p.name}">`;
-                } else {
-                    imgHtml = `<span class="no-image">${p.emoji}</span>`;
-                }
+                let imgHtml = p.frontImg ? `<img src="${p.frontImg}">` : `<span class="no-image">${p.emoji}</span>`;
                 html += `<div class="product" onclick="openProductModal(${p.id})">
                     <div class="product-image">${imgHtml}</div>
                     <div class="product-name">${p.name}</div>
@@ -465,7 +406,6 @@
                     <button class="btn" onclick="event.stopPropagation(); openProductModal(${p.id})">🔍 Выбрать размер</button>
                 </div>`;
             });
-            
             let adminShown = localStorage.getItem('adminShown') === 'true';
             html += `</div>
                 <div id="adminLink" class="admin-link ${adminShown ? 'visible' : 'hidden'}" onclick="showAdminAuth()">
@@ -488,11 +428,11 @@
                 html += `<div class="cart-item">
                     <div><strong>${p.name}</strong> ${item.size ? `(${item.size})` : ''}<br>${item.qty} шт × ${p.price} ₽</div>
                     <div><strong>${sum} ₽</strong></div>
-                    <button class="btn-outline" style="width:auto; padding:8px 15px;" onclick="removeFromCart(${p.id}, '${item.size || ''}')">🗑 Удалить</button>
+                    <button class="btn-outline" style="width:auto; padding:8px 15px;" onclick="removeFromCart(${p.id}, '${item.size || ''}')">🗑</button>
                 </div>`;
             });
             html += `<div class="total">Итого: ${total} ₽</div>`;
-            html += `<button class="btn" onclick="openOrderModal()">💳 Оформить заказ</button>`;
+            html += `<button class="btn" onclick="openOrderModal()">💳 Оформить</button>`;
             document.getElementById('app').innerHTML = html;
         }
 
@@ -501,52 +441,38 @@
                 document.getElementById('app').innerHTML = `
                     <div style="text-align:center;padding:50px;">
                         <h3>🔒 Доступ закрыт</h3>
-                        <p>Нажмите 5 раз на логотип PALO, затем нажмите кнопку "Админ-панель" внизу</p>
+                        <p>Нажмите 5 раз на логотип PALO, затем нажмите "Админ-панель" внизу</p>
                         <button class="btn" style="max-width:200px;margin:20px auto;" onclick="showAdminAuth()">Войти</button>
                     </div>
                 `;
                 return;
             }
-            
             let html = `<div class="admin-panel">
                 <h2>📷 Управление товарами</h2>
                 <div id="adminMsg"></div>
                 <div id="adminForm"></div>
-                <h3 style="margin:20px 0 10px;">Список товаров</h3>`;
-            
+                <h3 style="margin:20px 0 10px;">Список</h3>`;
             products.forEach(p => {
-                let hasPhoto = p.frontImg ? '📷' : '📸';
-                html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #eee;">
-                    <span>${hasPhoto} <strong>${p.name}</strong> — ${p.price}₽</span>
-                    <button onclick="editProduct(${p.id})" class="btn-outline" style="width:auto;padding:5px 15px;">✏️</button>
+                html += `<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee;">
+                    <span>${p.frontImg ? '📷' : '📸'} <strong>${p.name}</strong> — ${p.price}₽</span>
+                    <button onclick="editProduct(${p.id})" class="btn-outline" style="padding:5px 15px;">✏️</button>
                 </div>`;
             });
             html += `</div>`;
             document.getElementById('app').innerHTML = html;
-            
             if (currentEditId) {
                 let prod = products.find(p => p.id === currentEditId);
                 if (prod) renderAdminForm(prod);
-            } else {
-                renderAdminForm(null);
-            }
+            } else renderAdminForm(null);
         }
 
-        function editProduct(id) {
-            currentEditId = id;
-            renderAdmin();
-        }
-
-        function cancelEdit() {
-            currentEditId = null;
-            renderAdmin();
-        }
+        function editProduct(id) { currentEditId = id; renderAdmin(); }
+        function cancelEdit() { currentEditId = null; renderAdmin(); }
 
         function renderAdminForm(prod) {
             let formDiv = document.getElementById('adminForm');
             if (!formDiv) return;
             let p = prod || { id: null, name: '', price: '', desc: '', emoji: '👕', frontImg: '', sideImg: '', mannequinImg: '' };
-            
             formDiv.innerHTML = `
                 <div style="margin-top:20px;border-top:2px solid #eee;padding-top:20px;">
                     <h3>${p.id ? 'Редактировать' : 'Новый товар'}</h3>
@@ -554,7 +480,6 @@
                     <div><input id="prodPrice" type="number" placeholder="Цена" value="${p.price}" style="width:100%;padding:10px;border-radius:12px;border:1px solid #ddd;margin-bottom:10px;"></div>
                     <div><textarea id="prodDesc" rows="2" placeholder="Описание" style="width:100%;padding:10px;border-radius:12px;border:1px solid #ddd;margin-bottom:10px;">${p.desc}</textarea></div>
                     <div><input id="prodEmoji" placeholder="Эмодзи" value="${p.emoji}" style="width:100%;padding:10px;border-radius:12px;border:1px solid #ddd;margin-bottom:10px;"></div>
-                    
                     <div class="photo-upload-area">
                         <div><strong>📷 Фото 1 (спереди)</strong></div>
                         <div class="photo-preview" id="frontPreview" onclick="document.getElementById('frontFile').click()">
@@ -564,7 +489,6 @@
                         <input type="hidden" id="frontVal" value="${p.frontImg || ''}">
                         <button class="btn-outline" style="width:auto;padding:5px 15px;" onclick="document.getElementById('frontFile').click()">Выбрать фото</button>
                     </div>
-                    
                     <div class="photo-upload-area">
                         <div><strong>📷 Фото 2 (сбоку)</strong></div>
                         <div class="photo-preview" id="sidePreview" onclick="document.getElementById('sideFile').click()">
@@ -574,5 +498,64 @@
                         <input type="hidden" id="sideVal" value="${p.sideImg || ''}">
                         <button class="btn-outline" style="width:auto;padding:5px 15px;" onclick="document.getElementById('sideFile').click()">Выбрать фото</button>
                     </div>
-                    
-                    <div class="photo-upload-area
+                    <div class="photo-upload-area">
+                        <div><strong>📷 Фото 3 (на манекене)</strong></div>
+                        <div class="photo-preview" id="manPreview" onclick="document.getElementById('manFile').click()">
+                            ${p.mannequinImg ? `<img src="${p.mannequinImg}">` : '<span class="empty">🕴️</span>'}
+                        </div>
+                        <input type="file" id="manFile" style="display:none" accept="image/*" onchange="handleImageUpload(event, 'manVal', 'manPreview')">
+                        <input type="hidden" id="manVal" value="${p.mannequinImg || ''}">
+                        <button class="btn-outline" style="width:auto;padding:5px 15px;" onclick="document.getElementById('manFile').click()">Выбрать фото</button>
+                    </div>
+                    <button class="btn" onclick="saveProduct()">💾 Сохранить</button>
+                    <button class="btn-outline" style="margin-left:10px;" onclick="cancelEdit()">Отмена</button>
+                </div>
+            `;
+        }
+
+        function navigate(page) {
+            if (page === 'home') renderHome();
+            else if (page === 'cart') renderCart();
+            window.scrollTo(0, 0);
+        }
+
+        loadProducts();
+        saveCart();
+        navigate('home');
+
+        window.selectSize = selectSize;
+        window.addToCart = addToCart;
+        window.removeFromCart = removeFromCart;
+        window.openProductModal = openProductModal;
+        window.openOrderModal = openOrderModal;
+        window.closeOrderModal = closeOrderModal;
+        window.submitOrder = submitOrder;
+        window.navigate = navigate;
+        window.showAdminAuth = showAdminAuth;
+        window.closeAdminAuth = closeAdminAuth;
+        window.checkAdminPassword = checkAdminPassword;
+        window.editProduct = editProduct;
+        window.cancelEdit = cancelEdit;
+        window.saveProduct = saveProduct;
+        window.handleImageUpload = handleImageUpload;
+        window.renderAdmin = renderAdmin;
+        window.openModal = openModal;
+        window.closeModal = closeModal;
+        window.slideGallery = slideGallery;
+    </script>
+
+    <!-- Модалка товара -->
+    <div id="productModal" class="modal">
+        <div class="modal-content" id="productModalContent"></div>
+    </div>
+
+    <!-- Модалка заказа -->
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeOrderModal()">&times;</span>
+            <h2>🛍️ Оформление заказа</h2>
+            <input type="text" id="orderName" placeholder="Ваше имя">
+            <input type="tel" id="orderPhone" placeholder="Телефон">
+            <textarea id="orderAddress" rows="2" placeholder="Адрес доставки"></textarea>
+            <select id="orderDelivery">
+                <option
