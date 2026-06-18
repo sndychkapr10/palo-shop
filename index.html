@@ -90,9 +90,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#1e2f3f}
 <span class="close-zoom">&times;</span>
 <img id="zoomImage" src="">
 </div>
-<script>
-// ===== ТОВАРЫ С ФОТО (ВСЁ ВСТАВЛЕНО) =====
-const products = [
+<script>const products = [
     {
         id: 1,
         name: "Кепка",
@@ -142,8 +140,6 @@ const products = [
         mannequinImg: "https://i.yapx.ru/d2i1B.jpg"
     }
 ];
-
-// ===== ОСТАЛЬНОЙ КОД =====
 let cart = JSON.parse(localStorage.getItem('cart') || '[]');
 let sizes = JSON.parse(localStorage.getItem('sizes') || '{}');
 let isAdmin = false;
@@ -468,10 +464,88 @@ function saveProd() {
     toast('✅ Товар сохранён');
     editId = null;
     renderAdmin();
-}
-
-function renderForm(prod) {
+}function renderForm(prod) {
     var f = document.getElementById('adminForm');
     if (!f) return;
     var p = prod || {id: null, name: '', price: '', desc: '', emoji: '👕', frontImg: '', sideImg: '', mannequinImg: ''};
-    f.innerHTML = '<div style="margin-top:20px;border-top:2px solid #eee;padding-top:20px;"><h3>' + (p.id ? 'Редактировать' : 'Новый товар') + '</h3><div><input id="prodName" placeholder="Название" value="' + p.name + '" style="width:100%;padding:10px;border-radius:12px;border:1px solid #ddd;margin-bottom:10px;"></div><div><input id="prodPrice" type="number" placeholder="Цена" value="' + p.price + '" style="width:100%;padding:10px;border-radius:12px;border:1px solid #ddd;margin-bottom:10px;"></div><div><textarea id="prodDesc" rows="2" placeholder="Описание" style="width:100%;padding:10px;border-radius:12px;border:1px solid #ddd;margin-bottom:10px;">' + p.desc + '</textarea></div><div><input id="prodEmoji" placeholder="Эмодзи" value="' + p.emoji + '" style="width:100%;padding:10px;border-radius:12px;border:1px solid #ddd;margin-bottom:10px;"></div><div class="photo-upload-area"><div><strong>📷 Фото 1 (спереди)</strong></div><div class="photo-preview" id="frontPreview" onclick="document.getElementById(\'frontFile\').click()">' + (p.frontImg ? '<img src="' + p.frontImg + '">' : '<span class="empty">📸</span>') + '</div><input type="file" id="frontFile" style="display:none" accept="image/*" onchange="handleImg(event,\'frontVal\',\'frontPreview\')"><input class="photo-url-input" id="frontUrlInput" placeholder="Или вставьте ссылку на фото" value="' + (p.frontImg || '') + '"><button class="btn-outline" style="width:auto;padding:5px 15px;margin-top:4px;" onclick="setImageByUrl(\'front\')">🔗 Применить ссылку</button><input type="hidden" id="frontVal" value="' + (p.frontImg || '') + '"></div><div class="photo-upload-area"><div><strong>📷 Фото 2 (сбоку)</strong></div><div class="photo-preview" id="sidePreview" onclick="document.getElementById(\'sideFile\').click()">' + (p.sideImg ? '<img src="' + p.sideImg + '">' : '<span class="empty">📸</span>') + '</div><input type="file" id="sideFile" style="display:none" accept="image/*" onchange="handleImg(event,\'sideVal\',\'sidePreview\')"><input class="photo-url-input" id
+    f.innerHTML = '<div style="margin-top:20px;border-top:2px solid #eee;padding-top:20px;"><h3>' + (p.id ? 'Редактировать' : 'Новый товар') + '</h3><div><input id="prodName" placeholder="Название" value="' + p.name + '" style="width:100%;padding:10px;border-radius:12px;border:1px solid #ddd;margin-bottom:10px;"></div><div><input id="prodPrice" type="number" placeholder="Цена" value="' + p.price + '" style="width:100%;padding:10px;border-radius:12px;border:1px solid #ddd;margin-bottom:10px;"></div><div><textarea id="prodDesc" rows="2" placeholder="Описание" style="width:100%;padding:10px;border-radius:12px;border:1px solid #ddd;margin-bottom:10px;">' + p.desc + '</textarea></div><div><input id="prodEmoji" placeholder="Эмодзи" value="' + p.emoji + '" style="width:100%;padding:10px;border-radius:12px;border:1px solid #ddd;margin-bottom:10px;"></div><div class="photo-upload-area"><div><strong>📷 Фото 1 (спереди)</strong></div><div class="photo-preview" id="frontPreview" onclick="document.getElementById(\'frontFile\').click()">' + (p.frontImg ? '<img src="' + p.frontImg + '">' : '<span class="empty">📸</span>') + '</div><input type="file" id="frontFile" style="display:none" accept="image/*" onchange="handleImg(event,\'frontVal\',\'frontPreview\')"><input class="photo-url-input" id="frontUrlInput" placeholder="Или вставьте ссылку на фото" value="' + (p.frontImg || '') + '"><button class="btn-outline" style="width:auto;padding:5px 15px;margin-top:4px;" onclick="setImageByUrl(\'front\')">🔗 Применить ссылку</button><input type="hidden" id="frontVal" value="' + (p.frontImg || '') + '"></div><div class="photo-upload-area"><div><strong>📷 Фото 2 (сбоку)</strong></div><div class="photo-preview" id="sidePreview" onclick="document.getElementById(\'sideFile\').click()">' + (p.sideImg ? '<img src="' + p.sideImg + '">' : '<span class="empty">📸</span>') + '</div><input type="file" id="sideFile" style="display:none" accept="image/*" onchange="handleImg(event,\'sideVal\',\'sidePreview\')"><input class="photo-url-input" id="sideUrlInput" placeholder="Или вставьте ссылку на фото" value="' + (p.sideImg || '') + '"><button class="btn-outline" style="width:auto;padding:5px 15px;margin-top:4px;" onclick="setImageByUrl(\'side\')">🔗 Применить ссылку</button><input type="hidden" id="sideVal" value="' + (p.sideImg || '') + '"></div><div class="photo-upload-area"><div><strong>📷 Фото 3 (на манекене)</strong></div><div class="photo-preview" id="manPreview" onclick="document.getElementById(\'manFile\').click()">' + (p.mannequinImg ? '<img src="' + p.mannequinImg + '">' : '<span class="empty">🕴️</span>') + '</div><input type="file" id="manFile" style="display:none" accept="image/*" onchange="handleImg(event,\'manVal\',\'manPreview\')"><input class="photo-url-input" id="manUrlInput" placeholder="Или вставьте ссылку на фото" value="' + (p.mannequinImg || '') + '"><button class="btn-outline" style="width:auto;padding:5px 15px;margin-top:4px;" onclick="setImageByUrl(\'mannequin\')">🔗 Применить ссылку</button><input type="hidden" id="manVal" value="' + (p.mannequinImg || '') + '"></div><button class="btn" onclick="saveProd()">💾 Сохранить</button><button class="btn-outline" style="margin-left:10px;" onclick="cancelEdit()">Отмена</button></div>';
+}
+
+function navigate(p) {
+    if (p === 'home') renderHome();
+    else if (p === 'cart') renderCart();
+    window.scrollTo(0, 0);
+}
+
+document.querySelector('.logo').addEventListener('click', function() {
+    clicks++;
+    clearTimeout(tmr);
+    tmr = setTimeout(function() { clicks = 0; }, 1000);
+    if (clicks >= 5) {
+        clicks = 0;
+        localStorage.setItem('adminShown', 'true');
+        document.getElementById('adminSecretLink').classList.add('visible');
+        toast('🔓 Админ-панель активирована');
+    }
+});
+
+function showAdminAuth() {
+    if (isAdmin) { renderAdmin(); return; }
+    openM('adminAuthModal');
+}
+
+function closeAdminAuth() {
+    closeM('adminAuthModal');
+    document.getElementById('adminPassword').value = '';
+}
+
+function checkAdmin() {
+    var p = document.getElementById('adminPassword').value;
+    if (p === 'admin123') {
+        isAdmin = true;
+        closeAdminAuth();
+        toast('✅ Добро пожаловать в админку');
+        renderAdmin();
+    } else toast('❌ Неверный пароль');
+}
+
+loadSaved();
+saveCart();
+renderHome();
+</script>
+
+<div id="productModal" class="modal"><div class="modal-content" id="productModalContent"></div></div>
+
+<div id="orderModal" class="modal">
+<div class="modal-content">
+<span class="close-modal" onclick="closeOrder()">&times;</span>
+<h2>🛍️ Оформление заказа</h2>
+<input type="text" id="orderName" placeholder="Ваше имя">
+<input type="tel" id="orderPhone" placeholder="Телефон">
+<textarea id="orderAddress" rows="2" placeholder="Адрес доставки"></textarea>
+<select id="orderDelivery">
+<option>СДЭК</option>
+<option>Почта России</option>
+<option>Курьером</option>
+<option>Самовывоз</option>
+</select>
+<div class="payment-card">
+<strong>💳 Оплата переводом на карту</strong>
+<div class="card-number">2200 7020 0430 8479</div>
+<small>После заказа переведите сумму</small>
+</div>
+<button class="btn" onclick="submitOrd()">✅ Отправить заказ</button>
+</div>
+</div>
+
+<div id="adminAuthModal" class="modal">
+<div class="modal-content">
+<span class="close-modal" onclick="closeAdminAuth()">&times;</span>
+<h2>🔐 Вход в админку</h2>
+<input type="password" id="adminPassword" placeholder="Пароль">
+<button class="btn" onclick="checkAdmin()">Войти</button>
+</div>
+</div>
+
+</body>
+</html>
