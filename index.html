@@ -90,13 +90,14 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#1e2f3f}
 <span class="close-zoom">&times;</span>
 <img id="zoomImage" src="">
 </div>
-<script>const products = [
+<script>// ===== ТОВАРЫ (КЕПКА — SOON) =====
+const products = [
     {
         id: 1,
         name: "Кепка",
         price: 1500,
         desc: "Хлопок, козырёк",
-        emoji: "🧢",
+        emoji: "SOON",
         sizes: ["S","M","L"],
         measures: ["54-56 см","57-59 см","60-62 см"],
         frontImg: "",
@@ -352,7 +353,14 @@ function submitOrd() {
 function renderHome() {
     var h = '<div class="section-title">Коллекция</div><div class="products-grid">';
     products.forEach(function(p) {
-        var img = p.frontImg ? '<img src="' + p.frontImg + '">' : '<span class="no-image">' + p.emoji + '</span>';
+        var img;
+        if (p.frontImg) {
+            img = '<img src="' + p.frontImg + '">';
+        } else if (p.id === 1) {
+            img = '<span style="font-size:28px;font-weight:700;color:#e67e22;">SOON</span>';
+        } else {
+            img = '<span class="no-image">' + p.emoji + '</span>';
+        }
         h += '<div class="product-card" onclick="openProd(' + p.id + ')"><div class="product-image">' + img + '</div><div class="product-name">' + p.name + '</div><div class="product-price">' + p.price + ' ₽</div><div class="product-desc">' + p.desc + '</div><button class="btn" onclick="event.stopPropagation();openProd(' + p.id + ')">🔍 Выбрать размер</button></div>';
     });
     h += '</div>';
@@ -384,7 +392,7 @@ function renderAdmin() {
     }
     var h = '<div class="admin-panel"><h2>📷 Управление товарами</h2><div id="adminMsg"></div><div id="adminForm"></div><h3 style="margin:20px 0 10px;">Список товаров</h3>';
     products.forEach(function(p) {
-        h += '<div class="product-row"><span>' + (p.frontImg ? '📷' : '📸') + ' <strong>' + p.name + '</strong> — ' + p.price + '₽</span><button onclick="editProd(' + p.id + ')" class="btn-outline" style="padding:5px 15px;width:auto;">✏️</button></div>';
+        h += '<div class="product-row"><span>' + (p.frontImg ? '📷' : (p.id === 1 ? '📝' : '📸')) + ' <strong>' + p.name + '</strong> — ' + p.price + '₽</span><button onclick="editProd(' + p.id + ')" class="btn-outline" style="padding:5px 15px;width:auto;">✏️</button></div>';
     });
     h += '</div>';
     document.getElementById('app').innerHTML = h;
